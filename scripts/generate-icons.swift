@@ -42,12 +42,18 @@ func gradient(_ ctx: CGContext, _ colors: [CGColor], from: CGPoint, to: CGPoint)
     let g = CGGradient(colorsSpace: space, colors: colors as CFArray, locations:nil)!
     ctx.drawLinearGradient(g, start:from, end:to, options:[.drawsBeforeStartLocation,.drawsAfterEndLocation])
 }
+// Enlarge the entire emblem; optical correction compensates for the bright nib and low ink sweep.
+let emblemScale: CGFloat = 1.18
+let emblemOrigin = CGPoint(x: 512*(1-emblemScale)-28, y: 512*(1-emblemScale)-48)
 func drawApp(_ ctx: CGContext) {
     ctx.saveGState()
     let tile = CGPath(roundedRect: CGRect(x:64,y:64,width:896,height:896), cornerWidth:202, cornerHeight:202, transform:nil)
     ctx.addPath(tile); ctx.clip()
     gradient(ctx,[color(0x246CE8),color(0x5C41CE),color(0xAA35BA)],from:CGPoint(x:148,y:132),to:CGPoint(x:906,y:960))
     ctx.restoreGState()
+    ctx.saveGState()
+    ctx.translateBy(x: emblemOrigin.x, y: emblemOrigin.y)
+    ctx.scaleBy(x: emblemScale, y: emblemScale)
     ctx.saveGState(); ctx.addPath(wave.path); ctx.clip()
     gradient(ctx,[color(0x64E9FF),color(0xACF7ED)],from:CGPoint(x:374,y:660),to:CGPoint(x:766,y:699))
     ctx.restoreGState()
@@ -57,6 +63,7 @@ func drawApp(_ ctx: CGContext) {
     ctx.setStrokeColor(color(0x5148CA)); ctx.setLineWidth(20); ctx.setLineCap(.round)
     ctx.addPath(slit.path); ctx.strokePath()
     ctx.setFillColor(color(0x5148CA)); ctx.fillEllipse(in:CGRect(x:525,y:459,width:50,height:50))
+    ctx.restoreGState()
 }
 func drawMenu(_ ctx: CGContext) {
     ctx.setFillColor(color(0)); ctx.addPath(mark.path); ctx.drawPath(using:.eoFill)
@@ -100,10 +107,12 @@ let appSVG = """
 <linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="374" y1="660" x2="766" y2="699"><stop stop-color="#64E9FF"/><stop offset="1" stop-color="#ACF7ED"/></linearGradient>
 </defs>
 <rect x="64" y="64" width="896" height="896" rx="202" fill="url(#tile)"/>
+<g transform="translate(\(emblemOrigin.x) \(emblemOrigin.y)) scale(\(emblemScale))">
 <path d="\(wave.svg)" fill="url(#wave)"/>
 <path d="\(nib.svg)" fill="url(#nib)"/>
 <path d="\(slit.svg)" stroke="#5148CA" stroke-width="20" stroke-linecap="round"/>
 <circle cx="550" cy="484" r="25" fill="#5148CA"/>
+</g>
 </svg>
 """
 let menuSVG = """

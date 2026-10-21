@@ -6,8 +6,10 @@
 <linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="374" y1="660" x2="766" y2="699"><stop stop-color="#64E9FF"/><stop offset="1" stop-color="#ACF7ED"/></linearGradient>
 </defs>
 <rect x="64" y="64" width="896" height="896" rx="202" fill="url(#tile)"/>
+<g transform="translate(-120.15999999999997 -140.15999999999997) scale(1.18)">
 <path d="M382.0 648.0 C295.0 729.0 320.0 770.0 416.0 766.0 C550.0 762.0 572.0 657.0 766.0 657.0 L766.0 699.0 C588.0 699.0 570.0 806.0 420.0 811.0 C274.0 824.0 243.0 747.0 390.0 656.0 Z " fill="url(#wave)"/>
 <path d="M374.0 660.0 L430.0 449.0 L608.0 300.0 L742.0 434.0 L592.0 612.0 Z " fill="url(#nib)"/>
 <path d="M398.0 636.0 L550.0 484.0 " stroke="#5148CA" stroke-width="20" stroke-linecap="round"/>
 <circle cx="550" cy="484" r="25" fill="#5148CA"/>
+</g>
 </svg>
