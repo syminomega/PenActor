@@ -162,6 +162,10 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 
 每个组合检查：轻压到重压、抬笔归零、倾斜 X/Y、旋转（仅硬件支持时）、按钮、离开 / 重新进入感应范围、设备切换。前后台切换后检查来源标记，并确认 PS/CSP 笔迹没有被阻断。记录 macOS / iPadOS、笔和数位板型号、驱动及绘画软件版本；不可取得的字段保留“未取得/支持情况未知”。
 
+## 后续研究
+
+研究与测试方向见 [TODO](TODO.md)，包括在指定应用中屏蔽随航手指触摸，避免 Pencil 绘画时误触长按右键。当前仅记录，尚未实现。
+
 ## 苹果官方参考
 
 - [NSEvent](https://developer.apple.com/documentation/appkit/nsevent)
