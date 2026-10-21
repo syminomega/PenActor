@@ -61,6 +61,14 @@ final class PenMonitor: ObservableObject {
     @Published private(set) var isExporting = false
     @Published private(set) var lastExportURL: URL?
     @Published var exportError: String?
+    @Published private(set) var profiles: [PressureProfile] = []
+    @Published private(set) var enabledProfileIDs: Set<UUID> = []
+    @Published private(set) var mapping = MappingSnapshot()
+    @Published private(set) var accessibilityAccess = false
+    @Published var profileError: String?
+    private let profileRepository: PressureProfileRepository
+    private let remapping = PressureRemappingEngine()
+    private let workspaceObservers = WorkspaceObserverTokens()
     private var store = PenStore()
     private var interactions = PencilInteractionStats()
     private var dirty = false
@@ -74,7 +82,8 @@ final class PenMonitor: ObservableObject {
 
     init(backend: any EventMonitoring = AppKitEventBackend(), accessCheck: @escaping () -> Bool = {
         CGPreflightListenEventAccess()
-    }, preferences: UserDefaults = .standard) {
+    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository()) {
+        self.profileRepository = profileRepository
         self.backend = backend
         self.accessCheck = accessCheck
         self.preferences = preferences
@@ -82,6 +91,13 @@ final class PenMonitor: ObservableObject {
         automaticallySwitchDevices = automatic
         store.automaticallySwitchDevices = automatic
         refreshPermission()
+        do { profiles = try profileRepository.load() }
+        catch { profileError = "配置读取失败，未覆盖原文件：\(error.localizedDescription)" }
+        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
+            workspaceObservers.tokens.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.updateMappingSettings() }
+            })
+        }
     }
 
     func start() {
@@ -119,6 +135,7 @@ final class PenMonitor: ObservableObject {
     }
 
     func stop() {
+        pauseMapping()
         interruptPencilInteraction()
         backend.stop()
         timer?.invalidate()
@@ -129,6 +146,13 @@ final class PenMonitor: ObservableObject {
     }
 
     func publish() {
+        let latestMapping = remapping.snapshot()
+        if mapping != latestMapping { mapping = latestMapping }
+        if !mapping.isRunning && !mapping.isStarting && !enabledProfileIDs.isEmpty {
+            enabledProfileIDs = []
+            updateMappingSettings()
+            mapping = remapping.snapshot()
+        }
         guard dirty else { return }
         snapshot = store
         pencilInteractions = interactions
@@ -150,6 +174,8 @@ final class PenMonitor: ObservableObject {
     }
 
     func clear() {
+        remapping.clearDiagnostics()
+        mapping = remapping.snapshot()
         store.clear()
         snapshot = store
         interactions = PencilInteractionStats()
@@ -164,7 +190,7 @@ final class PenMonitor: ObservableObject {
 
     func makeLogDocument(exportedAt: Date = Date()) -> PenLogDocument {
         // Use the capture buffer, including events not yet published by the 60 Hz timer.
-        PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt)
+        PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt, profiles: profiles, mapping: remapping.snapshot())
     }
 
     func exportLog() {
@@ -214,7 +240,60 @@ final class PenMonitor: ObservableObject {
         dirty = true
     }
 
-    func refreshPermission() { listenAccess = accessCheck() }
+    func refreshPermission() {
+        listenAccess = accessCheck()
+        accessibilityAccess = AXIsProcessTrusted()
+    }
+
+    func requestAccessibility() {
+        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+        accessibilityAccess = AXIsProcessTrustedWithOptions(options)
+    }
+
+    @discardableResult func saveProfile(_ profile: PressureProfile) -> Bool {
+        var updated = profiles
+        if let i = updated.firstIndex(where: { $0.id == profile.id }) { updated[i] = profile }
+        else { updated.append(profile) }
+        do { try profileRepository.save(updated); profiles = updated; profileError = nil; updateMappingSettings(); return true }
+        catch { profileError = "保存失败：\(error.localizedDescription)"; return false }
+    }
+
+    func deleteProfile(_ id: UUID) {
+        let updated = profiles.filter { $0.id != id }
+        do { try profileRepository.save(updated); profiles = updated; disableProfile(id); profileError = nil }
+        catch { profileError = error.localizedDescription }
+    }
+
+    func enableProfile(_ id: UUID) {
+        refreshPermission()
+        guard isRunning, let profile = profiles.first(where: { $0.id == id }), profile.isValid, !profile.targetBundleIDs.isEmpty else { return }
+        guard accessibilityAccess else { profileError = "请允许辅助功能权限，然后重新检查并启用。"; return }
+        enabledProfileIDs.subtract(profiles.filter { $0.device == profile.device }.map(\.id))
+        enabledProfileIDs.insert(id)
+        updateMappingSettings()
+        remapping.start()
+        mapping = remapping.snapshot()
+    }
+
+    func disableProfile(_ id: UUID) {
+        enabledProfileIDs.remove(id)
+        if enabledProfileIDs.isEmpty { pauseMapping() }
+        else { updateMappingSettings() }
+    }
+
+    func pauseMapping() {
+        enabledProfileIDs = []
+        remapping.stop()
+        mapping = remapping.snapshot()
+    }
+
+    private func updateMappingSettings() {
+        var applications: [Int32: String] = [:]
+        for app in NSWorkspace.shared.runningApplications {
+            if let id = app.bundleIdentifier { applications[app.processIdentifier] = id }
+        }
+        remapping.update(profiles: profiles.filter { enabledProfileIDs.contains($0.id) }, applications: applications)
+    }
 
     func requestPermission() {
         _ = CGRequestListenEventAccess()
@@ -227,4 +306,10 @@ final class PenMonitor: ObservableObject {
         refreshPermission()
         if wasRunning { start() }
     }
+}
+
+// The token owner removes observers even for short-lived fixture monitors.
+private final class WorkspaceObserverTokens {
+    var tokens: [NSObjectProtocol] = []
+    deinit { for token in tokens { NSWorkspace.shared.notificationCenter.removeObserver(token) } }
 }

@@ -21,6 +21,8 @@ struct PenLogDocument: Codable {
         let lastSqueezeAt: Date?
     }
 
+    let profiles: [PressureProfile]
+    let mapping: MappingSnapshot
     let schemaVersion: Int
     let exportedAt: Date
     let appVersion: String
@@ -38,8 +40,10 @@ struct PenLogDocument: Codable {
     let notes: [String]
 
     init(store: PenStore, interactions: PencilInteractionStats, isMonitoring: Bool,
-         exportedAt: Date = Date(), bundle: Bundle = .main) {
-        schemaVersion = 1
+         exportedAt: Date = Date(), bundle: Bundle = .main, profiles: [PressureProfile] = [], mapping: MappingSnapshot = MappingSnapshot()) {
+        schemaVersion = 2
+        self.profiles = profiles
+        self.mapping = mapping
         self.exportedAt = exportedAt
         appVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
         appBuild = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"
@@ -63,6 +67,7 @@ struct PenLogDocument: Codable {
             lastSqueezeAt: interactions.lastSqueezeAt
         )
         notes = [
+            "mapping.diagnostics 来自主动作业 tap，记录修改前后压力；与 NSEvent events 不做一一关联。NSEvent 可能已包含映射结果。",
             "events 按采集顺序排列（最旧在前），包含全部设备最近保留的事件，不限于当前选择。",
             "timestamp 是 NSEvent 系统 uptime 秒，未按界面精度舍入；receivedAt 是本机接收时间（UTC ISO 8601，毫秒）。",
             "sample.pressure 为 null 表示该事件未取得有效压力，不等于零；proximity 事件没有 sample。",

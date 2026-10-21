@@ -180,8 +180,8 @@ struct PenEvent: Identifiable, Codable {
 }
 
 /// Versioned deterministic keys; never use Swift's randomized hashValue for persistence.
-struct PenIdentity: Hashable, Codable {
-    enum MatchLevel: String, Codable {
+struct PenIdentity: Hashable, Codable, Sendable {
+    enum MatchLevel: String, Codable, Sendable {
         case uniqueTool, serialNumber, model, session
 
         var label: String {

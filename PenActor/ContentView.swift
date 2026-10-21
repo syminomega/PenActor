@@ -21,6 +21,7 @@ struct ContentView: View {
                             trendPanel
                         }.frame(maxWidth: .infinity)
                     }
+                    PressureMappingPanel(monitor: monitor)
                     testPanel
                     eventsPanel
                 }.padding(20)
@@ -56,6 +57,7 @@ struct ContentView: View {
             Button("导出 JSON", systemImage: "square.and.arrow.up") { monitor.exportLog() }
                 .disabled(monitor.isExporting)
                 .help("导出全部设备最近 500 条事件，保留完整压力精度与系统时间戳")
+            Button("暂停全部映射") { monitor.pauseMapping() }
             Button("清空记录", systemImage: "trash") { monitor.clear() }
             Button(monitor.isRunning ? "停止监听" : "开始监听",
                    systemImage: monitor.isRunning ? "stop.fill" : "play.fill") {
@@ -183,7 +185,7 @@ struct ContentView: View {
     private var samplePanel: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("实时读数").font(.headline)
+                Text("应用事件层读数").font(.headline)
                 Spacer()
                 if let event = device?.lastSampleEvent {
                     Text(event.source.rawValue).font(.caption).foregroundStyle(.secondary)
@@ -219,7 +221,7 @@ struct ContentView: View {
                 Text("等待有效采样；倾斜值为 −1…1，旋转值为笔轴角度。")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Text("读数来自系统事件，可能已经过驱动曲线处理。零值不表示该能力一定受支持。")
+            Text("NSEvent 读数可能已经过驱动或 PenActor 映射。修改前后对照见重映射面板；零值不表示能力一定受支持。")
                 .font(.caption).foregroundStyle(.secondary)
         }.panel()
     }
