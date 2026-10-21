@@ -178,3 +178,7 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 - [CGPreflightListenEventAccess](https://developer.apple.com/documentation/coregraphics/cgpreflightlisteneventaccess()) / [CGRequestListenEventAccess](https://developer.apple.com/documentation/coregraphics/cgrequestlisteneventaccess())
 - [Sidecar 与 Apple Pencil，WWDC19](https://developer.apple.com/videos/play/wwdc2019/210/)
 - [macOS 27 Sidecar 手势，TN3212](https://developer.apple.com/documentation/technotes/tn3212-adopting-gesture-recognizers-for-sidecar-touch-support)
+
+## 图标资源
+
+0.4.1 使用原创彩色应用图标与单色菜单栏模板图，矢量源文件、生成脚本和设计说明见 [图标设计](Design/Icons/README.md)。

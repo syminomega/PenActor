@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<title>PenActor — pen and pressure</title>
+<defs>
+<linearGradient id="tile" gradientUnits="userSpaceOnUse" x1="148" y1="132" x2="906" y2="960"><stop stop-color="#246CE8"/><stop offset=".5" stop-color="#5C41CE"/><stop offset="1" stop-color="#AA35BA"/></linearGradient>
+<linearGradient id="nib" gradientUnits="userSpaceOnUse" x1="620" y1="270" x2="390" y2="680"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#C8F8FF"/></linearGradient>
+<linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="236" y1="778" x2="788" y2="554"><stop stop-color="#64E9FF"/><stop offset="1" stop-color="#ACF7ED"/></linearGradient>
+</defs>
+<rect x="64" y="64" width="896" height="896" rx="202" fill="url(#tile)"/>
+<path d="M350.0 674.0 L412.0 434.0 L614.0 264.0 L766.0 416.0 L596.0 618.0 Z " fill="url(#nib)"/>
+<path d="M350.0 674.0 L550.0 474.0 " stroke="#5148CA" stroke-width="23" stroke-linecap="round"/>
+<circle cx="550" cy="474" r="28" fill="#5148CA"/>
+<path d="M236.0 778.0 C382.0 778.0 430.0 754.0 481.0 691.0 C563.0 588.0 655.0 554.0 788.0 554.0 L788.0 595.0 C666.0 595.0 595.0 617.0 514.0 715.0 C455.0 786.0 376.0 803.0 236.0 798.0 Z " fill="url(#wave)"/>
+</svg>
