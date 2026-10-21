@@ -21,21 +21,23 @@ struct Shape {
     mutating func close() { path.closeSubpath(); svg += "Z " }
 }
 var nib = Shape()
-nib.move(350,674); nib.line(412,434); nib.line(614,264); nib.line(766,416); nib.line(596,618); nib.close()
-var slit = Shape(); slit.move(350,674); slit.line(550,474)
+nib.move(374,660); nib.line(430,449); nib.line(608,300); nib.line(742,434); nib.line(592,612); nib.close()
+var slit = Shape(); slit.move(398,636); slit.line(550,484)
 var wave = Shape()
-wave.move(236,778); wave.curve(382,778,430,754,481,691)
-wave.curve(563,588,655,554,788,554)
-wave.line(788,595); wave.curve(666,595,595,617,514,715)
-wave.curve(455,786,376,803,236,798); wave.close()
+// A single tapered ribbon leaves the exact tip, turns below it, then rises with pressure.
+wave.move(382,648); wave.curve(295,729,320,770,416,766)
+wave.curve(550,762,572,657,766,657)
+wave.line(766,699); wave.curve(588,699,570,806,420,811)
+wave.curve(274,824,243,747,390,656); wave.close()
 var mark = Shape()
-mark.move(5.5,17.4); mark.line(7.3,9.4); mark.line(13.9,3.6); mark.line(19.8,9.5); mark.line(14,16.1); mark.line(6.7,17.9); mark.line(12.4,12.2); mark.line(11.3,11.1); mark.close()
+mark.move(5.5,17.4); mark.line(7.3,9.4); mark.line(13.8,4.8); mark.line(19,10); mark.line(14,16.1); mark.line(6.7,17.9); mark.line(12.4,12.2); mark.line(11.3,11.1); mark.close()
 // Cut-outs are independent paths with even-odd filling: no white paint in the template.
 
 let hole = CGPath(ellipseIn: CGRect(x:11.6,y:9.7,width:2.7,height:2.7), transform:nil)
 mark.path.addPath(hole)
 mark.svg += "M14.3 11.05 A1.35 1.35 0 1 0 11.6 11.05 A1.35 1.35 0 1 0 14.3 11.05 Z"
-var underline = Shape(); underline.move(3.4,21); underline.curve(10.2,21,12,18.8,14.1,17.6); underline.curve(16,16.6,18.2,16.5,20.4,16.5)
+var underline = Shape(); underline.move(5.5,17.4)
+underline.curve(2.3,20.2,4.2,22,8,21.5); underline.curve(13,21,13.3,18.2,20,18.2)
 func gradient(_ ctx: CGContext, _ colors: [CGColor], from: CGPoint, to: CGPoint) {
     let g = CGGradient(colorsSpace: space, colors: colors as CFArray, locations:nil)!
     ctx.drawLinearGradient(g, start:from, end:to, options:[.drawsBeforeStartLocation,.drawsAfterEndLocation])
@@ -46,15 +48,15 @@ func drawApp(_ ctx: CGContext) {
     ctx.addPath(tile); ctx.clip()
     gradient(ctx,[color(0x246CE8),color(0x5C41CE),color(0xAA35BA)],from:CGPoint(x:148,y:132),to:CGPoint(x:906,y:960))
     ctx.restoreGState()
+    ctx.saveGState(); ctx.addPath(wave.path); ctx.clip()
+    gradient(ctx,[color(0x64E9FF),color(0xACF7ED)],from:CGPoint(x:374,y:660),to:CGPoint(x:766,y:699))
+    ctx.restoreGState()
     ctx.saveGState(); ctx.addPath(nib.path); ctx.clip()
     gradient(ctx,[color(0xFFFFFF),color(0xC8F8FF)],from:CGPoint(x:620,y:270),to:CGPoint(x:390,y:680))
     ctx.restoreGState()
-    ctx.setStrokeColor(color(0x5148CA)); ctx.setLineWidth(23); ctx.setLineCap(.round)
+    ctx.setStrokeColor(color(0x5148CA)); ctx.setLineWidth(20); ctx.setLineCap(.round)
     ctx.addPath(slit.path); ctx.strokePath()
-    ctx.setFillColor(color(0x5148CA)); ctx.fillEllipse(in:CGRect(x:522,y:446,width:56,height:56))
-    ctx.saveGState(); ctx.addPath(wave.path); ctx.clip()
-    gradient(ctx,[color(0x64E9FF),color(0xACF7ED)],from:CGPoint(x:236,y:778),to:CGPoint(x:788,y:554))
-    ctx.restoreGState()
+    ctx.setFillColor(color(0x5148CA)); ctx.fillEllipse(in:CGRect(x:525,y:459,width:50,height:50))
 }
 func drawMenu(_ ctx: CGContext) {
     ctx.setFillColor(color(0)); ctx.addPath(mark.path); ctx.drawPath(using:.eoFill)
@@ -95,13 +97,13 @@ let appSVG = """
 <defs>
 <linearGradient id="tile" gradientUnits="userSpaceOnUse" x1="148" y1="132" x2="906" y2="960"><stop stop-color="#246CE8"/><stop offset=".5" stop-color="#5C41CE"/><stop offset="1" stop-color="#AA35BA"/></linearGradient>
 <linearGradient id="nib" gradientUnits="userSpaceOnUse" x1="620" y1="270" x2="390" y2="680"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#C8F8FF"/></linearGradient>
-<linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="236" y1="778" x2="788" y2="554"><stop stop-color="#64E9FF"/><stop offset="1" stop-color="#ACF7ED"/></linearGradient>
+<linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="374" y1="660" x2="766" y2="699"><stop stop-color="#64E9FF"/><stop offset="1" stop-color="#ACF7ED"/></linearGradient>
 </defs>
 <rect x="64" y="64" width="896" height="896" rx="202" fill="url(#tile)"/>
-<path d="\(nib.svg)" fill="url(#nib)"/>
-<path d="\(slit.svg)" stroke="#5148CA" stroke-width="23" stroke-linecap="round"/>
-<circle cx="550" cy="474" r="28" fill="#5148CA"/>
 <path d="\(wave.svg)" fill="url(#wave)"/>
+<path d="\(nib.svg)" fill="url(#nib)"/>
+<path d="\(slit.svg)" stroke="#5148CA" stroke-width="20" stroke-linecap="round"/>
+<circle cx="550" cy="484" r="25" fill="#5148CA"/>
 </svg>
 """
 let menuSVG = """
