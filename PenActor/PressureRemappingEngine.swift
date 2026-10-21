@@ -24,6 +24,7 @@ struct MappingSnapshot: Codable, Sendable, Equatable {
     var diagnostics: [MappingDiagnostic] = []
     var activeProfiles: [PressureProfile] = []
     var bufferedEventCount = 0
+    var defaults = MappingDefaults()
 }
 
 struct PenMappingResult {
@@ -46,6 +47,7 @@ struct PressureMappingProcessor {
     private var strokes: [Int: Stroke] = [:]
     private(set) var profiles: [PressureProfile] = []
     var applications: [Int32: String] = [:]
+    var defaults = MappingDefaults()
     var snapshot = MappingSnapshot()
 
     mutating func setProfiles(_ updated: [PressureProfile]) {
@@ -110,7 +112,8 @@ struct PressureMappingProcessor {
         let beginning = !up && ((strokes[id] == nil && (down || max(input, tabletInput) > 0)) || untargetedPrelude)
         let ending = up || (!down && max(input, tabletInput) == 0)
         if beginning {
-            let match = profiles.first { $0.device == identity && bundle.map($0.targetBundleIDs.contains) == true }
+            let candidate = profiles.first { $0.device == identity && bundle.map($0.targetBundleIDs.contains) == true }
+            let match = candidate.flatMap { profile in bundle.flatMap { defaults.resolve(profile, bundleID: $0) } }
             if strokes.count >= 128, let evicted = strokes.keys.first { strokes[evicted] = nil }
             strokes[id] = Stroke(profile: match, targetPID: pid)
         }
@@ -180,13 +183,15 @@ final class PressureRemappingEngine: @unchecked Sendable {
     private var generation: UInt64 = 0
 
     func snapshot() -> MappingSnapshot { lock.lock(); defer { lock.unlock() }; return processor.snapshot }
-    func update(profiles: [PressureProfile], applications: [Int32: String]) {
+    func update(profiles: [PressureProfile], applications: [Int32: String], defaults: MappingDefaults = MappingDefaults()) {
         outputLock.lock(); defer { outputLock.unlock() }
         lock.lock()
         let removed = Set(processor.profiles.map(\.device)).subtracting(profiles.map(\.device))
         let output = removed.isEmpty ? [] : buffer.cancel(devices: removed)
         prepare(output, delivery: "禁用后排空")
         processor.setProfiles(profiles)
+        processor.defaults = defaults
+        processor.snapshot.defaults = defaults
         processor.applications = applications
         processor.snapshot.activeProfiles = profiles
         processor.snapshot.bufferedEventCount = buffer.count

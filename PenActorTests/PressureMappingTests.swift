@@ -34,6 +34,127 @@ final class PressureMappingTests: XCTestCase {
         return m
     }
 
+    func testDefaultsResolutionAndApplicationPassthroughPriority() throws {
+        var defaults = MappingDefaults()
+        defaults.global.curve = .light
+        var p = profile(curve: .linear)
+        XCTAssertEqual(defaults.resolve(p, bundleID: "com.adobe.Photoshop")?.curve, .linear)
+        p.usesDefaults = true
+        XCTAssertEqual(defaults.resolve(p, bundleID: "com.adobe.Photoshop")?.curve, .light)
+        var rule = ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop")
+        rule.mode = .custom
+        rule.configuration.taper.entryEnabled = true
+        defaults.applications = [rule]
+        XCTAssertEqual(defaults.resolve(p, bundleID: rule.bundleID)?.curve, .linear)
+        XCTAssertTrue(try XCTUnwrap(defaults.resolve(p, bundleID: rule.bundleID)).taper.entryEnabled)
+        XCTAssertEqual(defaults.resolve(p, bundleID: "other.app")?.curve, .light)
+        p.usesDefaults = false
+        XCTAssertFalse(try XCTUnwrap(defaults.resolve(p, bundleID: rule.bundleID)).taper.entryEnabled)
+        defaults.applications[0].mode = .passthrough
+        XCTAssertNil(defaults.resolve(p, bundleID: rule.bundleID))
+    }
+
+    func testDefaultsAreLatchedAndNeverOptInUnknownHardwareOrTargets() throws {
+        var p = profile(curve: .linear); p.usesDefaults = true
+        var m = processor(p); m.defaults.global.curve = .light
+        m.process(try proximity())
+        let first = try point(0.5); m.process(first)
+        XCTAssertEqual(first.getDoubleValueField(.tabletEventPointPressure), 0.8, accuracy: 0.005)
+        m.defaults.global.curve = .linear
+        let held = try point(0.5); m.process(held)
+        XCTAssertEqual(held.getDoubleValueField(.tabletEventPointPressure), 0.8, accuracy: 0.005)
+        m.process(try point(0))
+        let next = try point(0.5); m.process(next)
+        XCTAssertEqual(next.getDoubleValueField(.tabletEventPointPressure), 0.5, accuracy: 0.005)
+        m.process(try point(0)); m.defaults.global.curve = .light
+        let other = try point(0.5, pid: 43); m.process(other)
+        XCTAssertEqual(other.getDoubleValueField(.tabletEventPointPressure), 0.5, accuracy: 0.005)
+        m.process(try proximity(id: 18, vendor: 1386))
+        let wacom = try point(0.5, id: 18); m.process(wacom)
+        XCTAssertEqual(wacom.getDoubleValueField(.tabletEventPointPressure), 0.5, accuracy: 0.005)
+    }
+
+    func testApplicationPassthroughChangeWaitsForNextStroke() throws {
+        var m = processor(); m.process(try proximity()); m.process(try point(0.5))
+        var rule = ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop")
+        rule.mode = .passthrough; m.defaults.applications = [rule]
+        let held = try point(0.5); m.process(held)
+        XCTAssertEqual(held.getDoubleValueField(.tabletEventPointPressure), 0.8, accuracy: 0.005)
+        m.process(try point(0)); let next = try point(0.5); m.process(next)
+        XCTAssertEqual(next.getDoubleValueField(.tabletEventPointPressure), 0.5, accuracy: 0.005)
+        XCTAssertNil(m.snapshot.diagnostics.last?.profileID)
+    }
+
+    func testDefaultsRepositoryRoundtripAndInvalidDataDoNotOverwrite() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let repo = MappingDefaultsRepository(url: root.appending(path: "defaults.json"))
+        XCTAssertEqual(try repo.load(), MappingDefaults())
+        var defaults = MappingDefaults(); defaults.global.curve = .light
+        defaults.applications = [.init(bundleID: "com.adobe.Photoshop", name: "Photoshop")]
+        try repo.save(defaults)
+        XCTAssertEqual(try repo.load(), defaults)
+        var invalid = defaults; invalid.applications.append(invalid.applications[0])
+        XCTAssertThrowsError(try repo.save(invalid))
+        XCTAssertEqual(try repo.load(), defaults)
+        invalid = defaults; invalid.schemaVersion = 99
+        try JSONEncoder().encode(invalid).write(to: repo.url)
+        XCTAssertThrowsError(try repo.load())
+    }
+
+    @MainActor func testPreferencesPersistenceExportAndClosedWindowKeepServiceAlive() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let suite = "PenActorTests."+UUID().uuidString
+        let preferences = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { preferences.removePersistentDomain(forName: suite) }
+        let repo = PressureProfileRepository(url: root.appending(path: "profiles.json"))
+        let backend = MappingPanelBackend(event: try XCTUnwrap(NSEvent(cgEvent: proximity())))
+        let monitor = PenMonitor(backend: backend, preferences: preferences, profileRepository: repo)
+        monitor.start(); defer { monitor.stop() }
+        var defaults = MappingDefaults(); defaults.global.curve = .light
+        XCTAssertTrue(monitor.saveDefaults(defaults))
+        monitor.setStartMonitoringOnLaunch(false); monitor.setShowSettingsOnLaunch(false)
+        let controller = PreferencesWindowController(monitor: monitor)
+        let window = try XCTUnwrap(controller.window)
+        window.close()
+        XCTAssertTrue(monitor.isRunning)
+        XCTAssertTrue(controller.window === window)
+        XCTAssertFalse(AppDelegate().applicationShouldTerminateAfterLastWindowClosed(NSApp))
+        let restored = PenMonitor(preferences: preferences, profileRepository: repo)
+        XCTAssertFalse(restored.startMonitoringOnLaunch); XCTAssertFalse(restored.showSettingsOnLaunch)
+        XCTAssertEqual(restored.mappingDefaults, defaults)
+        XCTAssertTrue(restored.enabledProfileIDs.isEmpty)
+        XCTAssertEqual(try monitor.makeLogDocument().mapping.defaults, defaults)
+    }
+
+    @MainActor func testEveryPreferencesPageRendersAtDefaultWindowSize() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let repo = PressureProfileRepository(url: root.appending(path: "profiles.json"))
+        let monitor = PenMonitor(profileRepository: repo)
+        var p = profile(); p.taper.entryEnabled = true; p.taper.exitEnabled = true
+        XCTAssertTrue(monitor.saveProfile(p))
+        var defaults = MappingDefaults()
+        var rule = ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop")
+        rule.mode = .custom; rule.configuration.curve = .light
+        defaults.applications = [rule]; XCTAssertTrue(monitor.saveDefaults(defaults))
+        for section in PreferencesSection.allCases {
+            let host = NSHostingView(rootView: ContentView(monitor: monitor, section: section).frame(width: 1040, height: 760))
+            host.frame = NSRect(x: 0, y: 0, width: 1040, height: 760)
+            // Attach the hosting view to an unshown window so AppKit-backed lists can lay out.
+            let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.contentView = host
+            host.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+            try png.write(to: URL(filePath: "/tmp/PenActor-settings-\(section.rawValue).png"))
+            XCTAssertGreaterThan(bitmap.pixelsWide, 0)
+        }
+    }
+
     func testCurvesAreMonotoneBoundedAndHitControlPoints() {
         for curve in [PressureCurve.linear, .light, PressureCurve(points: [.init(x: 0,y: 0), .init(x: 0.2,y: 0), .init(x: 0.7,y: 1), .init(x: 1,y: 1)])] {
             XCTAssertTrue(curve.isValid)
@@ -241,19 +362,21 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertTrue(reloaded.enabledProfileIDs.isEmpty)
     }
 
-    func testLegacyProfilesLoadWithTaperDisabledAndSaveAsVersionTwo() throws {
+    func testLegacyProfilesPreserveCustomValuesAndSaveAsVersionThree() throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         let repo = PressureProfileRepository(url: root.appending(path: "profiles.json"))
         var old = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(profile())) as? [String: Any])
-        old.removeValue(forKey: "taper")
+        old.removeValue(forKey: "taper"); old.removeValue(forKey: "usesDefaults")
         try JSONSerialization.data(withJSONObject: ["schemaVersion": 1, "profiles": [old]]).write(to: repo.url)
         let loaded = try repo.load()
         XCTAssertEqual(loaded.first?.taper, StrokeTaperSettings())
+        XCTAssertEqual(loaded.first?.usesDefaults, false)
+        XCTAssertEqual(loaded.first?.curve, .light)
         try repo.save(loaded)
         let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: repo.url)) as? [String: Any])
-        XCTAssertEqual(saved["schemaVersion"] as? Int, 2)
+        XCTAssertEqual(saved["schemaVersion"] as? Int, 3)
     }
     func testInvalidTaperSettingsAreRejected() {
         var p = profile()
@@ -519,7 +642,7 @@ final class PressureMappingTests: XCTestCase {
         defer { monitor.stop() }
         var p = profile(); p.taper.entryEnabled = true; p.taper.exitEnabled = true
         XCTAssertTrue(monitor.saveProfile(p))
-        let host = NSHostingView(rootView: PressureMappingPanel(monitor: monitor, initialProfile: p).padding().frame(width: 1000, height: 860))
+        let host = NSHostingView(rootView: HardwarePreferencesView(monitor: monitor, initialProfile: p).padding().frame(width: 1000, height: 860))
         host.frame = NSRect(x: 0, y: 0, width: 1000, height: 860)
         host.layoutSubtreeIfNeeded()
         let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))

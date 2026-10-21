@@ -66,6 +66,10 @@ final class PenMonitor: ObservableObject {
     @Published private(set) var mapping = MappingSnapshot()
     @Published private(set) var accessibilityAccess = false
     @Published var profileError: String?
+    @Published private(set) var mappingDefaults = MappingDefaults()
+    @Published private(set) var startMonitoringOnLaunch: Bool
+    @Published private(set) var showSettingsOnLaunch: Bool
+    private let defaultsRepository: MappingDefaultsRepository
     private let profileRepository: PressureProfileRepository
     private let remapping = PressureRemappingEngine()
     private let workspaceObservers = WorkspaceObserverTokens()
@@ -82,8 +86,12 @@ final class PenMonitor: ObservableObject {
 
     init(backend: any EventMonitoring = AppKitEventBackend(), accessCheck: @escaping () -> Bool = {
         CGPreflightListenEventAccess()
-    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository()) {
+    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository(), defaultsRepository: MappingDefaultsRepository? = nil) {
         self.profileRepository = profileRepository
+        // Custom profile repositories (fixtures / isolated installs) receive an equally isolated defaults file.
+        self.defaultsRepository = defaultsRepository ?? MappingDefaultsRepository(url: profileRepository.url.deletingLastPathComponent().appending(path: "defaults.json"))
+        startMonitoringOnLaunch = preferences.object(forKey: "startMonitoringOnLaunch") as? Bool ?? true
+        showSettingsOnLaunch = preferences.object(forKey: "showSettingsOnLaunch") as? Bool ?? true
         self.backend = backend
         self.accessCheck = accessCheck
         self.preferences = preferences
@@ -93,6 +101,9 @@ final class PenMonitor: ObservableObject {
         refreshPermission()
         do { profiles = try profileRepository.load() }
         catch { profileError = "配置读取失败，未覆盖原文件：\(error.localizedDescription)" }
+        do { mappingDefaults = try self.defaultsRepository.load() }
+        catch { profileError = "默认设置读取失败，未覆盖原文件：\(error.localizedDescription)" }
+        registerLegacyApplications()
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
             workspaceObservers.tokens.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.updateMappingSettings() }
@@ -190,7 +201,9 @@ final class PenMonitor: ObservableObject {
 
     func makeLogDocument(exportedAt: Date = Date()) -> PenLogDocument {
         // Use the capture buffer, including events not yet published by the 60 Hz timer.
-        PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt, profiles: profiles, mapping: remapping.snapshot())
+        var mapping = remapping.snapshot()
+        mapping.defaults = mappingDefaults
+        return PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt, profiles: profiles, mapping: mapping)
     }
 
     func exportLog() {
@@ -287,12 +300,35 @@ final class PenMonitor: ObservableObject {
         mapping = remapping.snapshot()
     }
 
+    @discardableResult func saveDefaults(_ value: MappingDefaults) -> Bool {
+        do {
+            try defaultsRepository.save(value)
+            mappingDefaults = value; profileError = nil; updateMappingSettings(); return true
+        } catch { profileError = "保存默认设置失败：\(error.localizedDescription)"; return false }
+    }
+
+    func setStartMonitoringOnLaunch(_ value: Bool) {
+        startMonitoringOnLaunch = value; preferences.set(value, forKey: "startMonitoringOnLaunch")
+    }
+    func setShowSettingsOnLaunch(_ value: Bool) {
+        showSettingsOnLaunch = value; preferences.set(value, forKey: "showSettingsOnLaunch")
+    }
+
+    private func registerLegacyApplications() {
+        for id in Set(profiles.flatMap(\.targetBundleIDs)).sorted() where !mappingDefaults.applications.contains(where: { $0.bundleID == id }) {
+            guard mappingDefaults.applications.count < 256 else { break }
+            let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id)
+            let name = url?.deletingPathExtension().lastPathComponent ?? id
+            mappingDefaults.applications.append(.init(bundleID: id, name: name))
+        }
+    }
+
     private func updateMappingSettings() {
         var applications: [Int32: String] = [:]
         for app in NSWorkspace.shared.runningApplications {
             if let id = app.bundleIdentifier { applications[app.processIdentifier] = id }
         }
-        remapping.update(profiles: profiles.filter { enabledProfileIDs.contains($0.id) }, applications: applications)
+        remapping.update(profiles: profiles.filter { enabledProfileIDs.contains($0.id) }, applications: applications, defaults: mappingDefaults)
     }
 
     func requestPermission() {

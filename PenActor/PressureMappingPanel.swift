@@ -1,160 +1,54 @@
 import SwiftUI
-import AppKit
-import UniformTypeIdentifiers
 
-struct PressureMappingPanel: View {
-    @ObservedObject var monitor: PenMonitor
-    @State private var selected: UUID?
-    @State private var draft: PressureProfile?
+struct PressureConfigurationEditor: View {
+    @Binding var configuration: PressureConfiguration
     @State private var selectedPoint: Int?
-    init(monitor: PenMonitor, initialProfile: PressureProfile? = nil) {
-        self.monitor = monitor
-        _selected = State(initialValue: initialProfile?.id)
-        _draft = State(initialValue: initialProfile)
-    }
-    private var device: PenIdentity? { monitor.snapshot.selectedIdentity }
-    private var profiles: [PressureProfile] { monitor.profiles.filter { $0.device == device } }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("压力重映射 · 实验", systemImage: "point.topleft.down.curvedto.point.bottomright.up").font(.headline)
-                Spacer()
-                Text("辅助功能：\(monitor.accessibilityAccess ? "已允许" : "未允许")")
-                Button("请求辅助功能权限") { monitor.requestAccessibility() }
-                Button("重新检查") { monitor.refreshPermission() }
-            }
-            ForEach(monitor.mapping.activeProfiles) { profile in
-                Text("已启用：\(profile.name) · \(profile.device.key)").font(.caption).textSelection(.enabled)
-            }
-            Text(monitor.mapping.status).foregroundStyle(monitor.mapping.isRunning ? Color.green : Color.secondary)
-            Text("仅作用于配置中的目标应用。回调已修改不代表 PS / CSP 已验证接收；应用事件层读数可能已是映射结果。")
-                .font(.caption).foregroundStyle(.secondary)
-            HStack {
-                Picker("设备配置", selection: $selected) {
-                    Text("选择配置").tag(UUID?.none)
-                    ForEach(profiles) { p in Text(p.name).tag(Optional(p.id)) }
-                }.frame(maxWidth: 350)
-                Button("新增配置") {
-                    guard let device else { return }
-                    let p = PressureProfile(name: "新压力配置", device: device)
-                    if monitor.saveProfile(p) { selected = p.id; draft = p }
-                }.disabled(device == nil || device?.level == .session)
-                if let draft {
-                    Button("删除配置", role: .destructive) { monitor.deleteProfile(draft.id); selected = nil; self.draft = nil }
-                }
-            }
-            if device?.level == .model { Text("当前按型号归组：同型号的多支 Pencil 将共用配置。重连后请让笔离开再进入感应范围，以便 tap 识别。 ").font(.caption).foregroundStyle(.secondary) }
-            if draft != nil {
-                editor
-            }
-            if let last = monitor.mapping.diagnostics.last {
-                Text("Tap 输入 \(last.inputPressure, specifier: "%.4f") → 输出 \(last.outputPressure, specifier: "%.4f") · \(last.targetBundleID ?? "目标未知") · \(last.reason)")
-                    .font(.caption).monospacedDigit()
-                if let taper = last.taper {
-                    Text("\(taper.phase) · 入锋系数 \(taper.entryFactor, specifier: "%.3f") · 出锋系数 \(taper.exitFactor, specifier: "%.3f")")
-                        .font(.caption).monospacedDigit()
-                }
-                Text("设备：\(last.device?.key ?? "待识别") · 配置：\(monitor.profiles.first { $0.id == last.profileID }?.name ?? "透传") · 目标 PID \(last.targetPID)")
-                    .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-            }
-            Text("缓存 \(monitor.mapping.bufferedEventCount) 个事件；已修改 \(monitor.mapping.modifiedEventCount) 个事件；启用配置 \(monitor.enabledProfileIDs.count) 个。保存曲线和切换配置从下一笔生效；禁用立即透传。").font(.caption)
-            if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
-        }
-        .padding(16).background(.background, in: RoundedRectangle(cornerRadius: 12))
-        .onAppear { selected = profiles.first?.id }
-        .onChange(of: selected) { _, id in draft = monitor.profiles.first { $0.id == id }; selectedPoint = nil }
-        .onChange(of: device) { _, _ in selected = profiles.first?.id; draft = monitor.profiles.first { $0.id == selected } }
-    }
-    private var editor: some View {
         HStack(alignment: .top, spacing: 24) {
-            VStack {
-                PressureCurveEditor(curve: Binding(get: { draft?.curve ?? .linear }, set: { draft?.curve = $0 }), selected: $selectedPoint)
-                    .frame(width: 300, height: 240)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("压力曲线").font(.headline)
+                PressureCurveEditor(curve: $configuration.curve, selected: $selectedPoint)
+                    .frame(width: 280, height: 220)
                 HStack {
-                    Button("恢复线性") { draft?.curve = .linear; selectedPoint = nil }
-                    Button("轻压增强") { draft?.curve = .light; selectedPoint = nil }
+                    Button("线性") { configuration.curve = .linear; selectedPoint = nil }
+                    Button("轻压增强") { configuration.curve = .light; selectedPoint = nil }
                     Button("删除点") {
-                        if let i = selectedPoint, let n = draft?.curve.points.count, i > 0 && i < n-1 { draft?.curve.points.remove(at: i); selectedPoint = nil }
-                    }.disabled(selectedPoint == nil || selectedPoint == 0 || selectedPoint == (draft?.curve.points.count ?? 0)-1)
+                        guard let i = selectedPoint, i > 0, i < configuration.curve.points.count-1 else { return }
+                        configuration.curve.points.remove(at: i); selectedPoint = nil
+                    }.disabled(selectedPoint == nil || selectedPoint == 0 || selectedPoint == configuration.curve.points.count-1)
                 }
+                Text("双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。")
+                    .font(.caption).foregroundStyle(.secondary).frame(width: 280, alignment: .leading)
             }
-            VStack(alignment: .leading, spacing: 10) {
-                TextField("配置名称", text: Binding(get: { draft?.name ?? "" }, set: { draft?.name = $0 }))
-                Text("目标应用（bundle ID）").font(.subheadline.bold())
-                ForEach(draft?.targetBundleIDs ?? [], id: \.self) { id in
-                    HStack { Text(id).font(.caption).textSelection(.enabled); Button("移除") { draft?.targetBundleIDs.removeAll { $0 == id } } }
+            VStack(alignment: .leading, spacing: 14) {
+                Text("入锋与出锋").font(.headline)
+                Toggle("入锋 · 从零压力平滑进入", isOn: $configuration.taper.entryEnabled)
+                if configuration.taper.entryEnabled {
+                    parameter("入锋长度", value: $configuration.taper.entryDistance, range: 1...200, step: 1, unit: "点")
+                    parameter("时间上限", value: $configuration.taper.entryDurationMS, range: 10...500, step: 5, unit: "ms")
+                    Text("累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                HStack {
-                    Menu("添加运行中的应用") {
-                        ForEach(NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular && $0.bundleIdentifier != nil }, id: \.processIdentifier) { app in
-                            Button(app.localizedName ?? app.bundleIdentifier!) { addTarget(app.bundleIdentifier!) }
-                        }
-                    }
-                    Button("浏览 .app…") { browseApplication() }
+                Divider()
+                Toggle("出锋 · 缓冲尾部并渐隐", isOn: $configuration.taper.exitEnabled)
+                if configuration.taper.exitEnabled {
+                    parameter("时长 / 延迟", value: $configuration.taper.exitDurationMS, range: 10...200, step: 5, unit: "ms")
+                    Text("会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                Text("双击曲线区域添加点；拖拽内点调整。端点固定，输出保持单调。新配置默认线性，需要保存后启用。").font(.caption).foregroundStyle(.secondary)
-                taperControls
-                HStack {
-                    Button("保存") { if let draft { _ = monitor.saveProfile(draft) } }.disabled(draft?.isValid != true)
-                    Button("保存并启用") {
-                        if let draft, monitor.saveProfile(draft) { monitor.enableProfile(draft.id) }
-                    }.disabled(draft?.isValid != true || draft?.targetBundleIDs.isEmpty != false || !monitor.isRunning)
-                    if let draft, monitor.enabledProfileIDs.contains(draft.id) {
-                        Button("禁用此配置") { monitor.disableProfile(draft.id) }
-                    }
+                Button("首尾测试预设") {
+                    configuration.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12,
+                        entryDurationMS: 60, exitEnabled: true, exitDurationMS: 60)
                 }
-            }.frame(maxWidth: .infinity)
+            }.toggleStyle(.checkbox).frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-    private var taperControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Divider()
-            Text("入锋与出锋").font(.subheadline.bold())
-            Toggle("入锋：从零压力平滑进入", isOn: taperBinding(\.entryEnabled))
-                .toggleStyle(.checkbox)
-            if draft?.taper.entryEnabled == true {
-                HStack {
-                    Text("入锋长度").frame(width: 100, alignment: .leading)
-                    Slider(value: taperBinding(\.entryDistance), in: 1...200, step: 1)
-                    Text("\(draft?.taper.entryDistance ?? 12, specifier: "%.0f") 点").monospacedDigit().frame(width: 68)
-                }
-                HStack {
-                    Text("过渡时间上限").frame(width: 100, alignment: .leading)
-                    Slider(value: taperBinding(\.entryDurationMS), in: 10...500, step: 5)
-                    Text("\(draft?.taper.entryDurationMS ?? 60, specifier: "%.0f") ms").monospacedDigit().frame(width: 68)
-                }
-                Text("按屏幕移动距离渐入；达到设定时间也会恢复实际压力。长度与时间取先达到者，短点画可能变淡或消失。")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Toggle("出锋：缓冲尾部并完整渐隐", isOn: taperBinding(\.exitEnabled))
-                .toggleStyle(.checkbox)
-            if draft?.taper.exitEnabled == true {
-                HStack {
-                    Text("出锋时长 / 延迟").frame(width: 100, alignment: .leading)
-                    Slider(value: taperBinding(\.exitDurationMS), in: 10...200, step: 5)
-                    Text("\(draft?.taper.exitDurationMS ?? 60, specifier: "%.0f") ms").monospacedDigit().frame(width: 68)
-                }
-                Text("缓存同等时长的笔事件，抬笔后回看尚未输出的尾部并渐隐至零。会增加输入延迟；短点画可能变淡，快捷键会提前排空缓存并中止本笔出锋。")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            Button("入锋 / 出锋测试预设") {
-                draft?.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12, entryDurationMS: 60,
-                                                  exitEnabled: true, exitDurationMS: 60)
-            }
+    private func parameter(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, unit: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack { Text(title); Spacer(); Text("\(value.wrappedValue, specifier: "%.0f") \(unit)").monospacedDigit().foregroundStyle(.secondary) }
+            Slider(value: value, in: range, step: step)
         }
-    }
-    private func taperBinding<T>(_ path: WritableKeyPath<StrokeTaperSettings, T>) -> Binding<T> {
-        Binding(get: { (draft?.taper ?? StrokeTaperSettings())[keyPath: path] }, set: { draft?.taper[keyPath: path] = $0 })
-    }
-    private func addTarget(_ id: String) { if draft?.targetBundleIDs.contains(id) == false { draft?.targetBundleIDs.append(id) } }
-    private func browseApplication() {
-        let panel = NSOpenPanel(); panel.allowedContentTypes = [.application]; panel.canChooseDirectories = false
-        let completion: (NSApplication.ModalResponse) -> Void = { response in
-            if response == .OK, let url = panel.url, let id = Bundle(url: url)?.bundleIdentifier { addTarget(id) }
-        }
-        if let window = NSApp.keyWindow { panel.beginSheetModal(for: window, completionHandler: completion) }
-        else { panel.begin(completionHandler: completion) }
     }
 }
 

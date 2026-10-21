@@ -6,88 +6,84 @@ struct ContentView: View {
     private var device: DeviceState? { monitor.snapshot.selectedDevice }
     private var sample: PenSample? { device?.lastSampleEvent?.sample }
 
+    var section: PreferencesSection = .general
+
     var body: some View {
         VStack(spacing: 0) {
-            header.padding(20)
+            Group {
+                switch section {
+                case .general: GeneralPreferencesView(monitor: monitor)
+                case .applications: ApplicationPreferencesView(monitor: monitor)
+                case .hardware: HardwarePreferencesView(monitor: monitor)
+                case .debug: debugPage
+                case .testing: testingPage
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
             Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    permissionPanel
-                    pencilInteractionPanel
-                    HStack(alignment: .top, spacing: 16) {
-                        hardwarePanel.frame(minWidth: 300, maxWidth: 360)
-                        VStack(alignment: .leading, spacing: 16) {
-                            samplePanel
-                            trendPanel
-                        }.frame(maxWidth: .infinity)
-                    }
-                    PressureMappingPanel(monitor: monitor)
-                    testPanel
-                    eventsPanel
-                }.padding(20)
-            }
+            HStack {
+                Label(monitor.isRunning ? "输入服务运行中" : "输入服务已停止", systemImage: monitor.isRunning ? "waveform" : "pause.circle")
+                Divider().frame(height: 12)
+                Text(monitor.mapping.isRunning ? "映射已启用" : "映射已暂停")
+                Spacer()
+                Button("暂停全部映射") { monitor.pauseMapping() }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+            }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.vertical, 10)
         }
         .background(Color(nsColor: .windowBackgroundColor))
-        .frame(minWidth: 960, minHeight: 740)
+        .frame(minWidth: 980, minHeight: 650)
         .background(WindowConfiguration(alwaysOnTop: monitor.alwaysOnTop))
-        .modifier(PencilInteractionObserver(monitor: monitor))
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            monitor.refreshPermission()
+    }
+
+    private var debugPage: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                PreferencesPageHeader(title: "实时调试", subtitle: "查看设备元数据、应用事件层读数与映射诊断。")
+                HStack {
+                    Toggle("窗口置顶", isOn: $monitor.alwaysOnTop).toggleStyle(.checkbox)
+                    Spacer()
+                    Button("导出 JSON", systemImage: "square.and.arrow.up") { monitor.exportLog() }.disabled(monitor.isExporting)
+                    Button("清空记录", systemImage: "trash") { monitor.clear() }
+                }
+                HStack {
+                    status("本地", installed: monitor.installation.local, received: monitor.receivedLocal)
+                    Spacer()
+                    status("全局", installed: monitor.installation.global, received: monitor.receivedGlobal)
+                }.font(.caption).foregroundStyle(.secondary)
+                GroupBox("压力映射诊断") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(monitor.mapping.status)
+                        Text("已修改事件：\(monitor.mapping.modifiedEventCount) · 缓存事件：\(monitor.mapping.bufferedEventCount)")
+                        if let last = monitor.mapping.diagnostics.last {
+                            Text("输入 \(last.inputPressure.formatted()) → 输出 \(last.outputPressure.formatted())")
+                            Text("目标：\(last.targetBundleID ?? "未知应用") · PID \(last.targetPID)")
+                            Text("设备：\(last.device?.key ?? "待识别")")
+                            Text("配置：\(monitor.profiles.first { $0.id == last.profileID }?.name ?? "本笔透传") · \(last.reason)")
+                        }
+                        Text("回调已修改不等于目标应用已接收。下方 NSEvent 读数可能已包含映射结果，导出保留两类独立事件流。")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
+                }
+                HStack(alignment: .top, spacing: 16) {
+                    hardwarePanel.frame(width: 310)
+                    VStack(spacing: 16) { samplePanel; trendPanel }.frame(maxWidth: .infinity)
+                }
+                eventsPanel
+            }.padding(24)
         }
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
-            monitor.interruptPencilInteraction()
-        }
-        .alert("导出失败", isPresented: Binding(
-            get: { monitor.exportError != nil },
-            set: { if !$0 { monitor.exportError = nil } }
-        )) {
+        .alert("导出失败", isPresented: Binding(get: { monitor.exportError != nil }, set: { if !$0 { monitor.exportError = nil } })) {
             Button("好") { monitor.exportError = nil }
         } message: { Text(monitor.exportError ?? "") }
     }
 
-    private var header: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "pencil.tip.crop.circle").font(.system(size: 32)).foregroundStyle(.tint)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("PenActor").font(.title2.bold())
-                Text("系统数位笔输入 · 调试面板").foregroundStyle(.secondary)
-            }
-            Spacer()
-            Toggle("窗口置顶", isOn: $monitor.alwaysOnTop).toggleStyle(.checkbox)
-            Button("导出 JSON", systemImage: "square.and.arrow.up") { monitor.exportLog() }
-                .disabled(monitor.isExporting)
-                .help("导出全部设备最近 500 条事件，保留完整压力精度与系统时间戳")
-            Button("暂停全部映射") { monitor.pauseMapping() }
-            Button("清空记录", systemImage: "trash") { monitor.clear() }
-            Button(monitor.isRunning ? "停止监听" : "开始监听",
-                   systemImage: monitor.isRunning ? "stop.fill" : "play.fill") {
-                if monitor.isRunning { monitor.stop() } else { monitor.start() }
-            }.buttonStyle(.borderedProminent)
-        }
-    }
-
-    private var permissionPanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label(monitor.isRunning ? "监听已启动" : "监听已停止",
-                      systemImage: monitor.isRunning ? "waveform" : "pause.circle")
-                    .font(.headline)
-                Spacer()
-                Text("输入监控权限：\(monitor.listenAccess ? "已允许" : "未允许 / 待确认")")
-                if !monitor.listenAccess {
-                    Button("请求权限") { monitor.requestPermission() }
-                }
-                Button("重新检查") { monitor.recheck() }
-            }
-            HStack(spacing: 20) {
-                status("本地", installed: monitor.installation.local, received: monitor.receivedLocal)
-                status("全局", installed: monitor.installation.global, received: monitor.receivedGlobal)
-                Spacer()
-                Text("累计 \(monitor.snapshot.totalEvents) 个笔事件").monospacedDigit()
-            }.font(.caption).foregroundStyle(.secondary)
-            Text("在测试区或 PS / CSP 中使用笔以获取数据。未授权时仍可在本窗口测试；无事件不代表设备已断开。")
-                .font(.caption).foregroundStyle(.secondary)
-        }.panel()
+    private var testingPage: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                PreferencesPageHeader(title: "笔迹测试", subtitle: "在本窗口确认笔迹与压力变化，或移到 iPad 测试 Pencil 手势。")
+                testPanel
+                pencilInteractionPanel
+            }.padding(24)
+        }.modifier(PencilInteractionObserver(monitor: monitor))
+            .onDisappear { monitor.interruptPencilInteraction() }
     }
 
     private func status(_ title: String, installed: Bool, received: Bool) -> some View {
@@ -244,11 +240,12 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("笔输入测试区").font(.headline)
+                Button("清空笔迹与记录") { monitor.clear() }
                 Spacer()
                 Text("线宽随系统压力变化 · 仅接受笔事件").font(.caption).foregroundStyle(.secondary)
             }
             TestPad(isRunning: monitor.isRunning, clearGeneration: monitor.clearGeneration)
-                .frame(height: 180)
+                .frame(height: 300)
             Text("使用 Sidecar 时请把此窗口移至 iPad。此区域是输入验证工具；不应用平滑或压力曲线。")
                 .font(.caption).foregroundStyle(.secondary)
         }.panel()
