@@ -1,7 +1,8 @@
 import AppKit
 
 enum PenEventDecoder {
-    static func decode(_ event: NSEvent, source: EventSource, foregroundApp: String) -> PenEvent? {
+    static func decode(_ event: NSEvent, source: EventSource, foregroundApp: String,
+                       foregroundBundleID: String? = nil) -> PenEvent? {
         let kind = TabletEventKind.classify(event)
         guard kind != .ignored else { return nil }
         var info: PenDeviceInfo?
@@ -32,11 +33,19 @@ enum PenEventDecoder {
                 buttons: event.buttonMask.rawValue
             )
         }
-        return PenEvent(
+        var decoded = PenEvent(
             deviceID: event.deviceID, timestamp: event.timestamp, receivedAt: Date(),
             source: source, typeName: eventName(type: event.type, kind: kind), foregroundApp: foregroundApp,
             proximity: proximity, info: info, sample: sample
         )
+        decoded.eventTypeCode = event.type.rawValue
+        if TabletEventKind.mouseTypes.contains(event.type) { decoded.mouseSubtypeCode = event.subtype.rawValue }
+        if let location = event.cgEvent?.location {
+            decoded.screenX = location.x
+            decoded.screenY = location.y
+        }
+        decoded.foregroundBundleID = foregroundBundleID
+        return decoded
     }
 
     private static func eventName(type: NSEvent.EventType, kind: TabletEventKind) -> String {

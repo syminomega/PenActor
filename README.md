@@ -26,6 +26,24 @@ Intel Mac 测试将 `arch=arm64` 改为 `arch=x86_64`。工程未开启 App Sand
 
 ## 数据的含义
 
+### 导出 JSON 日志
+
+点击顶部「导出 JSON」选择保存位置，可以在监听中或停止后导出。保存的是**按下按钮时**全部设备最近保留的最多 500 条事件，按采集顺序（最旧在前）排列，不受设备菜单选择影响。保存面板打开后的新事件不进入这份快照；取消保存不会改动采样。写入失败时显示错误。
+
+日志采用 UTF-8、格式化 JSON，`schemaVersion` 为 1，主要包含：
+
+- `events`：事件序号、系统 uptime 秒 `timestamp`、接收时间 `receivedAt`（UTC ISO 8601，毫秒）、事件名称与原生类型码、临时 Device ID、当时解析的 `identityAtCapture`、压力 / 倾斜 / 旋转 / 按钮、屏幕坐标和前台应用上下文。
+- `sample.pressure`：保留系统 Float 值的序列化精度，不按面板的四位小数舍入。`null` 表示该事件未取得有效压力，`0` 才是有效零压力；proximity 事件没有 sample。
+- `devices`：已观察稳定身份及最近硬件信息；实际 proximity 事件还会保留该事件当时的元数据。尚未收到元数据的历史事件可能仍带临时身份，可通过同一会话的 proximity 记录关联。
+- `totalObservedEvents / retainedEventCount / discardedEventCount`：累计采集量、当前保留量和已淘汰量，判断日志是否缺失更早的起笔。应用重启或清空后重新计数。
+- `pencilGestures`：双击 / 挤压的累计摘要（不含逐条手势时间线），以及应用版本、系统版本和导出时间。
+
+分析毫秒间隔时优先对相邻事件的 `timestamp` 求差乘 1000；它是系统事件时间，而不是回调收到时间。绝对坐标是数位板空间，`screenX / screenY` 是 CGEvent 全局屏幕点坐标。导出不做压力曲线、插值或笔画过滤，也不承诺系统没有合并事件。
+
+日志包含设备序列号 / 唯一标识、应用上下文及绘画位置，保存到本地，不自动上传。`Logs/` 和 `PenActor-*.json` 已加入 Git 忽略规则。旧版本进程的内存不能由新版本追溯导出，更新后需重新采集。
+
+项目现象与第三方资料对照见 [输入观察记录](docs/input-observations.md)。
+
 macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 AppKit 演讲](https://developer.apple.com/videos/play/wwdc2019/210/)中说明了 Sidecar Apple Pencil 的 tablet subtype 与压力输入。它是本版的读取入口。
 
 输入链路大致为：硬件 → 驱动 / Sidecar → 系统事件 → 绘画应用 → 笔刷。PenActor 观察的是**系统事件值**，不承诺获取未经驱动处理的原始硬件压力，也不能从事件反推出 PS/CSP 的最终笔刷压力曲线。
@@ -116,7 +134,7 @@ Apple 提供 `tabletEventPointPressure` 和 `mouseEventPressure` 字段，需要
 
 ## 验证记录与实机验收
 
-开发日期：2026-10-21。`xcodebuild build` 成功（arm64 / x86_64），`xcodebuild test` 在 arm64 上通过 43 项测试，0 失败。本机界面已观察到来自驱动的本地 / 全局笔事件、proximity 进入 / 离开、硬件标识、压力趋势和有粗细变化的测试笔迹；未核实该设备具体型号，也未把该观察计为下表完整兼容性验收。硬件兼容性必须使用真实笔输入单独验证，测试夹具不能替代设备验收。
+开发日期：2026-10-21。`xcodebuild build` 成功（arm64 / x86_64），`xcodebuild test` 在 arm64 上通过 47 项测试，0 失败。本机界面已观察到来自驱动的本地 / 全局笔事件、proximity 进入 / 离开、硬件标识、压力趋势和有粗细变化的测试笔迹；未核实该设备具体型号，也未把该观察计为下表完整兼容性验收。硬件兼容性必须使用真实笔输入单独验证，测试夹具不能替代设备验收。
 
 | 输入链路 | 测试区 | Photoshop | Clip Studio Paint |
 | --- | --- | --- | --- |

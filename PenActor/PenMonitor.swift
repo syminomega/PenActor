@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import CoreGraphics
+import UniformTypeIdentifiers
 
 struct MonitorInstallation {
     let local: Bool
@@ -57,6 +58,9 @@ final class PenMonitor: ObservableObject {
     @Published var alwaysOnTop = false
     @Published private(set) var automaticallySwitchDevices: Bool
     @Published private(set) var clearGeneration = 0
+    @Published private(set) var isExporting = false
+    @Published private(set) var lastExportURL: URL?
+    @Published var exportError: String?
     private var store = PenStore()
     private var interactions = PencilInteractionStats()
     private var dirty = false
@@ -94,9 +98,11 @@ final class PenMonitor: ObservableObject {
                 return
             }
             guard TabletEventKind.classify(event) != .ignored else { return }
+            let foreground = NSWorkspace.shared.frontmostApplication
             guard let decoded = PenEventDecoder.decode(
                 event, source: source,
-                foregroundApp: NSWorkspace.shared.frontmostApplication?.localizedName ?? "未知"
+                foregroundApp: foreground?.localizedName ?? "未知",
+                foregroundBundleID: foreground?.bundleIdentifier
             ) else { return }
             self.store.ingest(decoded)
             if source == .local { self.pendingReceivedLocal = true }
@@ -154,6 +160,39 @@ final class PenMonitor: ObservableObject {
         pendingReceivedLocal = false
         pendingReceivedGlobal = false
         clearGeneration += 1
+    }
+
+    func makeLogDocument(exportedAt: Date = Date()) -> PenLogDocument {
+        // Use the capture buffer, including events not yet published by the 60 Hz timer.
+        PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt)
+    }
+
+    func exportLog() {
+        guard !isExporting else { return }
+        let data: Data
+        do { data = try makeLogDocument().jsonData() }
+        catch { exportError = error.localizedDescription; return }
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "PenActor-\(formatter.string(from: Date())).json"
+        panel.title = "导出事件日志"
+        panel.message = "保存点击导出时的全部设备最近 500 条事件快照；包含设备标识和应用上下文。"
+        isExporting = true
+        let completion: (NSApplication.ModalResponse) -> Void = { [weak self] response in
+            guard let self else { return }
+            self.isExporting = false
+            guard response == .OK, let url = panel.url else { return }
+            do {
+                try data.write(to: url, options: .atomic)
+                self.lastExportURL = url
+            } catch { self.exportError = error.localizedDescription }
+        }
+        if let window = NSApp.keyWindow { panel.beginSheetModal(for: window, completionHandler: completion) }
+        else { panel.begin(completionHandler: completion) }
     }
 
     func recordPencilDoubleTap(source: PencilDoubleTapSource,

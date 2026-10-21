@@ -36,6 +36,12 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
             monitor.interruptPencilInteraction()
         }
+        .alert("导出失败", isPresented: Binding(
+            get: { monitor.exportError != nil },
+            set: { if !$0 { monitor.exportError = nil } }
+        )) {
+            Button("好") { monitor.exportError = nil }
+        } message: { Text(monitor.exportError ?? "") }
     }
 
     private var header: some View {
@@ -47,6 +53,9 @@ struct ContentView: View {
             }
             Spacer()
             Toggle("窗口置顶", isOn: $monitor.alwaysOnTop).toggleStyle(.checkbox)
+            Button("导出 JSON", systemImage: "square.and.arrow.up") { monitor.exportLog() }
+                .disabled(monitor.isExporting)
+                .help("导出全部设备最近 500 条事件，保留完整压力精度与系统时间戳")
             Button("清空记录", systemImage: "trash") { monitor.clear() }
             Button(monitor.isRunning ? "停止监听" : "开始监听",
                    systemImage: monitor.isRunning ? "stop.fill" : "play.fill") {
@@ -245,6 +254,9 @@ struct ContentView: View {
 
     private var eventsPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let url = monitor.lastExportURL {
+                Text("已导出：\(url.lastPathComponent)").font(.caption).foregroundStyle(.secondary)
+            }
             HStack {
                 Text("最近事件").font(.headline)
                 Spacer()

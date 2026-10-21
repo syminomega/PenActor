@@ -1,11 +1,11 @@
 import AppKit
 
-enum PencilDoubleTapSource: String {
+enum PencilDoubleTapSource: String, Codable {
     case appKit = "NSEvent.changeMode"
     case swiftUI = "SwiftUI"
 }
 
-enum PencilSqueezeStatus: String {
+enum PencilSqueezeStatus: String, Codable {
     case waiting = "尚未收到"
     case active = "正在挤压"
     case ended = "挤压已结束"
@@ -66,7 +66,7 @@ struct PencilInteractionStats {
     }
 }
 
-enum EventSource: String, Sendable {
+enum EventSource: String, Sendable, Codable {
     case local = "本应用"
     case global = "其他应用"
 }
@@ -105,7 +105,7 @@ enum TabletEventKind: Equatable {
     }
 }
 
-struct PenDeviceInfo: Equatable {
+struct PenDeviceInfo: Equatable, Codable {
     let vendorID: Int
     let tabletID: Int
     let pointingDeviceID: Int
@@ -129,7 +129,7 @@ enum PenCapability: Int {
     }
 }
 
-struct PenSample: Equatable {
+struct PenSample: Equatable, Codable {
     let pressure: Float?
     let tiltX: Double
     let tiltY: Double
@@ -139,10 +139,35 @@ struct PenSample: Equatable {
     let absoluteY: Int
     let absoluteZ: Int
     let buttons: UInt
+
+    enum CodingKeys: String, CodingKey {
+        case pressure, tiltX, tiltY, rotation, tangentialPressure
+        case absoluteX, absoluteY, absoluteZ, buttons
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        // Explicit null is important: an unreadable pressure is not zero pressure.
+        try container.encode(pressure, forKey: .pressure)
+        try container.encode(tiltX, forKey: .tiltX)
+        try container.encode(tiltY, forKey: .tiltY)
+        try container.encode(rotation, forKey: .rotation)
+        try container.encode(tangentialPressure, forKey: .tangentialPressure)
+        try container.encode(absoluteX, forKey: .absoluteX)
+        try container.encode(absoluteY, forKey: .absoluteY)
+        try container.encode(absoluteZ, forKey: .absoluteZ)
+        try container.encode(buttons, forKey: .buttons)
+    }
 }
 
-struct PenEvent: Identifiable {
+struct PenEvent: Identifiable, Codable {
     var id: UInt64 = 0
+    var identityAtCapture: PenIdentity?
+    var eventTypeCode: UInt?
+    var mouseSubtypeCode: Int16?
+    var screenX: Double?
+    var screenY: Double?
+    var foregroundBundleID: String?
     let deviceID: Int
     let timestamp: TimeInterval
     let receivedAt: Date
@@ -155,8 +180,8 @@ struct PenEvent: Identifiable {
 }
 
 /// Versioned deterministic keys; never use Swift's randomized hashValue for persistence.
-struct PenIdentity: Hashable {
-    enum MatchLevel: String {
+struct PenIdentity: Hashable, Codable {
+    enum MatchLevel: String, Codable {
         case uniqueTool, serialNumber, model, session
 
         var label: String {
@@ -257,6 +282,7 @@ struct PenStore {
         } else {
             identity = previousIdentity ?? .session(event.deviceID)
         }
+        event.identityAtCapture = identity
 
         // Promote a provisional row when proximity metadata arrives. If the stable row
         // already exists, merge into it instead of leaving a duplicate row behind.
