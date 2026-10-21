@@ -45,11 +45,28 @@ struct PressureProfile: Identifiable, Codable, Equatable, Sendable {
     var device: PenIdentity
     var curve = PressureCurve.linear
     var targetBundleIDs: [String] = []
-    var isValid: Bool { device.level != .session && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && curve.isValid && targetBundleIDs.allSatisfy { !$0.isEmpty && $0.rangeOfCharacter(from: .whitespacesAndNewlines) == nil } }
+    var taper = StrokeTaperSettings()
+
+    init(id: UUID = UUID(), name: String, device: PenIdentity, curve: PressureCurve = .linear,
+         targetBundleIDs: [String] = [], taper: StrokeTaperSettings = StrokeTaperSettings()) {
+        self.id = id; self.name = name; self.device = device; self.curve = curve
+        self.targetBundleIDs = targetBundleIDs; self.taper = taper
+    }
+    private enum CodingKeys: String, CodingKey { case id, name, device, curve, targetBundleIDs, taper }
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        device = try container.decode(PenIdentity.self, forKey: .device)
+        curve = try container.decode(PressureCurve.self, forKey: .curve)
+        targetBundleIDs = try container.decode([String].self, forKey: .targetBundleIDs)
+        taper = try container.decodeIfPresent(StrokeTaperSettings.self, forKey: .taper) ?? StrokeTaperSettings()
+    }
+    var isValid: Bool { device.level != .session && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && curve.isValid && taper.isValid && targetBundleIDs.allSatisfy { !$0.isEmpty && $0.rangeOfCharacter(from: .whitespacesAndNewlines) == nil } }
 }
 
 struct PressureProfileFile: Codable {
-    var schemaVersion = 1
+    var schemaVersion = 2
     var profiles: [PressureProfile]
 }
 
@@ -59,7 +76,7 @@ struct PressureProfileRepository {
     func load() throws -> [PressureProfile] {
         guard FileManager.default.fileExists(atPath: url.path) else { return [] }
         let file = try JSONDecoder().decode(PressureProfileFile.self, from: Data(contentsOf: url))
-        guard file.schemaVersion == 1, file.profiles.count <= 256,
+        guard [1, 2].contains(file.schemaVersion), file.profiles.count <= 256,
               Set(file.profiles.map(\.id)).count == file.profiles.count,
               file.profiles.allSatisfy(\.isValid) else { throw CocoaError(.fileReadCorruptFile) }
         return file.profiles

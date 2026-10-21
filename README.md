@@ -1,6 +1,6 @@
 # PenActor
 
-macOS 数位笔输入调试工具，使用 Swift 6、SwiftUI 和 AppKit，无第三方依赖。最低 macOS 14；已在 macOS 27.0.1 / Xcode 27.1 上构建。支持本应用输入观察、其他应用输入观察、稳定设备配置、可编辑压力曲线、指定应用压力重映射、压力趋势和笔迹测试。
+macOS 数位笔输入调试工具，使用 Swift 6、SwiftUI 和 AppKit，无第三方依赖。最低 macOS 14；已在 macOS 27.0.1 / Xcode 27.1 上构建。支持本应用输入观察、其他应用输入观察、稳定设备配置、可编辑压力曲线、指定应用压力重映射、入锋 / 缓冲出锋、压力趋势和笔迹测试。
 
 ## 运行
 
@@ -29,6 +29,8 @@ Intel Mac 测试将 `arch=arm64` 改为 `arch=x86_64`。工程未开启 App Sand
 ### 导出 JSON 日志
 
 点击顶部「导出 JSON」选择保存位置，可以在监听中或停止后导出。保存的是**按下按钮时**全部设备最近保留的最多 500 条事件，按采集顺序（最旧在前）排列，不受设备菜单选择影响。保存面板打开后的新事件不进入这份快照；取消保存不会改动采样。写入失败时显示错误。
+
+出锋开启时，诊断在准备输出时记录，未输出的缓存数量见 `mapping.bufferedEventCount`；`delivery` 标识输出方式，`taper` 保留首尾包络系数。
 
 日志采用 UTF-8、格式化 JSON，`schemaVersion` 为 2，主要包含：
 
@@ -115,6 +117,8 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 
 ## 压力重映射测试
 
+实现原理、事件链路与代码入口见 [压力重映射技术说明](docs/pressure-remapping.md)；0.3.0 新增 [入锋与缓冲出锋说明](docs/stroke-taper.md)。
+
 1. 重新运行最新构建，使用笔让设备出现在菜单中，选择目标设备。点击「新增配置」并命名。Sidecar 仍按型号归组，不能区分多支同型号 Pencil。
 2. 双击曲线区域添加内点，拖动调整；选中内点后可删除。横轴为输入压力，纵轴为输出压力，均为 0～100%。端点固定 `(0,0)` 和 `(1,1)`，X 严格递增、Y 单调不减；采用单调三次插值，支持低压平段和提前满压平台，最多 32 个点。
 3. 从运行应用菜单选择 Photoshop / CSP，或浏览对应 `.app`。保存的是 bundle ID，Photoshop 为 `com.adobe.Photoshop`；不根据应用名称猜测目标。至少添加一个目标应用才能启用。
@@ -125,11 +129,11 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 
 每个设备可以保存多个配置，同时只能启用一个。切换当前观察设备不影响其他设备已启用的配置，未启用配置的 Wacom 原样透传。保存已启用曲线或切换同设备配置从下一笔生效；「禁用此配置」、顶部「暂停全部映射」或 `⌘⇧R` 立即恢复透传。停止监听同时停止映射，再次开始监听不恢复修改。关闭最后一个窗口会退出应用。
 
-配置文件位于 `~/Library/Application Support/PenActor/profiles.json`，采用版本化 JSON 和原子写入。重启后保留配置，但映射始终关闭。清空记录不删除配置。新配置默认线性，不自动授权、不自动启用，不添加菜单栏常驻或开机启动。
+配置文件位于 `~/Library/Application Support/PenActor/profiles.json`，采用 schema 2 JSON 和原子写入，兼容读取 schema 1 旧配置。重启后保留配置，但映射始终关闭。清空记录不删除配置。新配置默认线性，不自动授权、不自动启用，不添加菜单栏常驻或开机启动。
 
-实现使用 `.cgAnnotatedSessionEventTap / .tailAppendEventTap / .defaultTap`，在独立线程的 RunLoop 同步处理；直接读取 Quartz proximity 字段并复用稳定身份算法。仅匹配设备与事件目标 PID 对应 bundle ID 后，修改原事件的 `tabletEventPointPressure` / `mouseEventPressure`，不取消后重发，保留坐标、倾斜、按钮、时间戳与顺序。两类压力字段精度可能不同，因此分别映射；线性配置跳过相同值写入，零值保持零。身份、目标进程或接触阶段无法匹配时透传。
+实现使用 `.cgAnnotatedSessionEventTap / .tailAppendEventTap / .defaultTap`，在独立线程的 RunLoop 同步处理；直接读取 Quartz proximity 字段并复用稳定身份算法。仅匹配设备与事件目标 PID 对应 bundle ID 后修改 `tabletEventPointPressure` / `mouseEventPressure`。关闭出锋时修改并返回原事件；启用出锋时暂存并重发副本，保留坐标、倾斜、按钮、时间戳与顺序，并添加来源标记以避免重复处理。两类压力字段精度可能不同，因此分别映射；线性配置跳过相同值写入，零值保持零。身份、目标进程或接触阶段无法匹配时透传。
 
-回调不执行 UI、磁盘、同步应用查询；配置和 PID 对照在回调外更新，诊断最多 500 条，会话和笔画锁定最多各 128 个。tap 创建失败、超时或系统停用后停止映射，保留原因，不循环自动重启。本版只做静态曲线，**没有加入起笔过滤**，此前观测的起笔压力凸起仍可能存在。应用自己的笔刷曲线也会继续生效。
+回调不执行 UI、磁盘、同步应用查询；配置和 PID 对照在回调外更新，诊断最多 500 条，会话和笔画锁定最多各 128 个。tap 创建失败、超时或系统停用后停止映射，保留原因，不循环自动重启。0.3.0 可分别启用入锋与出锋：入锋从零平滑恢复，出锋默认缓存 60 ms 并在抬笔后修整尾部，允许调节 10～200 ms；两项默认关闭。更长出锋会带来更明显延迟，短点画可能变淡，仍需实测起笔异常是否改善。应用自己的笔刷曲线也会继续生效。
 
 参考：[CGEventTapCallBack](https://developer.apple.com/documentation/coregraphics/cgeventtapcallback)、[tabletEventPointPressure](https://developer.apple.com/documentation/coregraphics/cgeventfield/tableteventpointpressure)、[mouseEventPressure](https://developer.apple.com/documentation/coregraphics/cgeventfield/mouseeventpressure)。
 
@@ -140,20 +144,21 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 - `PenMonitor.swift`：本地 / 全局监听、授权状态、开始停止及限频发布；`EventMonitoring` 用于替换事件后端和测试。
 - `ContentView.swift`、`TestPad.swift`：调试面板、趋势和基于手势的笔迹测试区。
 - `PressureProfiles.swift`：单调曲线、配置数据与原子持久化。
+- `StrokeTaper.swift`、`BufferedPenEvents.swift`：入锋包络、出锋缓冲与释放恢复。
 - `PressureRemappingEngine.swift`：独立线程主动 tap、设备 / 应用匹配、笔画锁定和诊断。
 - `PressureMappingPanel.swift`：配置、目标应用和控制点编辑器。
 - `PenActorTests`：事件过滤、Quartz 事件字段解码、设备会话、缺失值、缓存上限与监听生命周期测试。Quartz 夹具只在进程内转换为 NSEvent，不向系统注入事件。
 
 ## 验证记录与实机验收
 
-开发日期：2026-10-21。`xcodebuild build` 成功（arm64 / x86_64），`xcodebuild test` 在 arm64 上通过 69 项测试，0 失败。本机界面已观察到来自驱动的本地 / 全局笔事件、proximity 进入 / 离开、硬件标识、压力趋势和有粗细变化的测试笔迹；未核实该设备具体型号，也未把该观察计为下表完整兼容性验收。压力重映射新增进程内 Quartz 夹具、曲线与持久化测试；测试不创建真实主动 tap，系统创建失败 / 停用由注入工厂验证。硬件兼容性必须使用真实笔输入单独验证，测试夹具不能替代设备验收。
+开发日期：2026-10-21。`xcodebuild build` 成功（arm64 / x86_64），`xcodebuild test` 在 arm64 上通过 92 项测试，0 失败。本机界面已观察到来自驱动的本地 / 全局笔事件、proximity 进入 / 离开、硬件标识、压力趋势和有粗细变化的测试笔迹；未核实该设备具体型号，也未把该观察计为下表完整兼容性验收。压力重映射新增进程内 Quartz 夹具、曲线与持久化测试；测试不创建真实主动 tap，系统创建失败 / 停用由注入工厂验证。硬件兼容性必须使用真实笔输入单独验证，测试夹具不能替代设备验收。
 
 | 输入链路 | 测试区 | Photoshop | Clip Studio Paint |
 | --- | --- | --- | --- |
 | Sidecar + Apple Pencil | 待实机验证 | 待实机验证 | 待实机验证 |
 | Wacom 等数位板 + 厂商驱动 | 待实机验证 | 待实机验证 | 待实机验证 |
 
-新增压力重映射的 PS / CSP 验收均为待实机验证。对同一笔刷比较线性、增强、禁用，检查点画、拖动、抬笔、目标应用切换与 Wacom 透传，并保留 schema 2 JSON。
+2026-10-21，用户反馈压力重映射「确实生效了」，记录为当前测试环境的初步实机验证；尚未逐项记录目标应用、曲线与笔刷设置，因此下表完整验收仍待完成。对同一笔刷比较线性、增强、禁用，检查点画、拖动、抬笔、目标应用切换与 Wacom 透传，并保留 schema 2 JSON。
 
 每个组合检查：轻压到重压、抬笔归零、倾斜 X/Y、旋转（仅硬件支持时）、按钮、离开 / 重新进入感应范围、设备切换。前后台切换后检查来源标记，并确认 PS/CSP 笔迹没有被阻断。记录 macOS / iPadOS、笔和数位板型号、驱动及绘画软件版本；不可取得的字段保留“未取得/支持情况未知”。
 

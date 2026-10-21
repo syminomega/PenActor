@@ -51,10 +51,14 @@ struct PressureMappingPanel: View {
             if let last = monitor.mapping.diagnostics.last {
                 Text("Tap 输入 \(last.inputPressure, specifier: "%.4f") → 输出 \(last.outputPressure, specifier: "%.4f") · \(last.targetBundleID ?? "目标未知") · \(last.reason)")
                     .font(.caption).monospacedDigit()
+                if let taper = last.taper {
+                    Text("\(taper.phase) · 入锋系数 \(taper.entryFactor, specifier: "%.3f") · 出锋系数 \(taper.exitFactor, specifier: "%.3f")")
+                        .font(.caption).monospacedDigit()
+                }
                 Text("设备：\(last.device?.key ?? "待识别") · 配置：\(monitor.profiles.first { $0.id == last.profileID }?.name ?? "透传") · 目标 PID \(last.targetPID)")
                     .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
             }
-            Text("已修改 \(monitor.mapping.modifiedEventCount) 个事件；启用配置 \(monitor.enabledProfileIDs.count) 个。保存曲线和切换配置从下一笔生效；禁用立即透传。").font(.caption)
+            Text("缓存 \(monitor.mapping.bufferedEventCount) 个事件；已修改 \(monitor.mapping.modifiedEventCount) 个事件；启用配置 \(monitor.enabledProfileIDs.count) 个。保存曲线和切换配置从下一笔生效；禁用立即透传。").font(.caption)
             if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
         }
         .padding(16).background(.background, in: RoundedRectangle(cornerRadius: 12))
@@ -90,6 +94,7 @@ struct PressureMappingPanel: View {
                     Button("浏览 .app…") { browseApplication() }
                 }
                 Text("双击曲线区域添加点；拖拽内点调整。端点固定，输出保持单调。新配置默认线性，需要保存后启用。").font(.caption).foregroundStyle(.secondary)
+                taperControls
                 HStack {
                     Button("保存") { if let draft { _ = monitor.saveProfile(draft) } }.disabled(draft?.isValid != true)
                     Button("保存并启用") {
@@ -101,6 +106,46 @@ struct PressureMappingPanel: View {
                 }
             }.frame(maxWidth: .infinity)
         }
+    }
+    private var taperControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider()
+            Text("入锋与出锋").font(.subheadline.bold())
+            Toggle("入锋：从零压力平滑进入", isOn: taperBinding(\.entryEnabled))
+                .toggleStyle(.checkbox)
+            if draft?.taper.entryEnabled == true {
+                HStack {
+                    Text("入锋长度").frame(width: 100, alignment: .leading)
+                    Slider(value: taperBinding(\.entryDistance), in: 1...200, step: 1)
+                    Text("\(draft?.taper.entryDistance ?? 12, specifier: "%.0f") 点").monospacedDigit().frame(width: 68)
+                }
+                HStack {
+                    Text("过渡时间上限").frame(width: 100, alignment: .leading)
+                    Slider(value: taperBinding(\.entryDurationMS), in: 10...500, step: 5)
+                    Text("\(draft?.taper.entryDurationMS ?? 60, specifier: "%.0f") ms").monospacedDigit().frame(width: 68)
+                }
+                Text("按屏幕移动距离渐入；达到设定时间也会恢复实际压力。长度与时间取先达到者，短点画可能变淡或消失。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Toggle("出锋：缓冲尾部并完整渐隐", isOn: taperBinding(\.exitEnabled))
+                .toggleStyle(.checkbox)
+            if draft?.taper.exitEnabled == true {
+                HStack {
+                    Text("出锋时长 / 延迟").frame(width: 100, alignment: .leading)
+                    Slider(value: taperBinding(\.exitDurationMS), in: 10...200, step: 5)
+                    Text("\(draft?.taper.exitDurationMS ?? 60, specifier: "%.0f") ms").monospacedDigit().frame(width: 68)
+                }
+                Text("缓存同等时长的笔事件，抬笔后回看尚未输出的尾部并渐隐至零。会增加输入延迟；短点画可能变淡，快捷键会提前排空缓存并中止本笔出锋。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Button("入锋 / 出锋测试预设") {
+                draft?.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12, entryDurationMS: 60,
+                                                  exitEnabled: true, exitDurationMS: 60)
+            }
+        }
+    }
+    private func taperBinding<T>(_ path: WritableKeyPath<StrokeTaperSettings, T>) -> Binding<T> {
+        Binding(get: { (draft?.taper ?? StrokeTaperSettings())[keyPath: path] }, set: { draft?.taper[keyPath: path] = $0 })
     }
     private func addTarget(_ id: String) { if draft?.targetBundleIDs.contains(id) == false { draft?.targetBundleIDs.append(id) } }
     private func browseApplication() {

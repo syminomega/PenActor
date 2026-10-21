@@ -241,6 +241,274 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertTrue(reloaded.enabledProfileIDs.isEmpty)
     }
 
+    func testLegacyProfilesLoadWithTaperDisabledAndSaveAsVersionTwo() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let repo = PressureProfileRepository(url: root.appending(path: "profiles.json"))
+        var old = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(profile())) as? [String: Any])
+        old.removeValue(forKey: "taper")
+        try JSONSerialization.data(withJSONObject: ["schemaVersion": 1, "profiles": [old]]).write(to: repo.url)
+        let loaded = try repo.load()
+        XCTAssertEqual(loaded.first?.taper, StrokeTaperSettings())
+        try repo.save(loaded)
+        let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: repo.url)) as? [String: Any])
+        XCTAssertEqual(saved["schemaVersion"] as? Int, 2)
+    }
+    func testInvalidTaperSettingsAreRejected() {
+        var p = profile()
+        p.taper.entryDistance = 0; XCTAssertFalse(p.isValid)
+        p.taper = StrokeTaperSettings(); p.taper.entryDurationMS = .nan; XCTAssertFalse(p.isValid)
+        p.taper = StrokeTaperSettings(); p.taper.exitDurationMS = 1; XCTAssertFalse(p.isValid)
+        p.taper = StrokeTaperSettings(); p.taper.exitDurationMS = .infinity; XCTAssertFalse(p.isValid)
+    }
+    private func shape(_ state: inout StrokeTaperState, settings: StrokeTaperSettings, pressure: Double = 0.5,
+                       time: Double, x: Double = 0, ending: Bool = false)
+        -> (pressure: Double, tabletPressure: Double, diagnostic: StrokeTaperDiagnostic) {
+        state.apply(settings: settings, input: pressure, tabletInput: pressure, curvePressure: pressure,
+                    tabletCurvePressure: pressure, timestamp: time, location: CGPoint(x: x, y: 0), isEnding: ending)
+    }
+    func testEntryStartsAtZeroAndSmoothlyRestoresPressureByTime() {
+        var settings = StrokeTaperSettings(); settings.entryEnabled = true
+        var state = StrokeTaperState()
+        XCTAssertEqual(shape(&state, settings: settings, pressure: 0.0784, time: 1).pressure, 0)
+        XCTAssertEqual(shape(&state, settings: settings, pressure: 0.0784, time: 1).pressure, 0)
+        let halfway = shape(&state, settings: settings, pressure: 0.0784, time: 1.03)
+        XCTAssertEqual(halfway.pressure, 0.0392, accuracy: 1e-9)
+        XCTAssertEqual(halfway.diagnostic.entryFactor, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(shape(&state, settings: settings, pressure: 0.0784, time: 1.06).pressure, 0.0784, accuracy: 1e-9)
+    }
+    func testEntryUsesCumulativeScreenDistanceAndDoesNotRegress() {
+        var settings = StrokeTaperSettings(); settings.entryEnabled = true; settings.entryDurationMS = 500
+        var state = StrokeTaperState()
+        _ = shape(&state, settings: settings, time: 1)
+        XCTAssertEqual(shape(&state, settings: settings, time: 1.001, x: 6).pressure, 0.25, accuracy: 1e-9)
+        let backwards = shape(&state, settings: settings, time: 0.9, x: 100)
+        XCTAssertEqual(backwards.diagnostic.distance, 6)
+        XCTAssertEqual(backwards.pressure, 0.25, accuracy: 1e-9)
+        let returned = shape(&state, settings: settings, time: 1.002, x: 0)
+        XCTAssertEqual(returned.diagnostic.distance, 12)
+        XCTAssertEqual(returned.pressure, 0.5)
+    }
+    func testEntryTimeLimitRecoversStationaryDotsOnLaterSamples() {
+        var settings = StrokeTaperSettings(); settings.entryEnabled = true
+        var state = StrokeTaperState()
+        XCTAssertEqual(shape(&state, settings: settings, time: 1).pressure, 0)
+        XCTAssertEqual(shape(&state, settings: settings, time: 1.1).pressure, 0.5)
+    }
+    func testTaperCombinesCurveAndSharesEntryAcrossMouseAndTabletPackets() throws {
+        var p = profile(); p.taper.entryEnabled = true
+        var m = processor(p); m.process(try proximity())
+        let down = try point(0.5, type: .leftMouseDown); down.timestamp = 1_000_000_000; m.process(down)
+        XCTAssertEqual(down.getDoubleValueField(.mouseEventPressure), 0)
+        let companion = try point(0.5); companion.timestamp = down.timestamp; m.process(companion)
+        XCTAssertEqual(companion.getDoubleValueField(.tabletEventPointPressure), 0)
+        let drag = try point(0.5, type: .leftMouseDragged); drag.timestamp = 1_030_000_000
+        drag.location.x += 6; m.process(drag)
+        XCTAssertEqual(drag.getDoubleValueField(.mouseEventPressure), 0.4, accuracy: 0.005)
+        XCTAssertEqual(drag.getDoubleValueField(.tabletEventPointPressure), 0.4, accuracy: 0.005)
+        XCTAssertEqual(m.snapshot.diagnostics.last?.taper?.entryFactor ?? -1, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(drag.timestamp, 1_030_000_000)
+    }
+    func testTaperSettingsLatchAndDisablingImmediatelyRestoresPressure() throws {
+        var p = profile(); p.taper.entryEnabled = true
+        var m = processor(p); m.process(try proximity())
+        let down = try point(0.5); down.timestamp = 1_000_000_000; m.process(down)
+        p.taper.entryDistance = 1; p.taper.entryDurationMS = 10; m.setProfiles([p])
+        let held = try point(0.5); held.timestamp = 1_030_000_000; m.process(held)
+        XCTAssertEqual(held.getDoubleValueField(.tabletEventPointPressure), 0.4, accuracy: 0.005)
+        m.setProfiles([]); let disabled = try point(0.5); m.process(disabled)
+        XCTAssertEqual(disabled.getDoubleValueField(.tabletEventPointPressure), 0.5, accuracy: 0.005)
+    }
+    func testTaperStateDoesNotMixDevicesAndResetsOnNewStroke() throws {
+        var p = profile(); p.taper.entryEnabled = true
+        var m = processor(p); m.process(try proximity()); m.process(try proximity(id: 18))
+        let first = try point(0.5); first.timestamp = 1_000_000_000; m.process(first)
+        let second = try point(0.5, id: 18); second.timestamp = 1_030_000_000; m.process(second)
+        XCTAssertEqual(second.getDoubleValueField(.tabletEventPointPressure), 0)
+        m.process(try point(0)); let next = try point(0.5); next.timestamp = 2_000_000_000; m.process(next)
+        XCTAssertEqual(next.getDoubleValueField(.tabletEventPointPressure), 0)
+        m.process(try proximity(entering: false)); m.process(try proximity(id: 19))
+        let reconnected = try point(0.5, id: 19); m.process(reconnected)
+        XCTAssertEqual(reconnected.getDoubleValueField(.tabletEventPointPressure), 0)
+    }
+    func testTaperDiagnosticsAreExportedWithoutChangingNSEventStream() throws {
+        var p = profile(); p.taper.entryEnabled = true
+        var m = processor(p); m.process(try proximity()); m.process(try point(0.0784))
+        let log = PenLogDocument(store: PenStore(), interactions: PencilInteractionStats(), isMonitoring: true, profiles: [p], mapping: m.snapshot)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: log.jsonData()) as? [String: Any])
+        let mapping = try XCTUnwrap(object["mapping"] as? [String: Any])
+        let events = try XCTUnwrap(mapping["diagnostics"] as? [[String: Any]])
+        let taper = try XCTUnwrap(events.first?["taper"] as? [String: Any])
+        XCTAssertEqual(taper["entryFactor"] as? Double, 0)
+        XCTAssertEqual(events.first?["outputPressure"] as? Double, 0)
+        XCTAssertTrue(log.events.isEmpty)
+    }
+
+    private func bufferedProfile() -> PressureProfile {
+        var p = profile(); p.taper.exitEnabled = true; return p
+    }
+    private func queue(_ event: CGEvent, processor: inout PressureMappingProcessor, buffer: inout BufferedPenEvents,
+                       now: Double) throws -> PenBufferAction {
+        let original = try XCTUnwrap(event.copy())
+        let result = processor.process(event, recordDiagnostic: false)
+        return buffer.accept(event, original: original, result: result, now: now)
+    }
+    private func timedPoint(_ p: Double, time: Double, type: CGEventType = .leftMouseDragged, id: Int64 = 17,
+                            pid: Int64 = 42, pen: Bool = true) throws -> CGEvent {
+        let e = try point(p, id: id, pid: pid, type: type, pen: pen)
+        e.timestamp = UInt64(time*1_000_000_000); return e
+    }
+    func testBufferedExitDelaysAndFadesConstantPressureBeforeSuddenLiftOff() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        for (p,t,type): (Double,Double,CGEventType) in [(0.5,1,.leftMouseDown),(0.5,1.03,.leftMouseDragged),(0,1.06,.leftMouseUp)] {
+            let action = try queue(timedPoint(p,time:t,type:type),processor:&m,buffer:&buffer,now:t)
+            XCTAssertTrue(action.suppress); XCTAssertTrue(action.output.isEmpty)
+        }
+        XCTAssertTrue(m.snapshot.diagnostics.isEmpty)
+        XCTAssertTrue(buffer.drain(now:1.059).isEmpty)
+        let start = buffer.drain(now:1.061)
+        XCTAssertEqual(start.count,1); XCTAssertEqual(start[0].event.type,.leftMouseDown)
+        XCTAssertEqual(start[0].event.getDoubleValueField(.mouseEventPressure),0.8,accuracy:0.005)
+        let tail = buffer.drain(now:1.121)
+        XCTAssertEqual(tail.map { $0.event.type },[.leftMouseDragged,.leftMouseUp])
+        XCTAssertEqual(tail[0].event.getDoubleValueField(.mouseEventPressure),0.4,accuracy:0.005)
+        XCTAssertEqual(tail[0].diagnostic?.taper?.exitFactor ?? -1,0.5,accuracy:1e-9)
+        XCTAssertEqual(tail[1].event.getDoubleValueField(.mouseEventPressure),0)
+        XCTAssertEqual(buffer.count,0)
+    }
+    func testBufferedExitLeavesAlreadyDeliveredPrefixUnchanged() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        let prefix = buffer.drain(now:1.061)
+        XCTAssertEqual(prefix.count,1); buffer.didDeliver(prefix[0])
+        _ = try queue(timedPoint(0.5,time:1.08),processor:&m,buffer:&buffer,now:1.08)
+        _ = try queue(timedPoint(0,time:1.1,type:.leftMouseUp),processor:&m,buffer:&buffer,now:1.1)
+        XCTAssertEqual(prefix[0].event.getDoubleValueField(.mouseEventPressure),0.8,accuracy:0.005)
+        let tail = buffer.drain(now:1.2)
+        XCTAssertLessThan(tail[0].event.getDoubleValueField(.mouseEventPressure),0.3)
+    }
+    func testBufferedPlainMouseUpFollowsDelayedDownAndEndsTail() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        let up = try timedPoint(0,time:1.03,type:.leftMouseUp,pen:false)
+        XCTAssertTrue(try queue(up,processor:&m,buffer:&buffer,now:1.03).suppress)
+        let output = buffer.drain(now:1.2)
+        XCTAssertEqual(output.map { $0.event.type },[.leftMouseDown,.leftMouseUp])
+        XCTAssertLessThan(output[0].event.getDoubleValueField(.mouseEventPressure),0.8)
+    }
+    func testBufferedEventsKeepCoordinatesTimestampsFlagsAndTarget() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        let event = try timedPoint(0.5,time:1,type:.leftMouseDown)
+        event.flags = [.maskShift]
+        _ = try queue(event,processor:&m,buffer:&buffer,now:1)
+        let output = try XCTUnwrap(buffer.drain(now:1.1).first?.event)
+        XCTAssertEqual(output.location,CGPoint(x:120,y:200)); XCTAssertEqual(output.timestamp,1_000_000_000)
+        XCTAssertEqual(output.flags,[.maskShift]); XCTAssertEqual(output.getIntegerValueField(.eventTargetUnixProcessID),42)
+        XCTAssertEqual(output.getIntegerValueField(.tabletEventDeviceID),17)
+    }
+    func testBufferedCancellationRestoresPendingRawPressureAndReleasesButton() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        _ = try queue(timedPoint(0.5,time:1.03),processor:&m,buffer:&buffer,now:1.03)
+        let output = buffer.cancel()
+        XCTAssertEqual(output.map { $0.event.type },[.leftMouseDown,.leftMouseDragged,.leftMouseUp])
+        XCTAssertEqual(output[0].event.getDoubleValueField(.mouseEventPressure),0.5,accuracy:0.005)
+        XCTAssertEqual(output.last?.event.getDoubleValueField(.mouseEventPressure),0)
+        XCTAssertEqual(output.last?.event.getIntegerValueField(.eventTargetUnixProcessID),42)
+        XCTAssertEqual(buffer.count,0); XCTAssertTrue(buffer.cancel().isEmpty)
+    }
+    func testCancellationReleasesAlreadyPostedDownWithoutDuplicatingExistingUp() throws {
+        for ended in [false,true] {
+            var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+            _ = try queue(timedPoint(0.5,time:1,type:.rightMouseDown),processor:&m,buffer:&buffer,now:1)
+            let down = try XCTUnwrap(buffer.drain(now:1.061).first); buffer.didDeliver(down)
+            if ended { _ = try queue(timedPoint(0,time:1.07,type:.rightMouseUp),processor:&m,buffer:&buffer,now:1.07) }
+            let output = buffer.cancel()
+            XCTAssertEqual(output.filter { $0.event.type == .rightMouseUp }.count,1)
+        }
+    }
+    func testKeyboardBoundaryDrainsInOrderAndBypassesRemainingStroke() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        let key = try XCTUnwrap(CGEvent(source:nil)); key.type = .keyDown
+        let action = try queue(key,processor:&m,buffer:&buffer,now:1.02)
+        XCTAssertTrue(action.suppress); XCTAssertEqual(action.output.map { $0.event.type },[.leftMouseDown,.keyDown])
+        for packet in action.output { buffer.didDeliver(packet) }
+        let drag = try timedPoint(0.5,time:1.03)
+        XCTAssertFalse(try queue(drag,processor:&m,buffer:&buffer,now:1.03).suppress)
+        XCTAssertEqual(buffer.count,0)
+    }
+    func testBufferCapacityDrainsInsteadOfLosingButtonEvents() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        var last = PenBufferAction()
+        for i in 0..<BufferedPenEvents.limit {
+            last = try queue(timedPoint(0.5,time:1,type:i == 0 ? .leftMouseDown : .leftMouseDragged),processor:&m,buffer:&buffer,now:1)
+        }
+        XCTAssertEqual(last.output.count,BufferedPenEvents.limit)
+        XCTAssertEqual(last.output.first?.event.type,.leftMouseDown)
+        XCTAssertEqual(buffer.count,0)
+    }
+    func testBufferDoesNotCaptureUnmatchedDevicesOrApplications() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        for (id,pid): (Int64,Int64) in [(18,42),(17,43),(17,0)] {
+            let e = try timedPoint(0.5,time:1,type:.leftMouseDown,id:id,pid:pid)
+            XCTAssertFalse(try queue(e,processor:&m,buffer:&buffer,now:1).suppress)
+            XCTAssertEqual(e.getDoubleValueField(.mouseEventPressure),0.5,accuracy:0.005)
+        }
+        XCTAssertEqual(buffer.count,0)
+    }
+    func testBufferIsolatesDevicesAndPreservesArrivalOrderAcrossDelays() throws {
+        let p = bufferedProfile()
+        var m = processor(p); m.process(try proximity()); m.process(try proximity(id:18)); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        _ = try queue(timedPoint(0.5,time:1.01,type:.leftMouseDown,id:18),processor:&m,buffer:&buffer,now:1.01)
+        _ = try queue(timedPoint(0,time:1.02,type:.leftMouseUp),processor:&m,buffer:&buffer,now:1.02)
+        let output = buffer.drain(now:1.2)
+        XCTAssertEqual(output.map { $0.route.deviceID },[17,18,17])
+        XCTAssertEqual(output[1].event.getDoubleValueField(.mouseEventPressure),0.8,accuracy:0.005)
+        XCTAssertLessThan(output[0].event.getDoubleValueField(.mouseEventPressure),0.3)
+    }
+
+    func testZeroTabletPacketDoesNotLetLaterPlainUpOvertakeQueuedDown() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        _ = try queue(timedPoint(0,time:1.01,type:.tabletPointer),processor:&m,buffer:&buffer,now:1.01)
+        let delivered = buffer.drain(now:1.08)
+        for packet in delivered { buffer.didDeliver(packet) }
+        let up = try timedPoint(0,time:1.09,type:.leftMouseUp,pen:false)
+        XCTAssertTrue(try queue(up,processor:&m,buffer:&buffer,now:1.09).suppress)
+        XCTAssertTrue(buffer.drain(now:1.14).isEmpty)
+        XCTAssertEqual(buffer.drain(now:1.16).last?.event.type,.leftMouseUp)
+    }
+    func testProximityExitAddsReleaseWhenHardwareOmitsMouseUp() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        let exit = try proximity(entering:false); exit.timestamp = 1_020_000_000
+        XCTAssertTrue(try queue(exit,processor:&m,buffer:&buffer,now:1.02).suppress)
+        let output = buffer.drain(now:1.2)
+        XCTAssertEqual(output.map { $0.event.type },[.leftMouseDown,.leftMouseUp,.tabletProximity])
+        XCTAssertEqual(output[1].event.getDoubleValueField(.mouseEventPressure),0)
+    }
+    func testOtherButtonNumberIsPreservedByCancellationRelease() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        let down = try timedPoint(0.5,time:1,type:.otherMouseDown)
+        down.setIntegerValueField(.mouseEventButtonNumber,value:7)
+        _ = try queue(down,processor:&m,buffer:&buffer,now:1)
+        let output = buffer.cancel()
+        XCTAssertEqual(output.last?.event.type,.otherMouseUp)
+        XCTAssertEqual(output.last?.event.getIntegerValueField(.mouseEventButtonNumber),7)
+    }
+    func testTargetChangeFlushesAndReleasesBeforeForwardingNewTargetEvent() throws {
+        var m = processor(bufferedProfile()); m.process(try proximity()); var buffer = BufferedPenEvents()
+        _ = try queue(timedPoint(0.5,time:1,type:.leftMouseDown),processor:&m,buffer:&buffer,now:1)
+        let other = try timedPoint(0.5,time:1.02,pid:43)
+        let action = try queue(other,processor:&m,buffer:&buffer,now:1.02)
+        XCTAssertTrue(action.suppress)
+        XCTAssertEqual(action.output.map { $0.event.type },[.leftMouseDown,.leftMouseUp,.leftMouseDragged])
+        XCTAssertEqual(action.output.last?.event.getIntegerValueField(.eventTargetUnixProcessID),43)
+    }
+
     @MainActor func testMappingPanelRendersEditableProfile() throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -249,10 +517,10 @@ final class PressureMappingTests: XCTestCase {
         let monitor = PenMonitor(backend: backend, profileRepository: repo)
         monitor.start(); monitor.publish()
         defer { monitor.stop() }
-        let p = profile()
+        var p = profile(); p.taper.entryEnabled = true; p.taper.exitEnabled = true
         XCTAssertTrue(monitor.saveProfile(p))
-        let host = NSHostingView(rootView: PressureMappingPanel(monitor: monitor, initialProfile: p).padding().frame(width: 1000, height: 610))
-        host.frame = NSRect(x: 0, y: 0, width: 1000, height: 610)
+        let host = NSHostingView(rootView: PressureMappingPanel(monitor: monitor, initialProfile: p).padding().frame(width: 1000, height: 860))
+        host.frame = NSRect(x: 0, y: 0, width: 1000, height: 860)
         host.layoutSubtreeIfNeeded()
         let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
         host.cacheDisplay(in: host.bounds, to: bitmap)

@@ -67,6 +67,7 @@ struct PenLogDocument: Codable {
             lastSqueezeAt: interactions.lastSqueezeAt
         )
         notes = [
+            "mapping.diagnostics.taper 记录曲线输出、入锋/出锋系数、累计屏幕距离和经过时间；出锋缓存并延迟输出，delivery 标识直接、延迟或提前排空。诊断在准备输出时记录，不表示目标应用已确认接收。",
             "mapping.diagnostics 来自主动作业 tap，记录修改前后压力；与 NSEvent events 不做一一关联。NSEvent 可能已包含映射结果。",
             "events 按采集顺序排列（最旧在前），包含全部设备最近保留的事件，不限于当前选择。",
             "timestamp 是 NSEvent 系统 uptime 秒，未按界面精度舍入；receivedAt 是本机接收时间（UTC ISO 8601，毫秒）。",
