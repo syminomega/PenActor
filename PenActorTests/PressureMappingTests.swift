@@ -117,9 +117,20 @@ final class PressureMappingTests: XCTestCase {
         monitor.setStartMonitoringOnLaunch(false); monitor.setShowSettingsOnLaunch(false)
         let controller = PreferencesWindowController(monitor: monitor)
         let window = try XCTUnwrap(controller.window)
+        let profileWidth = window.frame.width
         let tabs = try XCTUnwrap(window.contentViewController as? NSTabViewController)
         XCTAssertEqual(tabs.tabViewItems.map(\.label), ["通用", "配置", "调试", "测试"])
         XCTAssertEqual(tabs.selectedTabViewItemIndex, PreferencesSection.profiles.rawValue)
+        tabs.selectedTabViewItemIndex = PreferencesSection.general.rawValue
+        XCTAssertLessThan(window.frame.width, profileWidth)
+        XCTAssertEqual(window.contentMinSize.width, PreferencesSection.general.minimumSize.width)
+        tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
+        XCTAssertEqual(window.frame.width, profileWidth, accuracy: 1)
+        // A manual resize is retained when returning to this page.
+        window.setContentSize(NSSize(width: 900, height: 640))
+        tabs.selectedTabViewItemIndex = PreferencesSection.general.rawValue
+        tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
+        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).width, 900, accuracy: 1)
         window.close()
         XCTAssertTrue(monitor.isRunning)
         XCTAssertTrue(controller.window === window)
@@ -143,8 +154,8 @@ final class PressureMappingTests: XCTestCase {
         rule.mode = .custom; rule.configuration.curve = .light
         defaults.applications = [rule]; XCTAssertTrue(monitor.saveDefaults(defaults))
         for section in PreferencesSection.allCases {
-            let host = NSHostingView(rootView: ContentView(monitor: monitor, section: section).frame(width: 1040, height: 760))
-            host.frame = NSRect(x: 0, y: 0, width: 1040, height: 760)
+            let host = NSHostingView(rootView: ContentView(monitor: monitor, section: section).frame(width: section.defaultSize.width, height: section.defaultSize.height))
+            host.frame = NSRect(origin: .zero, size: section.defaultSize)
             // Attach the hosting view to an unshown window so AppKit-backed lists can lay out.
             let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
             window.isReleasedWhenClosed = false
@@ -155,6 +166,27 @@ final class PressureMappingTests: XCTestCase {
             let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
             try png.write(to: URL(filePath: "/tmp/PenActor-settings-\(section.rawValue).png"))
             XCTAssertGreaterThan(bitmap.pixelsWide, 0)
+        }
+    }
+
+    @MainActor func testDebugSectionsRenderWithHardwareDataAtCompactAndMinimumSizes() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let events = try [proximity(), point(0.5)].map { try XCTUnwrap(NSEvent(cgEvent: $0)) }
+        let monitor = PenMonitor(backend: MappingPanelBackend(events: events), profileRepository: .init(url: root.appending(path: "profiles.json")))
+        monitor.start(); monitor.publish(); defer { monitor.stop() }
+        XCTAssertNotNil(monitor.snapshot.selectedDevice?.lastSampleEvent)
+        for section: ContentView.DebugSection in [.live, .device, .events] {
+            for (label, size) in [("default", PreferencesSection.debug.defaultSize), ("minimum", PreferencesSection.debug.minimumSize)] {
+                let host = NSHostingView(rootView: ContentView(monitor: monitor, section: .debug, debugSection: section).frame(width: size.width, height: size.height))
+                host.frame = NSRect(origin: .zero, size: size)
+                let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+                window.isReleasedWhenClosed = false; window.contentView = host; host.layoutSubtreeIfNeeded()
+                XCTAssertLessThanOrEqual(host.fittingSize.width, size.width+1)
+                let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(filePath: "/tmp/PenActor-debug-\(section.rawValue)-\(label).png"))
+            }
         }
     }
 
@@ -311,8 +343,8 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertTrue(monitor.saveProfile(p))
         var settings = monitor.mappingDefaults.settings(for: identity); settings.name = "我的 Pencil"; settings.configuration.curve = .light
         XCTAssertTrue(monitor.saveDeviceSettings(settings))
-        let host = NSHostingView(rootView: DeviceProfilesPreferencesView(monitor: monitor, initialProfile: p).background(Color.white).environment(\.colorScheme, .light).frame(width: 1040, height: 760))
-        host.frame = NSRect(x: 0, y: 0, width: 1040, height: 760)
+        let host = NSHostingView(rootView: DeviceProfilesPreferencesView(monitor: monitor, initialProfile: p).background(Color.white).environment(\.colorScheme, .light).frame(width: 860, height: 600))
+        host.frame = NSRect(x: 0, y: 0, width: 860, height: 600)
         let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false; window.contentView = host; host.layoutSubtreeIfNeeded()
         let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
@@ -320,8 +352,8 @@ final class PressureMappingTests: XCTestCase {
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(filePath: "/tmp/PenActor-device-profile.png"))
         var rule = try XCTUnwrap(p.applicationRules?.first); rule.mode = .custom
         rule.configuration.taper.entryEnabled = true; rule.configuration.taper.exitEnabled = true
-        let editor = NSHostingView(rootView: ApplicationRuleEditor(rule: .constant(rule), base: settings.configuration).padding(20).background(Color.white).environment(\.colorScheme, .light).frame(width: 680))
-        editor.frame = NSRect(x: 0, y: 0, width: 680, height: 540)
+        let editor = NSHostingView(rootView: ApplicationRuleEditor(rule: .constant(rule), base: settings.configuration).padding(16).background(Color.white).environment(\.colorScheme, .light).frame(width: 600))
+        editor.frame = NSRect(x: 0, y: 0, width: 600, height: 480)
         editor.layoutSubtreeIfNeeded()
         let image = try XCTUnwrap(editor.bitmapImageRepForCachingDisplay(in: editor.bounds))
         editor.cacheDisplay(in: editor.bounds, to: image)
@@ -834,10 +866,11 @@ final class PressureMappingTests: XCTestCase {
 }
 
 @MainActor private final class MappingPanelBackend: EventMonitoring {
-    let event: NSEvent
-    init(event: NSEvent) { self.event = event }
+    let events: [NSEvent]
+    init(event: NSEvent) { events = [event] }
+    init(events: [NSEvent]) { self.events = events }
     func start(handler: @escaping @MainActor (NSEvent, EventSource) -> Void) -> MonitorInstallation {
-        handler(event, .local)
+        for event in events { handler(event, .local) }
         return MonitorInstallation(local: true, global: false)
     }
     func stop() { }

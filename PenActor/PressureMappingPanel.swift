@@ -5,11 +5,11 @@ struct PressureConfigurationEditor: View {
     @State private var selectedPoint: Int?
 
     var body: some View {
-        HStack(alignment: .top, spacing: 24) {
-            VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .top, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("压力曲线").font(.headline)
                 PressureCurveEditor(curve: $configuration.curve, selected: $selectedPoint)
-                    .frame(width: 280, height: 220)
+                    .frame(width: 230, height: 180)
                 HStack {
                     Button("线性") { configuration.curve = .linear; selectedPoint = nil }
                     Button("轻压增强") { configuration.curve = .light; selectedPoint = nil }
@@ -19,9 +19,9 @@ struct PressureConfigurationEditor: View {
                     }.disabled(selectedPoint == nil || selectedPoint == 0 || selectedPoint == configuration.curve.points.count-1)
                 }
                 Text("双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。")
-                    .font(.caption).foregroundStyle(.secondary).frame(width: 280, alignment: .leading)
+                    .font(.caption).foregroundStyle(.secondary).frame(width: 230, alignment: .leading)
             }
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text("入锋与出锋").font(.headline)
                 Toggle("入锋 · 从零压力平滑进入", isOn: $configuration.taper.entryEnabled)
                 if configuration.taper.entryEnabled {
@@ -45,9 +45,11 @@ struct PressureConfigurationEditor: View {
         }
     }
     private func parameter(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, unit: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack { Text(title); Spacer(); Text("\(value.wrappedValue, specifier: "%.0f") \(unit)").monospacedDigit().foregroundStyle(.secondary) }
+        HStack(spacing: 8) {
+            Text(title).font(.caption).frame(width: 62, alignment: .leading)
             Slider(value: value, in: range, step: step)
+            Text("\(value.wrappedValue, specifier: "%.0f") \(unit)").font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary).frame(width: 52, alignment: .trailing)
         }
     }
 }

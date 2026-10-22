@@ -7,8 +7,8 @@ struct PreferencesPageHeader: View {
     let subtitle: String
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.title2.bold())
-            Text(subtitle).font(.callout).foregroundStyle(.secondary)
+            Text(title).font(.title3.bold())
+            Text(subtitle).font(.caption).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -17,7 +17,7 @@ struct GeneralPreferencesView: View {
     @ObservedObject var monitor: PenMonitor
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 14) {
                 PreferencesPageHeader(title: "通用", subtitle: "PenActor 在菜单栏持续运行，关闭设置窗口后仍会处理已启用的笔输入。")
                 GroupBox("运行与启动") {
                     VStack(alignment: .leading, spacing: 12) {
@@ -41,7 +41,7 @@ struct GeneralPreferencesView: View {
                     }.padding(10)
                 }
                 errorMessage
-            }.padding(24)
+            }.padding(16)
         }
     }
     private var errorMessage: some View { Group { if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) } } }
@@ -108,10 +108,10 @@ struct DeviceProfilesPreferencesView: View {
                         }.padding(.vertical, 5).tag(id)
                     }
                 }.listStyle(.sidebar)
-            }.frame(width: 220)
+            }.frame(width: 180)
             Divider()
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 12) {
                     if let selected, deviceDraft != nil {
                         PreferencesPageHeader(title: monitor.deviceDisplayName(selected), subtitle: "先调整这台设备的默认笔压，再为配置添加生效应用；需要时才单独覆盖。")
                         HStack {
@@ -143,8 +143,13 @@ struct DeviceProfilesPreferencesView: View {
                         ContentUnavailableView("等待数位笔", systemImage: "pencil.tip", description: Text("连接 Sidecar 或数位板，让笔进入感应范围并落笔。保存过的设备会一直显示在左侧。"))
                     }
                     if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
-                }.padding(24)
+                }.padding(16)
             }.frame(maxWidth: .infinity)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if let selected, selected.level != .session {
+                        VStack(spacing: 0) { Divider(); editingActions }.background(.bar)
+                    }
+                }
         }.onAppear {
             if !didLoad {
                 if selected == nil { selected = identities.first }
@@ -163,30 +168,25 @@ struct DeviceProfilesPreferencesView: View {
         } message: { Text("切换后将加载已保存的设备设置或配置。") }
     }
     private var deviceEditor: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             GroupBox("设备默认压力设置") {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("此处的曲线和入锋 / 出锋仅属于当前设备。配置中选择继承的应用会共同使用它。")
                         .font(.caption).foregroundStyle(.secondary)
                     PressureConfigurationEditor(configuration: Binding(get: { deviceDraft?.configuration ?? PressureConfiguration() }, set: { deviceDraft?.configuration = $0; changed() }))
-                }.padding(12)
+                }.padding(10)
             }
-            HStack {
-                Text("设备默认值本身不会启用映射，请新增配置并选择生效应用。").font(.caption).foregroundStyle(.secondary)
-                Spacer()
-                savedLabel
-                Button("保存设备默认") { saveDevice() }.buttonStyle(.borderedProminent).disabled(deviceDraft?.isValid != true)
-            }
+            Text("设备默认值不会自动启用映射，请添加配置和生效应用。").font(.caption).foregroundStyle(.secondary)
         }
     }
     private var profileEditor: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             TextField("配置名称", text: Binding(get: { profileDraft?.name ?? "" }, set: { profileDraft?.name = $0; changed() }))
                 .textFieldStyle(.roundedBorder)
             GroupBox("生效应用") {
                 VStack(alignment: .leading, spacing: 0) {
                     if profileDraft?.applicationRules?.isEmpty != false {
-                        Text("添加一个或多个软件，默认继承当前设备的压力设置。").foregroundStyle(.secondary).padding(12)
+                        Text("添加一个或多个软件，默认继承当前设备的压力设置。").foregroundStyle(.secondary).padding(10)
                     }
                     ForEach(profileDraft?.applicationRules ?? []) { rule in
                         ApplicationRuleRow(rule: ruleBinding(rule.bundleID), base: deviceDraft?.configuration ?? PressureConfiguration(), remove: {
@@ -194,14 +194,27 @@ struct DeviceProfilesPreferencesView: View {
                         })
                         Divider()
                     }
-                    HStack { ApplicationPicker(add: addApplication); Spacer() }.padding(12)
+                    HStack { ApplicationPicker(add: addApplication); Spacer() }.padding(10)
                 }
             }
             Text("继承会随设备默认更新；单独覆盖仅影响本配置中的这个应用。未列出的应用保持透传。")
                 .font(.caption).foregroundStyle(.secondary)
-            HStack {
+            Text("每台设备同时启用一个配置，各设备互不影响。保存从下一笔生效；禁用或暂停立即停止修改。首次启用后请让笔重新进入感应范围。")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+    private var editingActions: some View {
+        HStack {
+            if profileID == nil {
+                savedLabel
+                Spacer()
+                Button("保存设备默认") { saveDevice() }.buttonStyle(.borderedProminent).disabled(deviceDraft?.isValid != true)
+            } else {
                 Button("删除配置", role: .destructive) {
-                    if let id = profileDraft?.id { monitor.deleteProfile(id); if !monitor.profiles.contains(where: { $0.id == id }) { profileID = nil; load() } }
+                    if let id = profileDraft?.id {
+                        monitor.deleteProfile(id)
+                        if !monitor.profiles.contains(where: { $0.id == id }) { profileID = nil; load() }
+                    }
                 }
                 Spacer()
                 savedLabel
@@ -209,16 +222,14 @@ struct DeviceProfilesPreferencesView: View {
                 if let id = profileDraft?.id, monitor.enabledProfileIDs.contains(id) {
                     Button("禁用此配置") { monitor.disableProfile(id) }
                 } else {
-                    Button("保存并启用") {
-                        if saveProfile(), let id = profileDraft?.id { monitor.enableProfile(id) }
-                    }.buttonStyle(.borderedProminent)
+                    Button("保存并启用") { if saveProfile(), let id = profileDraft?.id { monitor.enableProfile(id) } }
+                        .buttonStyle(.borderedProminent)
                         .disabled(profileDraft?.isValid != true || profileDraft?.effectiveTargetBundleIDs.isEmpty != false || !monitor.isRunning)
                 }
             }
-            Text("每台设备同时启用一个配置，各设备互不影响。保存从下一笔生效；禁用或暂停立即停止修改。首次启用后请让笔重新进入感应范围。")
-                .font(.caption).foregroundStyle(.secondary)
-        }
+        }.padding(.horizontal, 16).padding(.vertical, 10)
     }
+
     private var savedLabel: some View {
         Group {
             if dirty { Text("未保存").foregroundStyle(.orange) }
@@ -309,10 +320,10 @@ private struct ApplicationRuleRow: View {
             Button { editing = true } label: { Image(systemName: "slider.horizontal.3") }
                 .help("设置此应用的继承、覆盖或透传")
                 .popover(isPresented: $editing, arrowEdge: .trailing) {
-                    ApplicationRuleEditor(rule: $rule, base: base).padding(20).frame(width: 680)
+                    ApplicationRuleEditor(rule: $rule, base: base).padding(16).frame(width: 600)
                 }
             Button(role: .destructive, action: remove) { Image(systemName: "minus.circle") }.help("移除此应用")
-        }.padding(12)
+        }.padding(10)
     }
 }
 
@@ -320,7 +331,7 @@ struct ApplicationRuleEditor: View {
     @Binding var rule: ApplicationPressureRule
     let base: PressureConfiguration
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             PreferencesPageHeader(title: rule.name, subtitle: "仅影响当前设备的这个配置；完成后保存配置。")
             Text(rule.bundleID).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
             Picker("压力设置", selection: $rule.mode) {

@@ -7,6 +7,15 @@ struct ContentView: View {
     private var sample: PenSample? { device?.lastSampleEvent?.sample }
 
     var section: PreferencesSection = .general
+    @State private var debugSection = DebugSection.live
+    enum DebugSection: String, CaseIterable {
+        case live = "实时数值", device = "设备详情", events = "事件记录"
+    }
+
+    init(monitor: PenMonitor, section: PreferencesSection = .general, debugSection: DebugSection = .live) {
+        self.monitor = monitor; self.section = section
+        _debugSection = State(initialValue: debugSection)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,61 +35,100 @@ struct ContentView: View {
                 Spacer()
                 Button("暂停全部映射") { monitor.pauseMapping() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
-            }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.vertical, 10)
+            }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 16).padding(.vertical, 8)
         }
         .background(Color(nsColor: .windowBackgroundColor))
-        .frame(minWidth: 980, minHeight: 650)
+        .frame(minWidth: section.minimumSize.width, minHeight: section.minimumSize.height)
         .background(WindowConfiguration(alwaysOnTop: monitor.alwaysOnTop))
     }
 
     private var debugPage: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                PreferencesPageHeader(title: "实时调试", subtitle: "查看设备元数据、应用事件层读数与映射诊断。")
-                HStack {
-                    Toggle("窗口置顶", isOn: $monitor.alwaysOnTop).toggleStyle(.checkbox)
-                    Spacer()
-                    Button("导出 JSON", systemImage: "square.and.arrow.up") { monitor.exportLog() }.disabled(monitor.isExporting)
-                    Button("清空记录", systemImage: "trash") { monitor.clear() }
-                }
-                HStack {
-                    status("本地", installed: monitor.installation.local, received: monitor.receivedLocal)
-                    Spacer()
-                    status("全局", installed: monitor.installation.global, received: monitor.receivedGlobal)
-                }.font(.caption).foregroundStyle(.secondary)
-                GroupBox("压力映射诊断") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(monitor.mapping.status)
-                        Text("已修改事件：\(monitor.mapping.modifiedEventCount) · 缓存事件：\(monitor.mapping.bufferedEventCount)")
-                        if let last = monitor.mapping.diagnostics.last {
-                            Text("输入 \(last.inputPressure.formatted()) → 输出 \(last.outputPressure.formatted())")
-                            Text("目标：\(last.targetBundleID ?? "未知应用") · PID \(last.targetPID)")
-                            Text("设备：\(last.device?.key ?? "待识别")")
-                            Text("配置：\(monitor.profiles.first { $0.id == last.profileID }?.name ?? "本笔透传") · \(last.reason)")
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("实时调试").font(.title3.bold())
+                Spacer()
+                Toggle("置顶", isOn: $monitor.alwaysOnTop).toggleStyle(.checkbox)
+                Button("导出 JSON", systemImage: "square.and.arrow.up") { monitor.exportLog() }.disabled(monitor.isExporting)
+                Button("清空", systemImage: "trash") { monitor.clear() }
+            }
+            HStack {
+                Picker("设备", selection: Binding(get: { monitor.snapshot.selectedIdentity }, set: { monitor.selectDevice($0) })) {
+                    Text("等待笔输入").tag(PenIdentity?.none)
+                    ForEach(monitor.snapshot.devices) { Text(monitor.deviceDisplayName($0.id)).tag(Optional($0.id)) }
+                }.frame(maxWidth: 340)
+                Toggle("笔变化时自动切换", isOn: Binding(get: { monitor.automaticallySwitchDevices }, set: { monitor.setAutomaticSwitching($0) })).toggleStyle(.checkbox)
+                Spacer()
+            }
+            HStack {
+                Picker("调试内容", selection: $debugSection) {
+                    ForEach(DebugSection.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                }.pickerStyle(.segmented).labelsHidden().frame(width: 330)
+                Spacer()
+                Text(device?.status ?? "让笔进入感应范围并落笔").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
+            switch debugSection {
+            case .live:
+                ScrollView {
+                    VStack(spacing: 12) {
+                        HStack(alignment: .top, spacing: 12) {
+                            samplePanel.frame(maxWidth: .infinity)
+                            trendPanel.frame(width: 225)
                         }
-                        Text("回调已修改不等于目标应用已接收。下方 NSEvent 读数可能已包含映射结果，导出保留两类独立事件流。")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
+                        mappingPanel
+                        DisclosureGroup("监听状态与读数说明") {
+                            VStack(alignment: .leading, spacing: 5) {
+                                status("本地", installed: monitor.installation.local, received: monitor.receivedLocal)
+                                status("全局", installed: monitor.installation.global, received: monitor.receivedGlobal)
+                                Text("NSEvent 读数可能已包含映射结果；tap 诊断记录处理前后压力，两类事件流不逐条对应。")
+                            }.font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
+                        }.font(.caption)
+                    }
                 }
-                HStack(alignment: .top, spacing: 16) {
-                    hardwarePanel.frame(width: 310)
-                    VStack(spacing: 16) { samplePanel; trendPanel }.frame(maxWidth: .infinity)
-                }
+            case .device:
+                ScrollView { hardwarePanel }
+            case .events:
                 eventsPanel
-            }.padding(24)
-        }
+            }
+        }.padding(16)
         .alert("导出失败", isPresented: Binding(get: { monitor.exportError != nil }, set: { if !$0 { monitor.exportError = nil } })) {
             Button("好") { monitor.exportError = nil }
         } message: { Text(monitor.exportError ?? "") }
     }
 
+    private var mappingPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("压力映射").font(.headline)
+                Spacer()
+                Text("修改 \(monitor.mapping.modifiedEventCount) · 缓存 \(monitor.mapping.bufferedEventCount)").font(.caption).foregroundStyle(.secondary)
+            }
+            Text(monitor.mapping.status).font(.callout)
+            if let last = monitor.mapping.diagnostics.last {
+                HStack(spacing: 16) {
+                    Text("输入 \(number(last.inputPressure)) → 输出 \(number(last.outputPressure))").monospacedDigit()
+                    Text(last.reason).foregroundStyle(.secondary).lineLimit(2)
+                }.font(.callout)
+                DisclosureGroup("匹配详情") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("目标：\(last.targetBundleID ?? "未知应用") · PID \(last.targetPID)")
+                        Text("设备：\(last.device?.key ?? "待识别")")
+                        Text("配置：\(monitor.profiles.first { $0.id == last.profileID }?.name ?? "本笔透传")")
+                        Text("回调已修改不等于目标应用已确认接收；可导出日志分析。")
+                    }.font(.caption).textSelection(.enabled).padding(.top, 6)
+                }.font(.caption)
+            }
+        }.frame(maxWidth: .infinity, alignment: .leading).panel()
+    }
+
     private var testingPage: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                PreferencesPageHeader(title: "笔迹测试", subtitle: "在本窗口确认笔迹与压力变化，或移到 iPad 测试 Pencil 手势。")
-                testPanel
-                pencilInteractionPanel
-            }.padding(24)
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("笔迹测试").font(.title3.bold())
+                    testPanel(height: max(180, geometry.size.height - 210))
+                    pencilInteractionPanel
+                }.padding(16)
+            }
         }.modifier(PencilInteractionObserver(monitor: monitor))
             .onDisappear { monitor.interruptPencilInteraction() }
     }
@@ -91,37 +139,21 @@ struct ContentView: View {
 
     private var pencilInteractionPanel: some View {
         let interactions = monitor.pencilInteractions
-        return VStack(alignment: .leading, spacing: 12) {
-            Label("Pencil 手势 · 本应用窗口", systemImage: "hand.tap").font(.headline)
-            HStack(alignment: .top, spacing: 32) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("双击笔身").font(.subheadline.bold())
-                    Text("\(interactions.doubleTapCount) 次").font(.title2.monospacedDigit())
-                    Text(interactions.lastDoubleTapAt == nil ? "尚未收到" : "已收到双击")
-                        .foregroundStyle(interactions.lastDoubleTapAt == nil ? Color.secondary : Color.accentColor)
-                    Text("最近：\(interactionTime(interactions.lastDoubleTapAt))")
-                    Text(interactions.doubleTapPaired ? "来源：changeMode + SwiftUI（已去重）" :
-                         "来源：\(interactions.lastDoubleTapSource?.rawValue ?? "等待回调")")
-                        .font(.caption).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                Divider()
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("挤压 Pencil Pro").font(.subheadline.bold())
-                    Text("\(interactions.squeezeCount) 次").font(.title2.monospacedDigit())
-                    Text(interactions.squeezeStatus.rawValue)
-                        .foregroundStyle(interactions.squeezeStatus == .active ? Color.green : Color.secondary)
-                    Text("最近：\(interactionTime(interactions.lastSqueezeAt))")
-                    Text("完成 \(interactions.squeezeCompletedCount) · 失败 / 取消 \(interactions.squeezeFailedCount) · 来源：SwiftUI")
-                        .font(.caption).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity, alignment: .leading)
-            }.font(.callout).fixedSize(horizontal: false, vertical: true)
-            Text("将 PenActor 窗口移到 iPad 并激活后测试。双击需在显示器的 iPad 设置中启用，挤压需 Pencil Pro。提示不归属到某支笔，也不表示可后台监听 PS / CSP 中的手势。")
-                .font(.caption).foregroundStyle(.secondary)
-            if #unavailable(macOS 14.5) {
-                Text("当前系统仅接入 changeMode 双击事件；SwiftUI 双击 / 挤压回调需要 macOS 14.5 或更新版本。")
-                    .font(.caption).foregroundStyle(.orange)
-            }
-        }.panel()
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 24) {
+                Label("Pencil 手势", systemImage: "hand.tap").font(.headline)
+                Text("双击 \(interactions.doubleTapCount) 次").monospacedDigit()
+                Text("挤压 \(interactions.squeezeCount) 次 · \(interactions.squeezeStatus.rawValue)").monospacedDigit()
+            }.font(.callout)
+            DisclosureGroup("手势说明与来源") {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("双击最近：\(interactionTime(interactions.lastDoubleTapAt)) · \(interactions.doubleTapPaired ? "changeMode + SwiftUI（已去重）" : interactions.lastDoubleTapSource?.rawValue ?? "等待回调")")
+                    Text("挤压最近：\(interactionTime(interactions.lastSqueezeAt)) · 完成 \(interactions.squeezeCompletedCount) · 失败 / 取消 \(interactions.squeezeFailedCount) · SwiftUI")
+                    Text("窗口移到 iPad 并激活后测试。双击需在显示器设置中启用；挤压需 Pencil Pro。仅记录本窗口手势，不归属某支笔，也不代表可监听其他应用手势。")
+                    if #unavailable(macOS 14.5) { Text("SwiftUI 双击 / 挤压需 macOS 14.5 或更新；当前仅接入 changeMode 双击。") }
+                }.font(.caption).foregroundStyle(.secondary).padding(.top, 6)
+            }.font(.caption)
+        }.frame(maxWidth: .infinity, alignment: .leading).panel()
     }
 
     private func interactionTime(_ date: Date?) -> String {
@@ -129,56 +161,38 @@ struct ContentView: View {
     }
 
     private var hardwarePanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("已观察设备", systemImage: "ipad.and.arrow.forward").font(.headline)
-            Toggle("笔变化时自动切换", isOn: Binding(
-                get: { monitor.automaticallySwitchDevices },
-                set: { monitor.setAutomaticSwitching($0) }
-            )).toggleStyle(.checkbox)
-            if monitor.snapshot.devices.isEmpty {
-                Text("等待笔输入").font(.title3)
-                Text("请让笔进入感应范围并落笔。Sidecar 请连接 iPad 后使用 Apple Pencil。")
-                    .foregroundStyle(.secondary)
-            } else {
-                Picker("设备", selection: Binding(
-                    get: { monitor.snapshot.selectedIdentity },
-                    set: { monitor.selectDevice($0) }
-                )) {
-                    ForEach(monitor.snapshot.devices) { device in
-                        Text(monitor.deviceDisplayName(device.id)).tag(Optional(device.id))
+        VStack(alignment: .leading, spacing: 10) {
+            Label("硬件元数据", systemImage: "pencil.tip").font(.headline)
+            if let device {
+                field("身份匹配", device.id.level.label)
+                field("匹配键", device.id.key)
+                field("会话 Device ID", identifierText(device.lastEvent.deviceID))
+                Divider()
+                if let info = device.info {
+                    HStack(alignment: .top, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            field("工具类型", info.toolType)
+                            field("Vendor ID", identifierText(info.vendorID))
+                            field("Tablet ID", identifierText(info.tabletID))
+                            field("System tablet", identifierText(info.systemTabletID))
+                            field("Pointing device", identifierText(info.pointingDeviceID))
+                        }.frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 8) {
+                            field("厂商工具类型", identifierText(info.vendorPointingDeviceType))
+                            field("序列号", identifierText(info.serialNumber))
+                            field("Unique ID", identifierText(info.uniqueID))
+                            field("Capability mask", identifierText(info.capabilityMask))
+                        }.frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }
-                if let device {
-                    Text(device.status).font(.caption).foregroundStyle(.secondary)
-                    field("身份匹配方式", device.id.level.label)
-                    field("配置匹配键", device.id.key)
-                    field("当前会话 Device ID", identifierText(device.lastEvent.deviceID))
-                    if let info = device.info {
-                        field("工具类型", info.toolType)
-                        field("Vendor ID", identifierText(info.vendorID))
-                        field("Tablet ID", identifierText(info.tabletID))
-                        field("System tablet ID", identifierText(info.systemTabletID))
-                        field("Pointing device ID", identifierText(info.pointingDeviceID))
-                        field("厂商工具类型", identifierText(info.vendorPointingDeviceType))
-                        field("序列号", identifierText(info.serialNumber))
-                        field("Unique ID", identifierText(info.uniqueID))
-                        field("Capability mask", identifierText(info.capabilityMask))
-                        Text("标识为系统 / 驱动报告值；0 可能是占位值，不据此识别硬件型号。")
-                            .font(.caption).foregroundStyle(.secondary)
-                    } else {
-                        Text("硬件信息待获取").font(.headline)
-                        Text("尚未收到 proximity 事件；可尝试抬笔离开感应范围后重新靠近。")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                }
-            }
-            Text("最多保留 32 个设备身份。同型号归组无法区分缺少唯一标识的多支笔；会话 ID 仅用于事件关联。")
-                .font(.caption).foregroundStyle(.tertiary)
+                } else { Text("硬件信息待获取，请让笔离开再进入感应范围。").foregroundStyle(.secondary) }
+            } else { Text("等待笔输入。连接 Sidecar 或数位板后让笔进入感应范围并落笔。").foregroundStyle(.secondary) }
+            Text("标识为系统 / 驱动报告值，0 可能是占位。同型号归组无法区分缺少唯一标识的多支笔；无事件不代表断开。最多保留 32 个身份。")
+                .font(.caption).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading).panel()
     }
 
     private var samplePanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("应用事件层读数").font(.headline)
                 Spacer()
@@ -187,14 +201,13 @@ struct ContentView: View {
                 }
             }
             HStack(alignment: .firstTextBaseline) {
-                Text(number(sample?.pressure.map(Double.init))).font(.system(size: 40, weight: .medium, design: .monospaced))
-                Text("压力 / 1.0000").foregroundStyle(.secondary)
+                Text(number(sample?.pressure.map(Double.init))).font(.system(size: 24, weight: .medium, design: .monospaced))
+                Text("压力 / 1").font(.caption).foregroundStyle(.secondary)
                 Spacer()
+                Text(PenCapability.pressure.support(mask: device?.info?.capabilityMask)).font(.caption2).foregroundStyle(.tertiary)
             }
             ProgressView(value: Double(max(0, min(1, sample?.pressure ?? 0))))
-            Text(PenCapability.pressure.support(mask: device?.info?.capabilityMask))
-                .font(.caption).foregroundStyle(.secondary)
-            Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 12) {
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 8) {
                 GridRow {
                     metric("倾斜 X", number(sample?.tiltX), capability: .tiltX)
                     metric("倾斜 Y", number(sample?.tiltY), capability: .tiltY)
@@ -206,18 +219,14 @@ struct ContentView: View {
                     metric("按钮掩码", sample.map { identifierText($0.buttons) } ?? "未取得", capability: .buttons)
                 }
             }
-            Divider()
             if let event = device?.lastSampleEvent {
-                Text("\(event.typeName) · uptime \(event.timestamp.formatted(.number.precision(.fractionLength(4)))) s")
-                    .font(.caption.monospaced())
-                Text("最近采样 \(event.receivedAt.formatted(date: .omitted, time: .standard)) · 前台应用（上下文）：\(event.foregroundApp)")
-                    .font(.caption).foregroundStyle(.secondary)
-            } else {
-                Text("等待有效采样；倾斜值为 −1…1，旋转值为笔轴角度。")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text("\(event.typeName) · \(event.foregroundApp)").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                DisclosureGroup("时间与坐标上下文") {
+                    Text("屏幕坐标：\(number(event.screenX)) / \(number(event.screenY))").font(.caption.monospaced()).textSelection(.enabled)
+                    Text("uptime \(event.timestamp.formatted(.number.precision(.fractionLength(4)))) s · 最近 \(event.receivedAt.formatted(date: .omitted, time: .standard)) · 前台应用仅为观察上下文")
+                        .font(.caption.monospaced()).textSelection(.enabled)
+                }.font(.caption)
             }
-            Text("NSEvent 读数可能已经过驱动或 PenActor 映射。修改前后对照见上方映射诊断；零值不表示能力一定受支持。")
-                .font(.caption).foregroundStyle(.secondary)
         }.panel()
     }
 
@@ -226,16 +235,16 @@ struct ContentView: View {
             HStack {
                 Text("压力趋势").font(.headline)
                 Spacer()
-                Text("最近 5 秒 · 最多 600 个采样").font(.caption).foregroundStyle(.secondary)
+                Text("最近 5 秒").font(.caption).foregroundStyle(.secondary)
             }
             PressureTrend(events: device?.history ?? [])
-                .frame(height: 80)
-            Text("以最新事件时间为右端；停止输入后保留曲线，未取得压力处留空。")
+                .frame(height: 74)
+            Text("最多 600 点；停止输入保留曲线，缺失值留空。")
                 .font(.caption).foregroundStyle(.secondary)
         }.panel()
     }
 
-    private var testPanel: some View {
+    private func testPanel(height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("笔输入测试区").font(.headline)
@@ -244,14 +253,14 @@ struct ContentView: View {
                 Text("线宽随系统压力变化 · 仅接受笔事件").font(.caption).foregroundStyle(.secondary)
             }
             TestPad(isRunning: monitor.isRunning, clearGeneration: monitor.clearGeneration)
-                .frame(height: 300)
+                .frame(height: height)
             Text("使用 Sidecar 时请把此窗口移至 iPad。此区域是输入验证工具；不应用平滑或压力曲线。")
                 .font(.caption).foregroundStyle(.secondary)
         }.panel()
     }
 
     private var eventsPanel: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             if let url = monitor.lastExportURL {
                 Text("已导出：\(url.lastPathComponent)").font(.caption).foregroundStyle(.secondary)
             }
@@ -272,7 +281,7 @@ struct ContentView: View {
                     Text(event.proximity.map { $0 ? "进入" : "离开" } ?? "—")
                 }.width(45)
                 TableColumn("前台应用（上下文）") { Text($0.foregroundApp) }
-            }.frame(height: 190)
+            }.frame(minHeight: 240, maxHeight: .infinity)
         }.panel()
     }
 
@@ -281,20 +290,22 @@ struct ContentView: View {
     }
 
     private func metric(_ title: String, _ value: String, capability: PenCapability? = nil) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(value).font(.system(.body, design: .monospaced)).textSelection(.enabled)
-            if let capability {
-                Text(capability.support(mask: device?.info?.capabilityMask))
-                    .font(.caption2).foregroundStyle(.tertiary)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(title).font(.caption).foregroundStyle(.secondary)
+                if let capability {
+                    Text(capability.support(mask: device?.info?.capabilityMask)).font(.caption2).foregroundStyle(.tertiary)
+                }
             }
+            Text(value).font(.system(.callout, design: .monospaced)).textSelection(.enabled)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func field(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(value).font(.system(.callout, design: .monospaced)).textSelection(.enabled)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title).font(.caption).foregroundStyle(.secondary).frame(width: 100, alignment: .leading)
+            Text(value).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -322,9 +333,9 @@ private struct PencilInteractionObserver: ViewModifier {
 
 private extension View {
     func panel() -> some View {
-        padding(16)
-            .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary, lineWidth: 1))
+        padding(12)
+            .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 9))
+            .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.quaternary, lineWidth: 1))
     }
 }
 
