@@ -8,13 +8,15 @@ struct ContentView: View {
 
     var section: PreferencesSection = .general
     @State private var debugSection = DebugSection.live
+    @State private var pencilDetailsExpanded = false
     enum DebugSection: String, CaseIterable {
         case live = "实时数值", device = "设备详情", events = "事件记录"
     }
 
-    init(monitor: PenMonitor, section: PreferencesSection = .general, debugSection: DebugSection = .live) {
+    init(monitor: PenMonitor, section: PreferencesSection = .general, debugSection: DebugSection = .live, pencilDetailsExpanded: Bool = false) {
         self.monitor = monitor; self.section = section
         _debugSection = State(initialValue: debugSection)
+        _pencilDetailsExpanded = State(initialValue: pencilDetailsExpanded)
     }
 
     var body: some View {
@@ -121,15 +123,12 @@ struct ContentView: View {
     }
 
     private var testingPage: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("笔迹测试").font(.title3.bold())
-                    testPanel(height: max(180, geometry.size.height - 210))
-                    pencilInteractionPanel
-                }.padding(16)
-            }
-        }.modifier(PencilInteractionObserver(monitor: monitor))
+        VStack(alignment: .leading, spacing: 12) {
+            Text("笔迹测试").font(.title3.bold()).fixedSize(horizontal: false, vertical: true)
+            testPanel.frame(maxHeight: .infinity)
+            pencilInteractionPanel.fixedSize(horizontal: false, vertical: true)
+        }.padding(16)
+            .modifier(PencilInteractionObserver(monitor: monitor))
             .onDisappear { monitor.interruptPencilInteraction() }
     }
 
@@ -145,7 +144,7 @@ struct ContentView: View {
                 Text("双击 \(interactions.doubleTapCount) 次").monospacedDigit()
                 Text("挤压 \(interactions.squeezeCount) 次 · \(interactions.squeezeStatus.rawValue)").monospacedDigit()
             }.font(.callout)
-            DisclosureGroup("手势说明与来源") {
+            DisclosureGroup("手势说明与来源", isExpanded: $pencilDetailsExpanded) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("双击最近：\(interactionTime(interactions.lastDoubleTapAt)) · \(interactions.doubleTapPaired ? "changeMode + SwiftUI（已去重）" : interactions.lastDoubleTapSource?.rawValue ?? "等待回调")")
                     Text("挤压最近：\(interactionTime(interactions.lastSqueezeAt)) · 完成 \(interactions.squeezeCompletedCount) · 失败 / 取消 \(interactions.squeezeFailedCount) · SwiftUI")
@@ -244,18 +243,18 @@ struct ContentView: View {
         }.panel()
     }
 
-    private func testPanel(height: CGFloat) -> some View {
+    private var testPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("笔输入测试区").font(.headline)
                 Button("清空笔迹与记录") { monitor.clear() }
                 Spacer()
                 Text("线宽随系统压力变化 · 仅接受笔事件").font(.caption).foregroundStyle(.secondary)
-            }
+            }.fixedSize(horizontal: false, vertical: true)
             TestPad(isRunning: monitor.isRunning, clearGeneration: monitor.clearGeneration)
-                .frame(height: height)
+                .frame(minHeight: 100, maxHeight: .infinity).layoutPriority(-1)
             Text("使用 Sidecar 时请把此窗口移至 iPad。此区域是输入验证工具；不应用平滑或压力曲线。")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }.panel()
     }
 

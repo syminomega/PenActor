@@ -194,6 +194,33 @@ final class PressureMappingTests: XCTestCase {
         }
     }
 
+    @MainActor func testTestingPageOnlyResizesCanvasAndHasNoScrollContainer() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let monitor = PenMonitor(profileRepository: .init(url: root.appending(path: "profiles.json")))
+        func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap { descendants($0) } }
+        for expanded in [false, true] {
+            var canvasHeights: [CGFloat] = []
+            for height: CGFloat in [500, 620, 780] {
+                let host = NSHostingView(rootView: ContentView(monitor: monitor, section: .testing, pencilDetailsExpanded: expanded).frame(width: 860, height: height))
+                host.frame = NSRect(x: 0, y: 0, width: 860, height: height)
+                let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+                window.isReleasedWhenClosed = false; window.contentView = host; host.layoutSubtreeIfNeeded()
+                let views = descendants(host)
+                XCTAssertFalse(views.contains { $0 is NSScrollView })
+                let canvas = try XCTUnwrap(views.compactMap { $0 as? PenTestView }.first)
+                XCTAssertGreaterThanOrEqual(canvas.bounds.height, 99)
+                canvasHeights.append(canvas.bounds.height)
+                XCTAssertLessThanOrEqual(host.fittingSize.height, height+1)
+                let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+                host.cacheDisplay(in: host.bounds, to: bitmap)
+                try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(filePath: "/tmp/PenActor-testing-\(Int(height))-\(expanded).png"))
+            }
+            XCTAssertEqual(canvasHeights[1]-canvasHeights[0], 120, accuracy: 1)
+            XCTAssertEqual(canvasHeights[2]-canvasHeights[1], 160, accuracy: 1)
+        }
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),
