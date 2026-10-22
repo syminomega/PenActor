@@ -9,12 +9,14 @@ struct ContentView: View {
     var section: PreferencesSection = .general
     @State private var debugSection = DebugSection.live
     @State private var pencilDetailsExpanded = false
+    var onContentHeightChange: ((CGFloat) -> Void)?
     enum DebugSection: String, CaseIterable {
         case live = "实时数值", device = "设备详情", events = "事件记录"
     }
 
-    init(monitor: PenMonitor, section: PreferencesSection = .general, debugSection: DebugSection = .live, pencilDetailsExpanded: Bool = false) {
+    init(monitor: PenMonitor, section: PreferencesSection = .general, debugSection: DebugSection = .live, pencilDetailsExpanded: Bool = false, onContentHeightChange: ((CGFloat) -> Void)? = nil) {
         self.monitor = monitor; self.section = section
+        self.onContentHeightChange = onContentHeightChange
         _debugSection = State(initialValue: debugSection)
         _pencilDetailsExpanded = State(initialValue: pencilDetailsExpanded)
     }
@@ -23,12 +25,12 @@ struct ContentView: View {
         VStack(spacing: 0) {
             Group {
                 switch section {
-                case .general: GeneralPreferencesView(monitor: monitor)
+                case .general: GeneralPreferencesView(monitor: monitor).fixedSize(horizontal: false, vertical: true).measurePreferencesHeight("page")
                 case .profiles: DeviceProfilesPreferencesView(monitor: monitor)
-                case .debug: debugPage
+                case .debug: debugPage.fixedSize(horizontal: false, vertical: true).measurePreferencesHeight("page")
                 case .testing: testingPage
                 }
-            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             Divider()
             HStack {
                 Label(monitor.isRunning ? "输入服务运行中" : "输入服务已停止", systemImage: monitor.isRunning ? "waveform" : "pause.circle")
@@ -38,10 +40,16 @@ struct ContentView: View {
                 Button("暂停全部映射") { monitor.pauseMapping() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
             }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 16).padding(.vertical, 8)
+            .measurePreferencesHeight("footer")
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .frame(minWidth: section.minimumSize.width, minHeight: section.minimumSize.height)
         .background(WindowConfiguration(alwaysOnTop: monitor.alwaysOnTop))
+        .onPreferenceChange(PreferencesHeightKey.self) { values in
+            if let page = values["page"], let footer = values["footer"], page > 0 {
+                onContentHeightChange?(ceil(page + footer + 1))
+            }
+        }
     }
 
     private var debugPage: some View {
@@ -70,26 +78,24 @@ struct ContentView: View {
             }
             switch debugSection {
             case .live:
-                ScrollView {
-                    VStack(spacing: 12) {
-                        HStack(alignment: .top, spacing: 12) {
-                            samplePanel.frame(maxWidth: .infinity)
-                            trendPanel.frame(width: 225)
-                        }
-                        mappingPanel
-                        DisclosureGroup("监听状态与读数说明") {
-                            VStack(alignment: .leading, spacing: 5) {
-                                status("本地", installed: monitor.installation.local, received: monitor.receivedLocal)
-                                status("全局", installed: monitor.installation.global, received: monitor.receivedGlobal)
-                                Text("NSEvent 读数可能已包含映射结果；tap 诊断记录处理前后压力，两类事件流不逐条对应。")
-                            }.font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
-                        }.font(.caption)
-                    }
+                VStack(spacing: 12) {
+                    HStack(spacing: 12) {
+                        samplePanel.frame(maxWidth: .infinity)
+                        trendPanel.frame(width: 225)
+                    }.fixedSize(horizontal: false, vertical: true)
+                    mappingPanel
+                    DisclosureGroup("监听状态与读数说明") {
+                        VStack(alignment: .leading, spacing: 5) {
+                            status("本地", installed: monitor.installation.local, received: monitor.receivedLocal)
+                            status("全局", installed: monitor.installation.global, received: monitor.receivedGlobal)
+                            Text("NSEvent 读数可能已包含映射结果；tap 诊断记录处理前后压力，两类事件流不逐条对应。")
+                        }.font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
+                    }.font(.caption)
                 }
             case .device:
-                ScrollView { hardwarePanel }
+                hardwarePanel
             case .events:
-                eventsPanel
+                eventsPanel.frame(height: 320)
             }
         }.padding(16)
         .alert("导出失败", isPresented: Binding(get: { monitor.exportError != nil }, set: { if !$0 { monitor.exportError = nil } })) {
@@ -226,7 +232,7 @@ struct ContentView: View {
                         .font(.caption.monospaced()).textSelection(.enabled)
                 }.font(.caption)
             }
-        }.panel()
+        }.frame(maxHeight: .infinity, alignment: .top).panel()
     }
 
     private var trendPanel: some View {
@@ -237,10 +243,10 @@ struct ContentView: View {
                 Text("最近 5 秒").font(.caption).foregroundStyle(.secondary)
             }
             PressureTrend(events: device?.history ?? [])
-                .frame(height: 74)
+                .frame(minHeight: 74, maxHeight: .infinity)
             Text("最多 600 点；停止输入保留曲线，缺失值留空。")
                 .font(.caption).foregroundStyle(.secondary)
-        }.panel()
+        }.frame(maxHeight: .infinity).panel()
     }
 
     private var testPanel: some View {
@@ -385,5 +391,20 @@ private final class WindowLevelView: NSView {
     func apply() {
         window?.level = floating ? .floating : .normal
         window?.acceptsMouseMovedEvents = true
+    }
+}
+
+// Measure intrinsic page content, independently of the available window height.
+private struct PreferencesHeightKey: PreferenceKey {
+    static let defaultValue: [String: CGFloat] = [:]
+    static func reduce(value: inout [String: CGFloat], nextValue: () -> [String: CGFloat]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+private extension View {
+    func measurePreferencesHeight(_ part: String) -> some View {
+        background(GeometryReader { proxy in
+            Color.clear.preference(key: PreferencesHeightKey.self, value: [part: proxy.size.height])
+        })
     }
 }

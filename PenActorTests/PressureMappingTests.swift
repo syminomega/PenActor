@@ -221,6 +221,45 @@ final class PressureMappingTests: XCTestCase {
         }
     }
 
+    @MainActor func testGeneralAndDebugFitContentWithoutOuterScrolling() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let backend = MappingPanelBackend(events: [try XCTUnwrap(NSEvent(cgEvent: proximity())), try XCTUnwrap(NSEvent(cgEvent: point(0.5)))])
+        let monitor = PenMonitor(backend: backend, profileRepository: .init(url: root.appending(path: "profiles.json")))
+        monitor.start(); monitor.publish(); defer { monitor.stop() }
+        func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap { descendants($0) } }
+        for section in [PreferencesSection.general, .debug] {
+            var requiredHeight: CGFloat = 0
+            let host = NSHostingView(rootView: ContentView(monitor: monitor, section: section, onContentHeightChange: { requiredHeight = $0 }))
+            host.frame = NSRect(x: 0, y: 0, width: 860, height: 800)
+            let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false; window.contentView = host
+            host.layoutSubtreeIfNeeded()
+            try await Task.sleep(for: .milliseconds(40))
+            XCTAssertGreaterThan(requiredHeight, 300)
+            XCTAssertLessThan(requiredHeight, 800)
+            XCTAssertFalse(descendants(host).contains { $0 is NSScrollView })
+            let before = requiredHeight
+            host.frame.size.height = requiredHeight
+            host.layoutSubtreeIfNeeded()
+            try await Task.sleep(for: .milliseconds(40))
+            XCTAssertEqual(requiredHeight, before, accuracy: 1, "Height measurement must not depend on the available window height")
+        }
+        let controller = PreferencesWindowController(monitor: monitor)
+        let window = try XCTUnwrap(controller.window)
+        let tabs = try XCTUnwrap(window.contentViewController as? NSTabViewController)
+        let initialWidth = window.contentRect(forFrameRect: window.frame).width
+        for section in [PreferencesSection.general, .debug, .general] {
+            tabs.selectedTabViewItemIndex = section.rawValue
+            window.contentView?.layoutSubtreeIfNeeded()
+            try await Task.sleep(for: .milliseconds(80))
+            window.contentView?.layoutSubtreeIfNeeded()
+            XCTAssertEqual(window.contentRect(forFrameRect: window.frame).width, initialWidth, accuracy: 1)
+            XCTAssertLessThan(window.contentRect(forFrameRect: window.frame).height, 650)
+        }
+        window.close()
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),

@@ -38,16 +38,26 @@ private final class PreferencesTabController: NSTabViewController {
 }
 
 @MainActor
+private final class PreferencesSizingRelay {
+    var report: ((PreferencesSection, CGFloat) -> Void)?
+}
+
+@MainActor
 final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     private let tabs = PreferencesTabController()
     private var activeSection = PreferencesSection.profiles
     private var heights: [PreferencesSection: CGFloat] = [:]
     private let monitor: PenMonitor
+    private var measuredHeights: [PreferencesSection: CGFloat] = [:]
+    private let sizing = PreferencesSizingRelay()
     init(monitor: PenMonitor) {
         self.monitor = monitor
         tabs.tabStyle = .toolbar
         for section in PreferencesSection.allCases {
-            let host = NSHostingController(rootView: ContentView(monitor: monitor, section: section))
+            let relay = sizing
+            let host = NSHostingController(rootView: ContentView(monitor: monitor, section: section, onContentHeightChange: { [weak relay] height in
+                relay?.report?(section, height)
+            }))
             host.sizingOptions = []
             host.title = "PenActor · \(section.title)"
             let item = NSTabViewItem(viewController: host)
@@ -64,6 +74,14 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         window.contentMinSize = PreferencesSection.profiles.minimumSize
         window.isReleasedWhenClosed = false
         super.init(window: window)
+        sizing.report = { [weak self] section, height in
+            // Defer window mutations until SwiftUI has finished the current layout pass.
+            DispatchQueue.main.async { [weak self] in
+                guard let self, abs((self.measuredHeights[section] ?? 0) - height) > 1 else { return }
+                self.measuredHeights[section] = height
+                if self.activeSection == section { self.resize(for: section, rememberingPrevious: false) }
+            }
+        }
         window.delegate = self
         window.center()
         window.setFrameAutosaveName("PenActorCompactPreferences")
@@ -93,16 +111,22 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         let currentContent = window.contentRect(forFrameRect: window.frame).size
         // Avoid a minimum-height constraint forcing an instant jump before the animation expands.
         window.contentMinSize = NSSize(width: section.minimumSize.width, height: min(currentContent.height, section.minimumSize.height))
-        let content = NSSize(width: currentContent.width, height: heights[section] ?? section.defaultSize.height)
+        let content = NSSize(width: currentContent.width, height: fittedHeight(for: section) ?? heights[section] ?? section.defaultSize.height)
         var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: content))
         frame.origin = CGPoint(x: window.frame.minX, y: window.frame.maxY-frame.height)
         if let visible = window.screen?.visibleFrame {
             frame.size.height = min(frame.height, visible.height)
             frame.origin.y = max(visible.minY, min(frame.minY, visible.maxY-frame.height))
         }
-        let animate = rememberingPrevious && window.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let animate = window.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         window.setFrame(frame, display: true, animate: animate)
-        window.contentMinSize = section.minimumSize
+        window.contentMinSize = NSSize(width: section.minimumSize.width, height: fittedHeight(for: section) == nil ? section.minimumSize.height : min(content.height, window.contentRect(forFrameRect: window.frame).height))
+    }
+
+    private func fittedHeight(for section: PreferencesSection) -> CGFloat? {
+        guard let height = measuredHeights[section], let window else { return nil }
+        let chrome = max(0, window.contentRect(forFrameRect: window.frame).height - window.contentLayoutRect.height)
+        return max(section.minimumSize.height, height + chrome)
     }
 
     func windowDidBecomeKey(_ notification: Notification) { monitor.refreshPermission() }

@@ -16,33 +16,31 @@ struct PreferencesPageHeader: View {
 struct GeneralPreferencesView: View {
     @ObservedObject var monitor: PenMonitor
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                PreferencesPageHeader(title: "通用", subtitle: "PenActor 在菜单栏持续运行，关闭设置窗口后仍会处理已启用的笔输入。")
-                GroupBox("运行与启动") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Label(monitor.isRunning ? "输入服务运行中" : "输入服务已停止", systemImage: monitor.isRunning ? "checkmark.circle.fill" : "pause.circle")
-                                .foregroundStyle(monitor.isRunning ? Color.green : Color.secondary)
-                            Spacer()
-                            Button(monitor.isRunning ? "停止服务" : "启动服务") { if monitor.isRunning { monitor.stop() } else { monitor.start() } }
-                        }
-                        Toggle("启动 PenActor 后自动监听", isOn: Binding(get: { monitor.startMonitoringOnLaunch }, set: { monitor.setStartMonitoringOnLaunch($0) }))
-                        Toggle("启动时打开设置窗口", isOn: Binding(get: { monitor.showSettingsOnLaunch }, set: { monitor.setShowSettingsOnLaunch($0) }))
-                        Text("重启程序后映射默认关闭，需手动启用硬件配置。可从菜单栏随时打开设置、暂停映射或退出。")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }.padding(10).toggleStyle(.checkbox).frame(maxWidth: .infinity, alignment: .leading)
-                }
-                GroupBox("访问权限") {
-                    VStack(spacing: 12) {
-                        permissionRow("输入监控", allowed: monitor.listenAccess) { monitor.requestPermission() }
-                        permissionRow("辅助功能", allowed: monitor.accessibilityAccess) { monitor.requestAccessibility() }
-                        HStack { Text("本窗口测试可在未授予输入监控权限时使用。").font(.caption).foregroundStyle(.secondary); Spacer(); Button("重新检查") { monitor.refreshPermission() } }
-                    }.padding(10)
-                }
-                errorMessage
-            }.padding(16)
-        }
+        VStack(alignment: .leading, spacing: 14) {
+            PreferencesPageHeader(title: "通用", subtitle: "PenActor 在菜单栏持续运行，关闭设置窗口后仍会处理已启用的笔输入。")
+            GroupBox("运行与启动") {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Label(monitor.isRunning ? "输入服务运行中" : "输入服务已停止", systemImage: monitor.isRunning ? "checkmark.circle.fill" : "pause.circle")
+                            .foregroundStyle(monitor.isRunning ? Color.green : Color.secondary)
+                        Spacer()
+                        Button(monitor.isRunning ? "停止服务" : "启动服务") { if monitor.isRunning { monitor.stop() } else { monitor.start() } }
+                    }
+                    Toggle("启动 PenActor 后自动监听", isOn: Binding(get: { monitor.startMonitoringOnLaunch }, set: { monitor.setStartMonitoringOnLaunch($0) }))
+                    Toggle("启动时打开设置窗口", isOn: Binding(get: { monitor.showSettingsOnLaunch }, set: { monitor.setShowSettingsOnLaunch($0) }))
+                    Text("重启程序后映射默认关闭，需手动启用硬件配置。可从菜单栏随时打开设置、暂停映射或退出。")
+                        .font(.caption).foregroundStyle(.secondary)
+                }.padding(10).toggleStyle(.checkbox).frame(maxWidth: .infinity, alignment: .leading)
+            }
+            GroupBox("访问权限") {
+                VStack(spacing: 12) {
+                    permissionRow("输入监控", allowed: monitor.listenAccess) { monitor.requestPermission() }
+                    permissionRow("辅助功能", allowed: monitor.accessibilityAccess) { monitor.requestAccessibility() }
+                    HStack { Text("本窗口测试可在未授予输入监控权限时使用。").font(.caption).foregroundStyle(.secondary); Spacer(); Button("重新检查") { monitor.refreshPermission() } }
+                }.padding(10)
+            }
+            errorMessage
+        }.padding(16)
     }
     private var errorMessage: some View { Group { if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) } } }
     private func permissionRow(_ name: String, allowed: Bool, action: @escaping () -> Void) -> some View {
