@@ -32,15 +32,7 @@ struct ContentView: View {
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             Divider()
-            HStack {
-                Label(monitor.isRunning ? "输入服务运行中" : "输入服务已停止", systemImage: monitor.isRunning ? "waveform" : "pause.circle")
-                Divider().frame(height: 12)
-                Text(monitor.mapping.isRunning ? "映射已启用" : "映射已暂停")
-                Spacer()
-                Button("暂停全部映射") { monitor.pauseMapping() }
-                    .keyboardShortcut("r", modifiers: [.command, .shift])
-            }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 16).padding(.vertical, 8)
-            .measurePreferencesHeight("footer")
+            globalStatusBar.measurePreferencesHeight("footer")
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .frame(minWidth: section.minimumSize.width, minHeight: section.minimumSize.height)
@@ -50,6 +42,27 @@ struct ContentView: View {
                 onContentHeightChange?(ceil(page + footer + 1))
             }
         }
+    }
+
+    private var globalStatusBar: some View {
+        HStack(spacing: 10) {
+            Label(monitor.mapping.isRunning ? "映射已启用" : monitor.mapping.isStarting ? "映射正在启动" : "映射已暂停",
+                  systemImage: monitor.mapping.isRunning ? "arrow.triangle.2.circlepath" : "pause.circle")
+            Divider().frame(height: 12)
+            Button("暂停全部映射", systemImage: "pause.fill") { monitor.pauseMapping() }
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+                .disabled(!monitor.mapping.isRunning && !monitor.mapping.isStarting && monitor.enabledProfileIDs.isEmpty)
+                .help("暂停所有设备的压力映射，不停止输入服务（⌘⇧R）")
+            Spacer(minLength: 20)
+            Label(monitor.isRunning ? "输入服务运行中" : "输入服务已停止", systemImage: monitor.isRunning ? "waveform" : "pause.circle")
+        }
+        .font(.caption).foregroundStyle(.secondary)
+        .padding(.horizontal, 16).padding(.vertical, 8)
+        .background(Color(nsColor: .underPageBackgroundColor))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("全局运行状态与控制")
     }
 
     private var debugPage: some View {

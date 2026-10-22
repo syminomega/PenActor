@@ -229,6 +229,7 @@ struct DeviceProfilesPreferencesView: View {
     private var editingActions: some View {
         HStack {
             if profileID == nil {
+                Text("设备默认设置").font(.caption).foregroundStyle(.secondary)
                 savedLabel
                 Spacer()
                 Button("保存设备默认") { saveDevice() }.buttonStyle(.borderedProminent).disabled(deviceDraft?.isValid != true)
@@ -251,6 +252,8 @@ struct DeviceProfilesPreferencesView: View {
                 }
             }
         }.padding(.horizontal, 16).padding(.vertical, 10)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("当前设备或配置的编辑操作")
     }
 
     private var savedLabel: some View {
