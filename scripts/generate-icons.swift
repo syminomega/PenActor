@@ -65,11 +65,19 @@ func drawApp(_ ctx: CGContext) {
     ctx.setFillColor(color(0x5148CA)); ctx.fillEllipse(in:CGRect(x:525,y:459,width:50,height:50))
     ctx.restoreGState()
 }
-func drawMenu(_ ctx: CGContext) {
-    ctx.setFillColor(color(0)); ctx.addPath(mark.path); ctx.drawPath(using:.eoFill)
-    ctx.setStrokeColor(color(0)); ctx.setLineWidth(1.7); ctx.setLineCap(.round)
+// The menu bar has an independent optical layout: larger glyph, lifted by 1.2 display points.
+let menuScale: CGFloat = 1.08
+let menuOrigin = CGPoint(x: 12*(1-menuScale), y: 12*(1-menuScale)-1.6)
+func drawMenuInk(_ ctx: CGContext, ink: CGColor) {
+    ctx.saveGState()
+    ctx.translateBy(x: menuOrigin.x, y: menuOrigin.y)
+    ctx.scaleBy(x: menuScale, y: menuScale)
+    ctx.setFillColor(ink); ctx.addPath(mark.path); ctx.drawPath(using:.eoFill)
+    ctx.setStrokeColor(ink); ctx.setLineWidth(1.7); ctx.setLineCap(.round)
     ctx.addPath(underline.path); ctx.strokePath()
+    ctx.restoreGState()
 }
+func drawMenu(_ ctx: CGContext) { drawMenuInk(ctx, ink: color(0)) }
 func png(size: Int, canvas: Double, draw: (CGContext)->Void, to url: URL) throws {
     let ctx = CGContext(data:nil,width:size,height:size,bitsPerComponent:8,bytesPerRow:0,space:space,bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)!
     ctx.translateBy(x:0,y:CGFloat(size)); ctx.scaleBy(x:CGFloat(size)/canvas,y: -CGFloat(size)/canvas)
@@ -118,8 +126,10 @@ let appSVG = """
 let menuSVG = """
 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
 <title>PenActor menu bar template</title>
+<g transform="translate(\(menuOrigin.x) \(menuOrigin.y)) scale(\(menuScale))">
 <path d="\(mark.svg)" fill="black" fill-rule="evenodd"/>
 <path d="\(underline.svg)" fill="none" stroke="black" stroke-width="1.7" stroke-linecap="round"/>
+</g>
 </svg>
 """
 try appSVG.write(to:design.appendingPathComponent("AppIcon.svg"),atomically:true,encoding:.utf8)
@@ -132,8 +142,6 @@ try png(size:512,canvas:128,draw:{ ctx in
     ctx.setFillColor(color(0x202124)); ctx.fill(CGRect(x:64,y:0,width:64,height:128))
     ctx.saveGState(); ctx.translateBy(x:20,y:52); drawMenu(ctx); ctx.restoreGState()
     ctx.saveGState(); ctx.translateBy(x:84,y:52)
-    ctx.setFillColor(color(0xFFFFFF)); ctx.addPath(mark.path); ctx.drawPath(using:.eoFill)
-    ctx.setStrokeColor(color(0xFFFFFF)); ctx.setLineWidth(1.7); ctx.setLineCap(.round)
-    ctx.addPath(underline.path); ctx.strokePath(); ctx.restoreGState()
+    drawMenuInk(ctx, ink: color(0xFFFFFF)); ctx.restoreGState()
 },to:design.appendingPathComponent("MenuBarIcon-appearance-preview.png"))
 print("Generated vector sources, template PDF and 10 macOS app icon sizes.")
