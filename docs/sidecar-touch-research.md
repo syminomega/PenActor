@@ -66,3 +66,33 @@
 后续研究应优先验证系统／目标应用原生开关，或目标应用内可用的手势适配机制，并分别验证双指操作是否保留。应用插件能否介入 AppKit 手势也需要单独论证，不作已可实现的承诺。不修改 PS 应用包，不写入未经文档支持的 defaults 键，不把 Esc 自动关闭菜单视为阻止了长按或修复了手势状态。
 
 当前建议关闭这项实验过滤，保留已有压力映射。候选过滤器及日志用于后续其他版本／应用的对照，当前不应宣称解决了 PS 随航长按问题。
+
+## 2026-10-22 系统手势控制入口核查
+
+核查范围：苹果官方文档、本机 Xcode SDK 公开 AppKit / CoreGraphics 头文件、相关本地偏好设置的键名，以及 Photoshop 应用声明。全程只读，没有修改系统设置、PS 应用包或其偏好设置；未做进程注入或私有接口调用。
+
+### 已找到的公开入口
+
+| 入口 | 能控制的内容 | 作用边界 |
+| --- | --- | --- |
+| `NSView.gestureRecognizers` / `removeGestureRecognizer` | 访问或移除所属视图的识别器 | 需要持有应用内部的 NSView，不是按 PID 访问其他应用视图的接口 |
+| `NSGestureRecognizer.isEnabled` | 禁用指定识别器，正在识别时会取消 | 对当前进程持有的识别器生效 |
+| `NSPressGestureRecognizer.minimumPressDuration` / `numberOfTouchesRequired` | 配置长按时长与触摸数量 | 用于所属应用的长按识别器，不是系统随航全局参数 |
+| `NSGestureRecognizerDelegate.shouldReceive` / `gestureRecognizerShouldBegin` | 拒绝某个触摸或识别过程 | 需要参与目标识别器的委托处理 |
+| `NSIsTouchNative`（Info.plist） | 声明自行处理触摸，避免注入额外鼠标模拟识别器 | 应用启动适配声明；整体关闭兼容层，不能视为只关闭长按且保留兼容缩放／旋转 |
+| `NSView.exclusiveGestureBehavior` / `NSViewGestureRecognizerIsExclusive` | 控制视图层级之间的手势互斥 | 可能与交互阻塞有关，但不是禁用右键长按的开关 |
+| `CGEvent.tapCreateForPid` | 观察／过滤路由至指定 PID 的 Quartz 事件 | 可作为剩余诊断候选，不提供目标进程的 NSGestureRecognizer；尚未实测能否看见这次长按 |
+
+文档：[识别器列表](https://developer.apple.com/documentation/appkit/nsview/gesturerecognizers)、[启停识别器](https://developer.apple.com/documentation/appkit/nsgesturerecognizer/isenabled)、[长按识别器](https://developer.apple.com/documentation/appkit/nspressgesturerecognizer)、[互斥声明](https://developer.apple.com/documentation/bundleresources/information-property-list/nsviewgesturerecognizerisexclusive)、[PID 事件 tap](https://developer.apple.com/documentation/coregraphics/cgevent/tapcreateforpid(pid:place:options:eventsofinterest:callback:userinfo:))。
+
+### 本机可验证信息
+
+本机 `/Applications/Adobe Photoshop 2026/Adobe Photoshop 2026.app/Contents/Info.plist` 报告版本 `27.11.0`、bundle ID `com.adobe.Photoshop`。未声明 `NSIsTouchNative` 或 `NSViewGestureRecognizerIsExclusive`。这些缺省声明与兼容模拟／默认手势互斥的解释相符，但不能单独证明实际运行时内部实现。
+
+读取到的 Sidecar 偏好域包含显示模式与 Pencil 双击等设置，未发现独立长按右键控制键。常见全局、触控板和辅助功能偏好中未发现可明确映射到随航长按的键。该检查只说明当前可见配置没有入口，不证明所有系统组件都不存在未公开实现，也不将虚构的 `defaults write` 键作为修复方案。苹果 [iPadOS 27 随航使用说明](https://support.apple.com/guide/ipad/use-your-ipad-as-a-second-display-ipad2b1aa3be/27/ipados/27) 也未提供本研究目标对应的独立长按开关。
+
+### 对 PenActor 的结论
+
+已有应用内控制入口，未找到公开、受支持的跨进程系统管理入口。即便能在目标应用内部控制识别器，也必须先准确识别兼容层负责长按的对象，不能假设它必然是公开 `NSPressGestureRecognizer`，更不能批量删除长按识别器。
+
+若继续做外部工具方向，最小且独立的下一项验证是只读 PID 专属 tap 与现有 session tap 的对照；这一步尚未实现，不能预告它一定能够拦截。如果该层同样不可见，后续需依赖目标应用适配或另行研究受支持的进程内扩展能力，普通后台程序不能仅凭辅助功能授权直接修改 PS 的 Cocoa 识别器。
