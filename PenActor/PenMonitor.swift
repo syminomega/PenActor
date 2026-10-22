@@ -73,6 +73,10 @@ final class PenMonitor: ObservableObject {
     private let defaultsRepository: MappingDefaultsRepository
     private let profileRepository: PressureProfileRepository
     private let remapping = PressureRemappingEngine()
+    private let touchBlockingEngine: TouchRightClickEngine
+    @Published private(set) var touchBlocking = TouchRightClickSnapshot()
+    @Published private(set) var touchBlockingTargets: [String]
+    @Published private(set) var touchBlockingError: String?
     private let workspaceObservers = WorkspaceObserverTokens()
     private var store = PenStore()
     private var interactions = PencilInteractionStats()
@@ -87,8 +91,10 @@ final class PenMonitor: ObservableObject {
 
     init(backend: any EventMonitoring = AppKitEventBackend(), accessCheck: @escaping () -> Bool = {
         CGPreflightListenEventAccess()
-    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository(), defaultsRepository: MappingDefaultsRepository? = nil) {
+    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository(), defaultsRepository: MappingDefaultsRepository? = nil, touchBlockingEngine: TouchRightClickEngine = TouchRightClickEngine()) {
         self.profileRepository = profileRepository
+        self.touchBlockingEngine = touchBlockingEngine
+        touchBlockingTargets = preferences.stringArray(forKey: "touchBlockingTargets") ?? ["com.adobe.Photoshop"]
         // Custom profile repositories (fixtures / isolated installs) receive an equally isolated defaults file.
         self.defaultsRepository = defaultsRepository ?? MappingDefaultsRepository(url: profileRepository.url.deletingLastPathComponent().appending(path: "defaults.json"))
         startMonitoringOnLaunch = preferences.object(forKey: "startMonitoringOnLaunch") as? Bool ?? true
@@ -160,6 +166,7 @@ final class PenMonitor: ObservableObject {
     }
 
     func stop() {
+        touchBlockingEngine.stop()
         pauseMapping()
         interruptPencilInteraction()
         backend.stop()
@@ -171,6 +178,8 @@ final class PenMonitor: ObservableObject {
     }
 
     func publish() {
+        let latestTouchBlocking = touchBlockingEngine.snapshot()
+        if touchBlocking != latestTouchBlocking { touchBlocking = latestTouchBlocking }
         let latestMapping = remapping.snapshot()
         if mapping != latestMapping { mapping = latestMapping }
         if !mapping.isRunning && !mapping.isStarting && !enabledProfileIDs.isEmpty {
@@ -199,6 +208,8 @@ final class PenMonitor: ObservableObject {
     }
 
     func clear() {
+        touchBlockingEngine.clearDiagnostics()
+        touchBlocking = touchBlockingEngine.snapshot()
         remapping.clearDiagnostics()
         mapping = remapping.snapshot()
         store.clear()
@@ -217,7 +228,7 @@ final class PenMonitor: ObservableObject {
         // Use the capture buffer, including events not yet published by the 60 Hz timer.
         var mapping = remapping.snapshot()
         mapping.defaults = mappingDefaults
-        return PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt, profiles: profiles, mapping: mapping)
+        return PenLogDocument(store: store, interactions: interactions, isMonitoring: isRunning, exportedAt: exportedAt, profiles: profiles, mapping: mapping, touchBlocking: touchBlockingEngine.snapshot())
     }
 
     func exportLog() {
@@ -370,7 +381,35 @@ final class PenMonitor: ObservableObject {
         for app in NSWorkspace.shared.runningApplications {
             if let id = app.bundleIdentifier { applications[app.processIdentifier] = id }
         }
+        touchBlockingEngine.configure(enabled: touchBlocking.enabled, targets: touchBlockingTargets, applications: applications)
         remapping.update(profiles: profiles.filter { enabledProfileIDs.contains($0.id) }, applications: applications, defaults: mappingDefaults)
+    }
+
+    func setTouchBlocking(_ enabled: Bool) {
+        touchBlockingError = nil
+        if enabled {
+            refreshPermission()
+            guard isRunning else { touchBlockingError = "请先启动输入服务。"; return }
+            guard accessibilityAccess else { touchBlockingError = "请先允许辅助功能权限，再手动开启。"; return }
+            guard !touchBlockingTargets.isEmpty else { touchBlockingError = "请至少添加一个目标应用。"; return }
+        }
+        touchBlocking.enabled = enabled
+        updateMappingSettings()
+        if enabled { touchBlockingEngine.start() }
+        // Keep a disabled tap until service stop, so already-suppressed releases can finish.
+        touchBlocking = touchBlockingEngine.snapshot()
+    }
+    func addTouchBlockingTarget(_ bundleID: String) {
+        guard !touchBlockingTargets.contains(bundleID) else { return }
+        touchBlockingTargets.append(bundleID)
+        preferences.set(touchBlockingTargets, forKey: "touchBlockingTargets")
+        updateMappingSettings()
+    }
+    func removeTouchBlockingTarget(_ bundleID: String) {
+        touchBlockingTargets.removeAll { $0 == bundleID }
+        preferences.set(touchBlockingTargets, forKey: "touchBlockingTargets")
+        if touchBlockingTargets.isEmpty { setTouchBlocking(false) }
+        else { updateMappingSettings() }
     }
 
     func requestPermission() {

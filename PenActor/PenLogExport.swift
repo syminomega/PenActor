@@ -23,6 +23,7 @@ struct PenLogDocument: Codable {
 
     let profiles: [PressureProfile]
     let mapping: MappingSnapshot
+    let touchBlocking: TouchRightClickSnapshot?
     let schemaVersion: Int
     let exportedAt: Date
     let appVersion: String
@@ -40,10 +41,11 @@ struct PenLogDocument: Codable {
     let notes: [String]
 
     init(store: PenStore, interactions: PencilInteractionStats, isMonitoring: Bool,
-         exportedAt: Date = Date(), bundle: Bundle = .main, profiles: [PressureProfile] = [], mapping: MappingSnapshot = MappingSnapshot()) {
+         exportedAt: Date = Date(), bundle: Bundle = .main, profiles: [PressureProfile] = [], mapping: MappingSnapshot = MappingSnapshot(), touchBlocking: TouchRightClickSnapshot? = nil) {
         schemaVersion = 2
         self.profiles = profiles
         self.mapping = mapping
+        self.touchBlocking = touchBlocking
         self.exportedAt = exportedAt
         appVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
         appBuild = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "unknown"

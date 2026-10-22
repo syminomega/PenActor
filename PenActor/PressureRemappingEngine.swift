@@ -321,3 +321,158 @@ final class PressureRemappingEngine: @unchecked Sendable {
         }
     }
 }
+
+// Experimental, independent of pressure mapping. Only public touch-tagged right clicks qualify.
+struct TouchRightClickDiagnostic: Codable, Sendable, Equatable {
+    let timestamp: Double
+    let type: UInt32
+    let subtype: Int64
+    let eventNumber: Int64
+    let sourcePID: Int64
+    let targetPID: Int32
+    let targetBundleID: String?
+    let suppressed: Bool
+}
+
+struct TouchRightClickSnapshot: Codable, Sendable, Equatable {
+    var enabled = false
+    var isRunning = false
+    var isStarting = false
+    var status = "实验功能已关闭"
+    var targetBundleIDs: [String] = []
+    var observedCount: UInt64 = 0
+    var suppressedPressCount: UInt64 = 0
+    var suppressedEventCount: UInt64 = 0
+    var diagnostics: [TouchRightClickDiagnostic] = []
+}
+
+struct TouchRightClickFilter {
+    private struct Sequence: Equatable {
+        let source: Int64
+        let number: Int64
+    }
+    private var blocked: [Sequence] = []
+    var applications: [Int32: String] = [:]
+    var snapshot = TouchRightClickSnapshot()
+
+    mutating func configure(enabled: Bool, targets: [String], applications: [Int32: String]) {
+        snapshot.enabled = enabled; snapshot.targetBundleIDs = targets
+        self.applications = applications
+        // Existing suppressed sequences still consume their matching release after disabling.
+    }
+    mutating func clear() {
+        snapshot.observedCount = 0; snapshot.suppressedPressCount = 0
+        snapshot.suppressedEventCount = 0; snapshot.diagnostics = []
+    }
+    mutating func resetSequences() { blocked = [] }
+    mutating func suppress(_ event: CGEvent) -> Bool {
+        guard [.rightMouseDown, .rightMouseDragged, .rightMouseUp].contains(event.type) else { return false }
+        let subtype = event.getIntegerValueField(.mouseEventSubtype)
+        let key = Sequence(source: event.getIntegerValueField(.eventSourceUnixProcessID), number: event.getIntegerValueField(.mouseEventNumber))
+        let pid = Int32(clamping: event.getIntegerValueField(.eventTargetUnixProcessID))
+        let bundle = applications[pid]
+        var suppress = false
+        if event.type == .rightMouseDown {
+            // A fresh down with a reused key must not inherit a stale suppression decision.
+            blocked.removeAll { $0 == key }
+            // Never infer touch from a foreground app, screen position, or recent Pencil use.
+            if snapshot.enabled, !event.flags.contains(.maskControl), subtype == Int64(NSEvent.EventSubtype.touch.rawValue),
+               let bundle, snapshot.targetBundleIDs.contains(bundle), blocked.count < 8 {
+                if !blocked.contains(key) { blocked.append(key) }
+                suppress = true; snapshot.suppressedPressCount += 1
+            }
+        } else if let index = blocked.firstIndex(of: key), subtype != 1, subtype != 2,
+                  key.number != 0 || subtype == Int64(NSEvent.EventSubtype.touch.rawValue) {
+            // With no event number, don't consume an untagged physical mouse release.
+            suppress = true
+            if event.type == .rightMouseUp { blocked.remove(at: index) }
+        }
+        snapshot.observedCount += 1
+        if suppress { snapshot.suppressedEventCount += 1 }
+        snapshot.diagnostics.append(.init(timestamp: Double(event.timestamp)/1_000_000_000, type: event.type.rawValue,
+            subtype: subtype, eventNumber: key.number, sourcePID: key.source, targetPID: pid,
+            targetBundleID: bundle, suppressed: suppress))
+        if snapshot.diagnostics.count > 500 { snapshot.diagnostics.removeFirst(snapshot.diagnostics.count - 500) }
+        return suppress
+    }
+}
+
+final class TouchRightClickEngine: @unchecked Sendable {
+    typealias TapFactory = PressureRemappingEngine.TapFactory
+    private let createTap: TapFactory
+    private let lock = NSLock()
+    private var filter = TouchRightClickFilter()
+    private var generation: UInt64 = 0
+    private var loop: CFRunLoop?
+    init(createTap: @escaping TapFactory = { mask, callback, context in
+        CGEvent.tapCreate(tap: .cgAnnotatedSessionEventTap, place: .headInsertEventTap,
+            options: .defaultTap, eventsOfInterest: mask, callback: callback, userInfo: context)
+    }) { self.createTap = createTap }
+    func snapshot() -> TouchRightClickSnapshot { lock.lock(); defer { lock.unlock() }; return filter.snapshot }
+    func configure(enabled: Bool, targets: [String], applications: [Int32: String]) {
+        lock.lock(); defer { lock.unlock() }
+        filter.configure(enabled: enabled, targets: targets, applications: applications)
+        if filter.snapshot.isRunning { filter.snapshot.status = enabled ? "实验拦截已开启 · 等待带触摸标记的右键" : "已关闭 · 已拦截序列的抬起仍会收尾" }
+    }
+    func clearDiagnostics() { lock.lock(); defer { lock.unlock() }; filter.clear() }
+    func start() {
+        lock.lock()
+        guard !filter.snapshot.isRunning, !filter.snapshot.isStarting else { lock.unlock(); return }
+        generation += 1; let token = generation
+        filter.snapshot.isStarting = true; filter.snapshot.status = "正在创建触摸右键 tap…"
+        lock.unlock()
+        Thread.detachNewThread { [self] in run(token: token) }
+    }
+    func stop(reason: String = "实验功能已停止") { halt(reason: reason) }
+    private func halt(reason: String, token: UInt64? = nil) {
+        lock.lock()
+        if let token, token != generation { lock.unlock(); return }
+        generation += 1
+        filter.snapshot.enabled = false; filter.snapshot.isRunning = false; filter.snapshot.isStarting = false
+        filter.snapshot.status = reason; filter.resetSequences()
+        let current = loop
+        lock.unlock()
+        if let current { CFRunLoopStop(current) }
+    }
+    private final class Context {
+        let engine: TouchRightClickEngine
+        let token: UInt64
+        init(_ engine: TouchRightClickEngine, _ token: UInt64) { self.engine = engine; self.token = token }
+    }
+    private func run(token: UInt64) {
+        let mask = [CGEventType.rightMouseDown, .rightMouseUp, .rightMouseDragged].reduce(CGEventMask(0)) { $0 | (CGEventMask(1) << $1.rawValue) }
+        let context = Context(self, token)
+        guard let tap = createTap(mask, { _, type, event, pointer in
+            guard let pointer else { return Unmanaged.passUnretained(event) }
+            let context = Unmanaged<Context>.fromOpaque(pointer).takeUnretainedValue()
+            if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+                context.engine.halt(reason: "系统停用了触摸右键 tap，请手动重新开启", token: context.token)
+                return Unmanaged.passUnretained(event)
+            }
+            return context.engine.handle(event, token: context.token)
+        }, Unmanaged.passUnretained(context).toOpaque()) else {
+            halt(reason: "无法创建触摸右键 tap，请检查辅助功能权限后重试", token: token); return
+        }
+        let current = CFRunLoopGetCurrent()!
+        guard let source = CFMachPortCreateRunLoopSource(nil, tap, 0) else {
+            CFMachPortInvalidate(tap); halt(reason: "无法创建触摸右键事件源", token: token); return
+        }
+        lock.lock()
+        guard generation == token else { lock.unlock(); CFMachPortInvalidate(tap); return }
+        loop = current; filter.snapshot.isStarting = false; filter.snapshot.isRunning = true
+        filter.snapshot.status = filter.snapshot.enabled ? "实验拦截已开启 · 等待带触摸标记的右键" : "实验功能已关闭"
+        CFRunLoopAddSource(current, source, .commonModes); CGEvent.tapEnable(tap: tap, enable: true)
+        lock.unlock()
+        withExtendedLifetime(context) { CFRunLoopRun() }
+        CGEvent.tapEnable(tap: tap, enable: false); CFMachPortInvalidate(tap)
+        CFRunLoopRemoveSource(current, source, .commonModes)
+        halt(reason: "触摸右键事件线程已结束，请手动重新开启", token: token)
+        lock.lock(); if loop === current { loop = nil }; lock.unlock()
+    }
+    private func handle(_ event: CGEvent, token: UInt64) -> Unmanaged<CGEvent>? {
+        lock.lock(); defer { lock.unlock() }
+        guard generation == token, filter.snapshot.isRunning,
+              event.getIntegerValueField(.eventSourceUserData) != PressureRemappingEngine.replayMarker else { return Unmanaged.passUnretained(event) }
+        return filter.suppress(event) ? nil : Unmanaged.passUnretained(event)
+    }
+}

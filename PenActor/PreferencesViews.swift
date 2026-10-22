@@ -39,6 +39,31 @@ struct GeneralPreferencesView: View {
                     HStack { Text("本窗口测试可在未授予输入监控权限时使用。").font(.caption).foregroundStyle(.secondary); Spacer(); Button("重新检查") { monitor.refreshPermission() } }
                 }.padding(10)
             }
+            GroupBox("随航触摸 · 实验") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("屏蔽触摸长按右键（实验）", isOn: Binding(get: { monitor.touchBlocking.enabled }, set: { monitor.setTouchBlocking($0) }))
+                        .toggleStyle(.checkbox)
+                    HStack {
+                        Text(monitor.touchBlocking.status).font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                        Text("观察右键 \(monitor.touchBlocking.observedCount) · 拦截 \(monitor.touchBlocking.suppressedPressCount) 次 / \(monitor.touchBlocking.suppressedEventCount) 事件").font(.caption.monospacedDigit())
+                    }
+                    HStack {
+                        Text("生效应用").font(.caption)
+                        ApplicationPicker { id, _ in monitor.addTouchBlockingTarget(id) }
+                        Menu("已选 \(monitor.touchBlockingTargets.count) 个 · 移除…") {
+                            ForEach(monitor.touchBlockingTargets, id: \.self) { id in
+                                Button(id, role: .destructive) { monitor.removeTouchBlockingTarget(id) }
+                            }
+                        }.disabled(monitor.touchBlockingTargets.isEmpty)
+                        Spacer()
+                    }
+                    Text(monitor.touchBlockingTargets.joined(separator: "、")).font(.caption).foregroundStyle(.secondary).lineLimit(2).help(monitor.touchBlockingTargets.joined(separator: "\n"))
+                    Text("仅拦截所选应用中带 touch 标记的右键；双指缩放、旋转、滚动不参与过滤。尚未确认随航长按是否携带此标记，计数为 0 不代表长按已关闭。需辅助功能权限；重启后默认关闭。")
+                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    if let error = monitor.touchBlockingError { Text(error).font(.caption).foregroundStyle(.red) }
+                }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
+            }
             errorMessage
         }.padding(16)
     }

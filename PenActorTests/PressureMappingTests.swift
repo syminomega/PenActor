@@ -244,6 +244,9 @@ final class PressureMappingTests: XCTestCase {
             host.layoutSubtreeIfNeeded()
             try await Task.sleep(for: .milliseconds(40))
             XCTAssertEqual(requiredHeight, before, accuracy: 1, "Height measurement must not depend on the available window height")
+            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: URL(filePath: "/tmp/PenActor-fit-\(section.title).png"))
         }
         let controller = PreferencesWindowController(monitor: monitor)
         let window = try XCTUnwrap(controller.window)
@@ -258,6 +261,115 @@ final class PressureMappingTests: XCTestCase {
             XCTAssertLessThan(window.contentRect(forFrameRect: window.frame).height, 650)
         }
         window.close()
+    }
+
+    private func touchRightEvent(_ type: CGEventType = .rightMouseDown, subtype: Int64? = nil, pid: Int64 = 42, source: Int64 = 9, number: Int64 = 15) throws -> CGEvent {
+        let event = try XCTUnwrap(CGEvent(source: nil))
+        event.type = type; event.location = CGPoint(x: 125, y: 87); event.timestamp = 123456789
+        event.setIntegerValueField(.mouseEventSubtype, value: subtype ?? Int64(NSEvent.EventSubtype.touch.rawValue))
+        event.setIntegerValueField(.eventTargetUnixProcessID, value: pid)
+        event.setIntegerValueField(.eventSourceUnixProcessID, value: source)
+        event.setIntegerValueField(.mouseEventNumber, value: number)
+        return event
+    }
+    private func touchFilter() -> TouchRightClickFilter {
+        var filter = TouchRightClickFilter()
+        filter.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [42: "com.adobe.Photoshop", 43: "other.app"])
+        return filter
+    }
+    func testTouchRightClickOnlyMatchesTaggedTargetAndNeverChangesEvent() throws {
+        var filter = touchFilter()
+        for subtype: Int64 in [0, 1, 2] { XCTAssertFalse(filter.suppress(try touchRightEvent(subtype: subtype))) }
+        XCTAssertFalse(filter.suppress(try touchRightEvent(pid: 43)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(pid: 0)))
+        let control = try touchRightEvent(); control.flags = .maskControl
+        XCTAssertFalse(filter.suppress(control))
+        let event = try touchRightEvent()
+        let original = event.data
+        XCTAssertTrue(filter.suppress(event))
+        XCTAssertEqual(event.data as Data?, original as Data?)
+        XCTAssertEqual(filter.snapshot.suppressedPressCount, 1)
+    }
+    func testTouchRightClickSequenceSurvivesDisableAndTargetSwitch() throws {
+        var filter = touchFilter()
+        XCTAssertTrue(filter.suppress(try touchRightEvent()))
+        filter.configure(enabled: false, targets: [], applications: [:])
+        XCTAssertTrue(filter.suppress(try touchRightEvent(.rightMouseDragged, subtype: 0, pid: 43)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, source: 10)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, number: 16)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 1)))
+        XCTAssertTrue(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 0, pid: 43)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent()))
+        XCTAssertEqual(filter.snapshot.suppressedEventCount, 3)
+    }
+    func testTouchRightClickDoesNotSwallowReleaseOfDeliveredDown() throws {
+        var filter = TouchRightClickFilter()
+        XCTAssertFalse(filter.suppress(try touchRightEvent()))
+        filter.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [42: "com.adobe.Photoshop"])
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp)))
+        XCTAssertTrue(filter.suppress(try touchRightEvent()))
+        // Reusing an event number for an ordinary right click must not inherit suppression.
+        XCTAssertFalse(filter.suppress(try touchRightEvent(subtype: 0)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 0)))
+        XCTAssertTrue(filter.suppress(try touchRightEvent(number: 0)))
+        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 0, number: 0)))
+        XCTAssertTrue(filter.suppress(try touchRightEvent(.rightMouseUp, number: 0)))
+    }
+    func testTouchRightClickLeavesNonRightEventsAloneAndBoundsDiagnostics() throws {
+        var filter = touchFilter()
+        for type: CGEventType in [.leftMouseDown, .leftMouseUp, .tabletPointer, .tabletProximity, .scrollWheel, .flagsChanged, .keyDown] {
+            XCTAssertFalse(filter.suppress(try touchRightEvent(type)))
+        }
+        XCTAssertEqual(filter.snapshot.observedCount, 0)
+        for i in 0..<600 { _ = filter.suppress(try touchRightEvent(subtype: 0, number: Int64(i))) }
+        XCTAssertEqual(filter.snapshot.observedCount, 600)
+        XCTAssertEqual(filter.snapshot.diagnostics.count, 500)
+        filter.clear(); XCTAssertEqual(filter.snapshot.observedCount, 0)
+        XCTAssertTrue(filter.snapshot.diagnostics.isEmpty)
+    }
+    func testTouchRightClickTapFailureAndSystemDisableStopWithoutRetry() {
+        let failed = TouchRightClickEngine(createTap: { _, _, _ in nil })
+        failed.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [:])
+        failed.start(); failed.start()
+        for _ in 0..<100 where failed.snapshot().isStarting { Thread.sleep(forTimeInterval: 0.001) }
+        XCTAssertFalse(failed.snapshot().enabled); XCTAssertFalse(failed.snapshot().isRunning)
+        XCTAssertTrue(failed.snapshot().status.contains("无法创建"))
+        failed.stop(); failed.stop()
+        for type: CGEventType in [.tapDisabledByTimeout, .tapDisabledByUserInput] {
+            let engine = TouchRightClickEngine(createTap: { _, callback, context in
+                _ = callback(OpaquePointer(bitPattern: 1)!, type, CGEvent(source: nil)!, context)
+                return nil
+            })
+            engine.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [:]); engine.start()
+            for _ in 0..<100 where engine.snapshot().isStarting { Thread.sleep(forTimeInterval: 0.001) }
+            XCTAssertFalse(engine.snapshot().enabled); XCTAssertTrue(engine.snapshot().status.contains("系统停用了"))
+        }
+    }
+    @MainActor func testTouchRightClickTargetsPersistButActivationDoesNotAndExportIncludesDiagnostics() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let suite = "PenActorTests." + UUID().uuidString
+        let preferences = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { preferences.removePersistentDomain(forName: suite) }
+        let repository = PressureProfileRepository(url: root.appending(path: "profiles.json"))
+        let monitor = PenMonitor(preferences: preferences, profileRepository: repository)
+        XCTAssertFalse(monitor.touchBlocking.enabled)
+        monitor.addTouchBlockingTarget("test.app"); monitor.addTouchBlockingTarget("test.app")
+        XCTAssertEqual(monitor.touchBlockingTargets.filter { $0 == "test.app" }.count, 1)
+        let restored = PenMonitor(preferences: preferences, profileRepository: repository)
+        XCTAssertTrue(restored.touchBlockingTargets.contains("test.app")); XCTAssertFalse(restored.touchBlocking.enabled)
+        monitor.setTouchBlocking(true)
+        XCTAssertFalse(monitor.touchBlocking.enabled); XCTAssertNotNil(monitor.touchBlockingError)
+        var filter = touchFilter(); _ = filter.suppress(try touchRightEvent())
+        let document = PenLogDocument(store: PenStore(), interactions: PencilInteractionStats(), isMonitoring: true, touchBlocking: filter.snapshot)
+        let decoded = try JSONDecoder().decode(TouchRightClickSnapshot.self, from: JSONEncoder().encode(filter.snapshot))
+        XCTAssertEqual(decoded, filter.snapshot)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: document.jsonData()) as? [String: Any])
+        let exported = try XCTUnwrap(object["touchBlocking"] as? [String: Any])
+        XCTAssertEqual(exported["suppressedPressCount"] as? Int, 1)
+        monitor.removeTouchBlockingTarget("test.app")
+        XCTAssertFalse(monitor.touchBlockingTargets.contains("test.app"))
     }
 
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
