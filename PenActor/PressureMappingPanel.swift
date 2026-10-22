@@ -47,7 +47,13 @@ struct PressureConfigurationEditor: View {
     private func parameter(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, unit: String) -> some View {
         HStack(spacing: 8) {
             Text(title).font(.caption).frame(width: 62, alignment: .leading)
-            Slider(value: value, in: range, step: step)
+            Slider(value: Binding(
+                get: { value.wrappedValue },
+                set: { raw in
+                    let snapped = range.lowerBound + ((raw-range.lowerBound)/step).rounded()*step
+                    value.wrappedValue = min(range.upperBound, max(range.lowerBound, snapped))
+                }
+            ), in: range)
             Text("\(value.wrappedValue, specifier: "%.0f") \(unit)").font(.caption.monospacedDigit())
                 .foregroundStyle(.secondary).frame(width: 52, alignment: .trailing)
         }

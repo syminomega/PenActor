@@ -6,21 +6,26 @@ enum PreferencesSection: Int, CaseIterable {
     var title: String { ["通用", "配置", "调试", "测试"][rawValue] }
     var defaultSize: NSSize {
         switch self {
-        case .general: NSSize(width: 620, height: 410)
+        case .general: NSSize(width: 860, height: 410)
         case .profiles: NSSize(width: 860, height: 600)
-        case .debug: NSSize(width: 900, height: 600)
+        case .debug: NSSize(width: 860, height: 600)
         case .testing: NSSize(width: 860, height: 620)
         }
     }
     var minimumSize: NSSize {
         switch self {
-        case .general: NSSize(width: 560, height: 350)
-        case .profiles: NSSize(width: 800, height: 500)
+        case .general: NSSize(width: 820, height: 350)
+        case .profiles: NSSize(width: 820, height: 500)
         case .debug: NSSize(width: 820, height: 500)
-        case .testing: NSSize(width: 760, height: 500)
+        case .testing: NSSize(width: 820, height: 500)
         }
     }
     var symbol: String { ["slider.horizontal.3", "slider.horizontal.2.square", "waveform.path.ecg", "scribble.variable"][rawValue] }
+}
+
+@MainActor
+private final class PreferencesWindow: NSWindow {
+    override func animationResizeTime(_ newFrame: NSRect) -> TimeInterval { 0.2 }
 }
 
 @MainActor
@@ -36,7 +41,7 @@ private final class PreferencesTabController: NSTabViewController {
 final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     private let tabs = PreferencesTabController()
     private var activeSection = PreferencesSection.profiles
-    private var sizes: [PreferencesSection: NSSize] = [:]
+    private var heights: [PreferencesSection: CGFloat] = [:]
     private let monitor: PenMonitor
     init(monitor: PenMonitor) {
         self.monitor = monitor
@@ -51,7 +56,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             tabs.addTabViewItem(item)
         }
         tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
-        let window = NSWindow(contentViewController: tabs)
+        let window = PreferencesWindow(contentViewController: tabs)
         window.title = "PenActor 设置"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.setContentSize(PreferencesSection.profiles.defaultSize)
@@ -81,21 +86,23 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         guard let window else { return }
         guard section != activeSection || !rememberingPrevious else { return }
         if rememberingPrevious, section != activeSection {
-            sizes[activeSection] = window.contentRect(forFrameRect: window.frame).size
+            heights[activeSection] = window.contentRect(forFrameRect: window.frame).height
         }
         activeSection = section
-        window.contentMinSize = section.minimumSize
-        guard !window.isZoomed else { return }
-        let content = sizes[section] ?? section.defaultSize
+        guard !window.isZoomed else { window.contentMinSize = section.minimumSize; return }
+        let currentContent = window.contentRect(forFrameRect: window.frame).size
+        // Avoid a minimum-height constraint forcing an instant jump before the animation expands.
+        window.contentMinSize = NSSize(width: section.minimumSize.width, height: min(currentContent.height, section.minimumSize.height))
+        let content = NSSize(width: currentContent.width, height: heights[section] ?? section.defaultSize.height)
         var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: content))
         frame.origin = CGPoint(x: window.frame.minX, y: window.frame.maxY-frame.height)
         if let visible = window.screen?.visibleFrame {
-            frame.size.width = min(frame.width, visible.width)
             frame.size.height = min(frame.height, visible.height)
-            frame.origin.x = max(visible.minX, min(frame.minX, visible.maxX-frame.width))
             frame.origin.y = max(visible.minY, min(frame.minY, visible.maxY-frame.height))
         }
-        window.setFrame(frame, display: true)
+        let animate = rememberingPrevious && window.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        window.setFrame(frame, display: true, animate: animate)
+        window.contentMinSize = section.minimumSize
     }
 
     func windowDidBecomeKey(_ notification: Notification) { monitor.refreshPermission() }

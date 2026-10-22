@@ -122,15 +122,19 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertEqual(tabs.tabViewItems.map(\.label), ["通用", "配置", "调试", "测试"])
         XCTAssertEqual(tabs.selectedTabViewItemIndex, PreferencesSection.profiles.rawValue)
         tabs.selectedTabViewItemIndex = PreferencesSection.general.rawValue
-        XCTAssertLessThan(window.frame.width, profileWidth)
+        XCTAssertEqual(window.frame.width, profileWidth, accuracy: 1)
+        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).height, PreferencesSection.general.defaultSize.height, accuracy: 1)
         XCTAssertEqual(window.contentMinSize.width, PreferencesSection.general.minimumSize.width)
         tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
         XCTAssertEqual(window.frame.width, profileWidth, accuracy: 1)
         // A manual resize is retained when returning to this page.
         window.setContentSize(NSSize(width: 900, height: 640))
-        tabs.selectedTabViewItemIndex = PreferencesSection.general.rawValue
+        for section in PreferencesSection.allCases {
+            tabs.selectedTabViewItemIndex = section.rawValue
+            XCTAssertEqual(window.contentRect(forFrameRect: window.frame).width, 900, accuracy: 1)
+        }
         tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
-        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).width, 900, accuracy: 1)
+        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).height, 640, accuracy: 1)
         window.close()
         XCTAssertTrue(monitor.isRunning)
         XCTAssertTrue(controller.window === window)
