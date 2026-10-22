@@ -69,6 +69,7 @@ final class PenMonitor: ObservableObject {
     @Published private(set) var mappingDefaults = MappingDefaults()
     @Published private(set) var startMonitoringOnLaunch: Bool
     @Published private(set) var showSettingsOnLaunch: Bool
+    private var configurationPersistenceBlocked = false
     private let defaultsRepository: MappingDefaultsRepository
     private let profileRepository: PressureProfileRepository
     private let remapping = PressureRemappingEngine()
@@ -100,10 +101,23 @@ final class PenMonitor: ObservableObject {
         store.automaticallySwitchDevices = automatic
         refreshPermission()
         do { profiles = try profileRepository.load() }
-        catch { profileError = "配置读取失败，未覆盖原文件：\(error.localizedDescription)" }
+        catch { configurationPersistenceBlocked = true; profileError = "配置读取失败，未覆盖原文件：\(error.localizedDescription)" }
         do { mappingDefaults = try self.defaultsRepository.load() }
-        catch { profileError = "默认设置读取失败，未覆盖原文件：\(error.localizedDescription)" }
-        registerLegacyApplications()
+        catch { configurationPersistenceBlocked = true; profileError = "默认设置读取失败，未覆盖原文件：\(error.localizedDescription)" }
+        if !configurationPersistenceBlocked {
+            let migrated = mappingDefaults.migrating(profiles)
+            if migrated.defaults != mappingDefaults || migrated.profiles != profiles {
+                do {
+                    try backupLegacyConfiguration()
+                    try self.defaultsRepository.save(migrated.defaults)
+                    try profileRepository.save(migrated.profiles)
+                    mappingDefaults = migrated.defaults; profiles = migrated.profiles
+                } catch {
+                    configurationPersistenceBlocked = true
+                    profileError = "配置迁移未完成，已停止配置写入和映射，请检查原文件及 Backups：\(error.localizedDescription)"
+                }
+            }
+        }
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
             workspaceObservers.tokens.append(NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.updateMappingSettings() }
@@ -267,19 +281,17 @@ final class PenMonitor: ObservableObject {
         var updated = profiles
         if let i = updated.firstIndex(where: { $0.id == profile.id }) { updated[i] = profile }
         else { updated.append(profile) }
-        do { try profileRepository.save(updated); profiles = updated; profileError = nil; updateMappingSettings(); return true }
-        catch { profileError = "保存失败：\(error.localizedDescription)"; return false }
+        return saveConfiguration(profiles: updated, defaults: mappingDefaults)
     }
 
     func deleteProfile(_ id: UUID) {
         let updated = profiles.filter { $0.id != id }
-        do { try profileRepository.save(updated); profiles = updated; disableProfile(id); profileError = nil }
-        catch { profileError = error.localizedDescription }
+        if saveConfiguration(profiles: updated, defaults: mappingDefaults) { disableProfile(id) }
     }
 
     func enableProfile(_ id: UUID) {
         refreshPermission()
-        guard isRunning, let profile = profiles.first(where: { $0.id == id }), profile.isValid, !profile.targetBundleIDs.isEmpty else { return }
+        guard isRunning, let profile = profiles.first(where: { $0.id == id }), profile.isValid, !profile.effectiveTargetBundleIDs.isEmpty, !configurationPersistenceBlocked else { return }
         guard accessibilityAccess else { profileError = "请允许辅助功能权限，然后重新检查并启用。"; return }
         enabledProfileIDs.subtract(profiles.filter { $0.device == profile.device }.map(\.id))
         enabledProfileIDs.insert(id)
@@ -301,10 +313,49 @@ final class PenMonitor: ObservableObject {
     }
 
     @discardableResult func saveDefaults(_ value: MappingDefaults) -> Bool {
+        saveConfiguration(profiles: profiles, defaults: value)
+    }
+
+    @discardableResult func saveDeviceSettings(_ settings: DevicePressureDefaults) -> Bool {
+        var defaults = mappingDefaults
+        if let i = defaults.devices.firstIndex(where: { $0.device == settings.device }) { defaults.devices[i] = settings }
+        else { defaults.devices.append(settings) }
+        return saveDefaults(defaults)
+    }
+
+    func deviceDisplayName(_ identity: PenIdentity) -> String {
+        let name = mappingDefaults.settings(for: identity).name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !name.isEmpty { return name }
+        if let observed = snapshot.devices.first(where: { $0.id == identity }) { return observed.title }
+        switch identity.level {
+        case .model: return "数位笔 · 型号归组"
+        case .uniqueTool, .serialNumber: return "数位笔 · 已保存设备"
+        case .session: return "数位笔 · 临时会话"
+        }
+    }
+
+    private func saveConfiguration(profiles updated: [PressureProfile], defaults: MappingDefaults) -> Bool {
+        guard !configurationPersistenceBlocked else { return false }
+        let migrated = defaults.migrating(updated)
         do {
-            try defaultsRepository.save(value)
-            mappingDefaults = value; profileError = nil; updateMappingSettings(); return true
-        } catch { profileError = "保存默认设置失败：\(error.localizedDescription)"; return false }
+            // Both files are validated before either write. Defaults first makes interrupted migrations repeatable.
+            guard migrated.defaults.isValid, migrated.profiles.count <= 256,
+                  Set(migrated.profiles.map(\.id)).count == migrated.profiles.count,
+                  migrated.profiles.allSatisfy(\.isValid) else { throw CocoaError(.fileWriteInvalidFileName) }
+            try defaultsRepository.save(migrated.defaults)
+            try profileRepository.save(migrated.profiles)
+            profiles = migrated.profiles; mappingDefaults = migrated.defaults
+            profileError = nil; updateMappingSettings(); return true
+        } catch { profileError = "保存配置失败：\(error.localizedDescription)"; return false }
+    }
+
+    private func backupLegacyConfiguration() throws {
+        let files = [profileRepository.url, defaultsRepository.url].filter { FileManager.default.fileExists(atPath: $0.path) }
+        guard !files.isEmpty else { return }
+        let folder = profileRepository.url.deletingLastPathComponent()
+            .appending(path: "Backups/device-scoped-"+UUID().uuidString, directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        for file in files { try FileManager.default.copyItem(at: file, to: folder.appending(path: file.lastPathComponent)) }
     }
 
     func setStartMonitoringOnLaunch(_ value: Bool) {
@@ -312,15 +363,6 @@ final class PenMonitor: ObservableObject {
     }
     func setShowSettingsOnLaunch(_ value: Bool) {
         showSettingsOnLaunch = value; preferences.set(value, forKey: "showSettingsOnLaunch")
-    }
-
-    private func registerLegacyApplications() {
-        for id in Set(profiles.flatMap(\.targetBundleIDs)).sorted() where !mappingDefaults.applications.contains(where: { $0.bundleID == id }) {
-            guard mappingDefaults.applications.count < 256 else { break }
-            let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id)
-            let name = url?.deletingPathExtension().lastPathComponent ?? id
-            mappingDefaults.applications.append(.init(bundleID: id, name: name))
-        }
     }
 
     private func updateMappingSettings() {

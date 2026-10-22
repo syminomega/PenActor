@@ -3,13 +3,26 @@ import AppKit
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let monitor = PenMonitor()
+    private var isTesting: Bool {
+        let environment = ProcessInfo.processInfo.environment
+        return environment["XCTestConfigurationFilePath"] != nil || environment["XCTestBundlePath"] != nil
+            || NSClassFromString("XCTestCase") != nil
+    }
+    lazy var monitor: PenMonitor = {
+        if isTesting {
+            // Test hosts must never migrate the real user's configuration files.
+            let url = FileManager.default.temporaryDirectory.appending(path: "PenActorTestHost-"+UUID().uuidString+"/profiles.json")
+            return PenMonitor(profileRepository: PressureProfileRepository(url: url))
+        }
+        return PenMonitor()
+    }()
     lazy var preferences = PreferencesWindowController(monitor: monitor)
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        guard !isTesting else { return }
         if monitor.startMonitoringOnLaunch { monitor.start() }
-        if monitor.showSettingsOnLaunch && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
-            preferences.open(.general)
+        if monitor.showSettingsOnLaunch {
+            preferences.open(.profiles)
         }
     }
     func applicationWillTerminate(_ notification: Notification) { monitor.stop() }

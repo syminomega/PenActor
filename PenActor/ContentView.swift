@@ -13,8 +13,7 @@ struct ContentView: View {
             Group {
                 switch section {
                 case .general: GeneralPreferencesView(monitor: monitor)
-                case .applications: ApplicationPreferencesView(monitor: monitor)
-                case .hardware: HardwarePreferencesView(monitor: monitor)
+                case .profiles: DeviceProfilesPreferencesView(monitor: monitor)
                 case .debug: debugPage
                 case .testing: testingPage
                 }
@@ -146,7 +145,7 @@ struct ContentView: View {
                     set: { monitor.selectDevice($0) }
                 )) {
                     ForEach(monitor.snapshot.devices) { device in
-                        Text(device.title).tag(Optional(device.id))
+                        Text(monitor.deviceDisplayName(device.id)).tag(Optional(device.id))
                     }
                 }
                 if let device {
@@ -217,7 +216,7 @@ struct ContentView: View {
                 Text("等待有效采样；倾斜值为 −1…1，旋转值为笔轴角度。")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Text("NSEvent 读数可能已经过驱动或 PenActor 映射。修改前后对照见重映射面板；零值不表示能力一定受支持。")
+            Text("NSEvent 读数可能已经过驱动或 PenActor 映射。修改前后对照见上方映射诊断；零值不表示能力一定受支持。")
                 .font(.caption).foregroundStyle(.secondary)
         }.panel()
     }

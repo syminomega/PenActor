@@ -112,7 +112,7 @@ struct PressureMappingProcessor {
         let beginning = !up && ((strokes[id] == nil && (down || max(input, tabletInput) > 0)) || untargetedPrelude)
         let ending = up || (!down && max(input, tabletInput) == 0)
         if beginning {
-            let candidate = profiles.first { $0.device == identity && bundle.map($0.targetBundleIDs.contains) == true }
+            let candidate = profiles.first { $0.device == identity && bundle.map($0.effectiveTargetBundleIDs.contains) == true }
             let match = candidate.flatMap { profile in bundle.flatMap { defaults.resolve(profile, bundleID: $0) } }
             if strokes.count >= 128, let evicted = strokes.keys.first { strokes[evicted] = nil }
             strokes[id] = Stroke(profile: match, targetPID: pid)
@@ -120,7 +120,7 @@ struct PressureMappingProcessor {
         let stroke = strokes[id]
         // Immediate disable overrides any curve latched at stroke start.
         let profile = stroke?.profile.flatMap { old in profiles.contains(where: { $0.device == old.device }) ? old : nil }
-        let allowed = profile != nil && stroke?.targetPID == pid && bundle.map { profile!.targetBundleIDs.contains($0) } == true
+        let allowed = profile != nil && stroke?.targetPID == pid && bundle.map { profile!.effectiveTargetBundleIDs.contains($0) } == true
         let curvePressure = allowed ? profile!.curve.map(input) : input
         let tabletCurvePressure = allowed ? profile!.curve.map(tabletInput) : tabletInput
         var requested = curvePressure
