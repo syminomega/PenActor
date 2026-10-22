@@ -48,10 +48,12 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     private var activeSection = PreferencesSection.profiles
     private var heights: [PreferencesSection: CGFloat] = [:]
     private let monitor: PenMonitor
+    private let setActivationPolicy: (NSApplication.ActivationPolicy) -> Void
     private var measuredHeights: [PreferencesSection: CGFloat] = [:]
     private let sizing = PreferencesSizingRelay()
-    init(monitor: PenMonitor) {
+    init(monitor: PenMonitor, setActivationPolicy: @escaping (NSApplication.ActivationPolicy) -> Void = { NSApp.setActivationPolicy($0) }) {
         self.monitor = monitor
+        self.setActivationPolicy = setActivationPolicy
         tabs.tabStyle = .toolbar
         for section in PreferencesSection.allCases {
             let relay = sizing
@@ -93,9 +95,12 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) is unavailable") }
     func open(_ section: PreferencesSection? = nil) {
+        // Keep LSUIElement for background launches, but expose Dock / Cmd-Tab while settings are open.
+        setActivationPolicy(.regular)
         if let section { tabs.selectedTabViewItemIndex = section.rawValue }
         window?.title = "PenActor 设置"
         showWindow(nil)
+        if window?.isMiniaturized == true { window?.deminiaturize(nil) }
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         monitor.refreshPermission()
@@ -130,5 +135,10 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowDidBecomeKey(_ notification: Notification) { monitor.refreshPermission() }
-    func windowWillClose(_ notification: Notification) { monitor.interruptPencilInteraction() }
+    func windowWillClose(_ notification: Notification) {
+        guard let closedWindow = notification.object as? NSWindow, closedWindow === window else { return }
+        monitor.interruptPencilInteraction()
+        // Losing focus or minimizing must not remove the Dock entry; only closing settings does.
+        setActivationPolicy(.accessory)
+    }
 }

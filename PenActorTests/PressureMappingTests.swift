@@ -372,6 +372,36 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertFalse(monitor.touchBlockingTargets.contains("test.app"))
     }
 
+    @MainActor func testSettingsDockPresenceFollowsOpenAndCloseWithoutStoppingService() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let backend = MappingPanelBackend(event: try XCTUnwrap(NSEvent(cgEvent: proximity())))
+        let monitor = PenMonitor(backend: backend, profileRepository: .init(url: root.appending(path: "profiles.json")))
+        monitor.start(); defer { monitor.stop() }
+        var policies: [NSApplication.ActivationPolicy] = []
+        let controller = PreferencesWindowController(monitor: monitor, setActivationPolicy: { policies.append($0) })
+        XCTAssertTrue(policies.isEmpty, "Constructing the background controller must not show a Dock icon")
+        let window = try XCTUnwrap(controller.window)
+        controller.open(.debug)
+        XCTAssertEqual(policies.last, .regular)
+        XCTAssertTrue(window.isVisible)
+        // Switching away / minimizing notifications must not request accessory mode.
+        window.resignKey()
+        NotificationCenter.default.post(name: NSWindow.didMiniaturizeNotification, object: window)
+        XCTAssertFalse(policies.contains(.accessory))
+        controller.open(.general)
+        XCTAssertTrue(controller.window === window)
+        XCTAssertEqual(policies.last, .regular)
+        window.close()
+        XCTAssertEqual(policies.last, .accessory)
+        XCTAssertTrue(monitor.isRunning)
+        controller.open()
+        XCTAssertEqual(policies.last, .regular)
+        XCTAssertTrue(window.isVisible)
+        window.close()
+        XCTAssertEqual(policies.last, .accessory)
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),
