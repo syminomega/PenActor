@@ -6,3 +6,6 @@ xcuserdata/
 *.xcresult
 Logs/
 PenActor-*.json
+
+# Machine-specific signing team; never commit private keys or certificates.
+Config/Signing.local.xcconfig

@@ -9,7 +9,7 @@ macOS 数位笔输入调试工具，使用 Swift 6、SwiftUI 和 AppKit，无第
 3. 在「测试」页落笔，或切换到 PS / CSP 绘画。窗口置顶便于在其他应用中绘画时观察数据。
 4. 需要时点击「请求权限」，在 **系统设置 → 隐私与安全性 → 输入监控** 中允许 PenActor，再点击「重新检查」。系统若要求退出并重新打开，请按提示重启。
 
-命令行构建和测试（本地 ad-hoc 签名，不需要开发者账号）：
+命令行构建和测试（未配置本机签名时默认 ad-hoc；本机已配置 Apple Development）：
 
 ```sh
 xcodebuild -project PenActor.xcodeproj -scheme PenActor \
@@ -23,6 +23,12 @@ open build/Build/Products/Debug/PenActor.app
 ```
 
 Intel Mac 测试将 `arch=arm64` 改为 `arch=x86_64`。工程未开启 App Sandbox，当前面向本机调试；未配置发布证书、公证、App Store 或分发流程。
+
+## 授权与更新
+
+0.5.9 起，「输入监控」和「辅助功能」请求按钮都会尝试打开对应系统设置页，避免已有拒绝记录时仅调用系统请求却无界面反馈。列表没有 PenActor 时可点 + 添加 `/Applications/PenActor.app`。
+
+0.5.9 本机安装包改用 Apple Development 签名，最终 Bundle ID 为 `dev.SyminStudio.PenActor`。原 ad-hoc 身份随构建变化；这次切换新身份仍需授权一次，今后应沿用本机稳定签名。签名构建脚本及排查说明见 [授权与签名](docs/permissions-and-signing.md)。
 
 ## 随航长按右键实验
 
@@ -157,7 +163,7 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 
 ## 验证记录与实机验收
 
-最近自动化验证：2026-10-22。`xcodebuild build` 成功（arm64 / x86_64），`xcodebuild test` 在 arm64 上通过 116 项测试，0 失败。本机界面已观察到来自驱动的本地 / 全局笔事件、proximity 进入 / 离开、硬件标识、压力趋势和有粗细变化的测试笔迹；未核实该设备具体型号，也未把该观察计为下表完整兼容性验收。压力重映射新增进程内 Quartz 夹具、曲线与持久化测试；测试不创建真实主动 tap，系统创建失败 / 停用由注入工厂验证。硬件兼容性必须使用真实笔输入单独验证，测试夹具不能替代设备验收。
+最近自动化验证：2026-10-25。`xcodebuild build` 成功（arm64 / x86_64），`xcodebuild test` 在 arm64 上通过 118 项测试，0 失败。本机界面已观察到来自驱动的本地 / 全局笔事件、proximity 进入 / 离开、硬件标识、压力趋势和有粗细变化的测试笔迹；未核实该设备具体型号，也未把该观察计为下表完整兼容性验收。压力重映射新增进程内 Quartz 夹具、曲线与持久化测试；测试不创建真实主动 tap，系统创建失败 / 停用由注入工厂验证。硬件兼容性必须使用真实笔输入单独验证，测试夹具不能替代设备验收。
 
 | 输入链路 | 测试区 | Photoshop | Clip Studio Paint |
 | --- | --- | --- | --- |

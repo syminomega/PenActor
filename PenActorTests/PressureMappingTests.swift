@@ -402,6 +402,41 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertEqual(policies.last, .accessory)
     }
 
+    @MainActor func testPrivacySettingsNavigationUsesCorrectPagesAndFallback() {
+        for pane in [PrivacySettingsPane.inputMonitoring, .accessibility] {
+            var opened: [URL] = []
+            let navigator = PrivacySettingsNavigator(openURL: { opened.append($0); return true })
+            XCTAssertTrue(navigator.open(pane))
+            XCTAssertEqual(opened.count, 1)
+            XCTAssertEqual(opened.first?.query, pane == .inputMonitoring ? "Privacy_ListenEvent" : "Privacy_Accessibility")
+            XCTAssertEqual(opened.first?.scheme, "x-apple.systempreferences")
+        }
+        var opened: [URL] = []
+        let fallback = PrivacySettingsNavigator(openURL: { opened.append($0); return opened.count == 2 })
+        XCTAssertTrue(fallback.open(.inputMonitoring))
+        XCTAssertEqual(opened.count, 2)
+        XCTAssertNil(opened.last?.query)
+        let unavailable = PrivacySettingsNavigator(openURL: { _ in false })
+        XCTAssertFalse(unavailable.open(.accessibility))
+    }
+
+    func testLegacyBundlePreferencesMigrateOnceWithoutOverwritingNewSettings() throws {
+        let suite = "PenActorTests." + UUID().uuidString
+        let preferences = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { preferences.removePersistentDomain(forName: suite) }
+        preferences.set(true, forKey: "showSettingsOnLaunch")
+        let legacy: [String: Any] = ["showSettingsOnLaunch": false, "automaticallySwitchDevices": false,
+            "touchBlockingTargets": ["test.app"], "unrelatedKey": "ignore"]
+        LegacyPreferencesMigration.migrate(legacy: legacy, into: preferences)
+        XCTAssertTrue(preferences.bool(forKey: "showSettingsOnLaunch"))
+        XCTAssertEqual(preferences.object(forKey: "automaticallySwitchDevices") as? Bool, false)
+        XCTAssertEqual(preferences.stringArray(forKey: "touchBlockingTargets"), ["test.app"])
+        XCTAssertNil(preferences.object(forKey: "unrelatedKey"))
+        preferences.removeObject(forKey: "automaticallySwitchDevices")
+        LegacyPreferencesMigration.migrate(legacy: legacy, into: preferences)
+        XCTAssertNil(preferences.object(forKey: "automaticallySwitchDevices"))
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),

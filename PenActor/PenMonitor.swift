@@ -87,12 +87,15 @@ final class PenMonitor: ObservableObject {
     private let backend: any EventMonitoring
     private let accessCheck: () -> Bool
     private let preferences: UserDefaults
+    private let privacySettings: PrivacySettingsNavigator
+    @Published private(set) var permissionError: String?
     static let automaticSwitchingPreference = "automaticallySwitchDevices"
 
     init(backend: any EventMonitoring = AppKitEventBackend(), accessCheck: @escaping () -> Bool = {
         CGPreflightListenEventAccess()
-    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository(), defaultsRepository: MappingDefaultsRepository? = nil, touchBlockingEngine: TouchRightClickEngine = TouchRightClickEngine()) {
+    }, preferences: UserDefaults = .standard, profileRepository: PressureProfileRepository = PressureProfileRepository(), defaultsRepository: MappingDefaultsRepository? = nil, touchBlockingEngine: TouchRightClickEngine = TouchRightClickEngine(), privacySettings: PrivacySettingsNavigator = PrivacySettingsNavigator()) {
         self.profileRepository = profileRepository
+        self.privacySettings = privacySettings
         self.touchBlockingEngine = touchBlockingEngine
         touchBlockingTargets = preferences.stringArray(forKey: "touchBlockingTargets") ?? ["com.adobe.Photoshop"]
         // Custom profile repositories (fixtures / isolated installs) receive an equally isolated defaults file.
@@ -286,6 +289,7 @@ final class PenMonitor: ObservableObject {
     func requestAccessibility() {
         let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         accessibilityAccess = AXIsProcessTrustedWithOptions(options)
+        openPrivacySettings(.accessibility)
     }
 
     @discardableResult func saveProfile(_ profile: PressureProfile) -> Bool {
@@ -415,6 +419,12 @@ final class PenMonitor: ObservableObject {
     func requestPermission() {
         _ = CGRequestListenEventAccess()
         refreshPermission()
+        // A previous denial may prevent the system request from showing another prompt.
+        openPrivacySettings(.inputMonitoring)
+    }
+
+    private func openPrivacySettings(_ pane: PrivacySettingsPane) {
+        permissionError = privacySettings.open(pane) ? nil : "无法打开系统设置，请手动前往「系统设置 → 隐私与安全性 → \(pane.title)」允许 PenActor。"
     }
 
     func recheck() {
@@ -429,4 +439,21 @@ final class PenMonitor: ObservableObject {
 private final class WorkspaceObserverTokens {
     var tokens: [NSObjectProtocol] = []
     deinit { for token in tokens { NSWorkspace.shared.notificationCenter.removeObserver(token) } }
+}
+
+// System Settings deep links are best-effort; fall back to the privacy overview.
+enum PrivacySettingsPane {
+    case inputMonitoring, accessibility
+    var title: String { self == .inputMonitoring ? "输入监控" : "辅助功能" }
+    var url: URL {
+        URL(string: "x-apple.systempreferences:com.apple.preference.security?" + (self == .inputMonitoring ? "Privacy_ListenEvent" : "Privacy_Accessibility"))!
+    }
+}
+@MainActor
+struct PrivacySettingsNavigator {
+    var openURL: (URL) -> Bool = { NSWorkspace.shared.open($0) }
+    func open(_ pane: PrivacySettingsPane) -> Bool {
+        if openURL(pane.url) { return true }
+        return openURL(URL(string: "x-apple.systempreferences:com.apple.preference.security")!)
+    }
 }

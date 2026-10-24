@@ -37,6 +37,9 @@ struct GeneralPreferencesView: View {
                     permissionRow("输入监控", allowed: monitor.listenAccess) { monitor.requestPermission() }
                     permissionRow("辅助功能", allowed: monitor.accessibilityAccess) { monitor.requestAccessibility() }
                     HStack { Text("本窗口测试可在未授予输入监控权限时使用。").font(.caption).foregroundStyle(.secondary); Spacer(); Button("重新检查") { monitor.refreshPermission() } }
+                    Text("若列表中没有 PenActor，请点 + 添加 /Applications/PenActor.app。授权后按系统提示重新打开应用；窗口内测试无需输入监控权限。")
+                        .font(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
+                    if let error = monitor.permissionError { Text(error).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true) }
                 }.padding(10)
             }
             GroupBox("随航触摸 · 实验") {
