@@ -50,8 +50,10 @@ struct ContentView: View {
                   systemImage: monitor.mapping.isRunning ? "arrow.triangle.2.circlepath" : "pause.circle")
             Divider().frame(height: 12)
             Button("暂停全部映射", systemImage: "pause.fill") { monitor.pauseMapping() }
-                .buttonStyle(.borderless)
+                .buttonStyle(.bordered)
                 .controlSize(.small)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.primary)
                 .keyboardShortcut("r", modifiers: [.command, .shift])
                 .disabled(!monitor.mapping.isRunning && !monitor.mapping.isStarting && monitor.enabledProfileIDs.isEmpty)
                 .help("暂停所有设备的压力映射，不停止输入服务（⌘⇧R）")
