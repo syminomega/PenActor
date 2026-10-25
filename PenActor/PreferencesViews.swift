@@ -384,13 +384,9 @@ private struct ApplicationRuleRow: View {
             else { Image(systemName: "app").font(.title2).frame(width: 28) }
             VStack(alignment: .leading, spacing: 3) {
                 Text(rule.name).lineLimit(1)
-                Text(rule.mode.title).font(.caption).foregroundStyle(.secondary)
+                Text(rule.summary).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Toggle("继承设备默认", isOn: Binding(get: { rule.mode == .inherit }, set: { inherit in
-                rule.mode = inherit ? .inherit : .custom
-                if !inherit { editing = true }
-            })).toggleStyle(.checkbox).disabled(rule.mode == .passthrough)
             Button { editing = true } label: { Image(systemName: "slider.horizontal.3") }
                 .help("设置此应用的继承、覆盖或透传")
                 .popover(isPresented: $editing, arrowEdge: .trailing) {
@@ -404,18 +400,33 @@ private struct ApplicationRuleRow: View {
 struct ApplicationRuleEditor: View {
     @Binding var rule: ApplicationPressureRule
     let base: PressureConfiguration
+    @State private var component = ConfigurationComponent.curve
+    private var inherits: Bool { !rule.effectiveOverrides.contains(component) }
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            PreferencesPageHeader(title: rule.name, subtitle: "仅影响当前设备的这个配置；完成后保存配置。")
+        VStack(alignment: .leading, spacing: 14) {
+            PreferencesPageHeader(title: rule.name, subtitle: "各项独立继承设备默认；完成后保存配置。")
             Text(rule.bundleID).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-            Picker("压力设置", selection: $rule.mode) {
-                ForEach(ApplicationPressureRule.Mode.allCases, id: \.self) { Text($0.title).tag($0) }
-            }.pickerStyle(.segmented)
-            if rule.mode == .custom {
-                PressureConfigurationEditor(configuration: $rule.configuration)
-                Button("复制当前设备默认") { rule.configuration = base }
+            Toggle("在此应用中处理输入", isOn: Binding(get: { rule.mode != .passthrough }, set: { enabled in
+                rule.mode = enabled ? ((rule.overrides ?? []).isEmpty ? .inherit : .custom) : .passthrough
+            })).toggleStyle(.checkbox)
+            if rule.mode != .passthrough {
+                Picker("设置项目", selection: $component) {
+                    ForEach(ConfigurationComponent.allCases, id: \.self) { Text($0.title).tag($0) }
+                }.pickerStyle(.segmented)
+                Toggle("继承设备默认", isOn: Binding(get: { inherits }, set: { inherit in
+                    rule.setOverride(component, enabled: !inherit, base: base)
+                })).toggleStyle(.checkbox)
+                PressureConfigurationEditor(configuration: Binding(get: {
+                    rule.resolved(base: base)
+                }, set: { value in
+                    guard !inherits else { return }
+                    rule.configuration.copy(component, from: value)
+                }), component: component)
+                    .disabled(inherits)
+                Text(inherits ? "当前值来自设备默认，设备默认保存后会从下一笔跟随更新。" : "只覆盖本项；其它继承项仍跟随设备默认。")
+                    .font(.caption).foregroundStyle(.secondary)
             } else {
-                Text(rule.mode == .inherit ? "使用所属设备的默认压力曲线与入锋 / 出锋；设备默认保存后，从下一笔跟随更新。" : "当前应用保留系统输入压力，不应用此配置的曲线或入锋 / 出锋。")
+                Text("保留系统输入，不应用此配置的压力曲线、笔锋或轨迹平滑。")
                     .foregroundStyle(.secondary)
             }
         }

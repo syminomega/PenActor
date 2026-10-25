@@ -3,7 +3,25 @@ import Foundation
 struct PressureConfiguration: Codable, Equatable, Sendable {
     var curve = PressureCurve.linear
     var taper = StrokeTaperSettings()
-    var isValid: Bool { curve.isValid && taper.isValid }
+    var smoothing = TrajectorySmoothingSettings()
+    var isValid: Bool { curve.isValid && taper.isValid && smoothing.isValid }
+    init(curve: PressureCurve = .linear, taper: StrokeTaperSettings = .init(), smoothing: TrajectorySmoothingSettings = .init()) {
+        self.curve = curve; self.taper = taper; self.smoothing = smoothing
+    }
+    private enum CodingKeys: String, CodingKey { case curve, taper, smoothing }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        curve = try c.decode(PressureCurve.self, forKey: .curve)
+        taper = try c.decodeIfPresent(StrokeTaperSettings.self, forKey: .taper) ?? .init()
+        smoothing = try c.decodeIfPresent(TrajectorySmoothingSettings.self, forKey: .smoothing) ?? .init()
+    }
+}
+
+enum ConfigurationComponent: String, CaseIterable, Codable, Sendable {
+    case curve, entry, exit, smoothing
+    var title: String {
+        switch self { case .curve: "压力曲线"; case .entry: "入锋"; case .exit: "出锋"; case .smoothing: "轨迹平滑" }
+    }
 }
 
 struct ApplicationPressureRule: Identifiable, Codable, Equatable, Sendable {
@@ -18,9 +36,43 @@ struct ApplicationPressureRule: Identifiable, Codable, Equatable, Sendable {
     var name: String
     var mode = Mode.inherit
     var configuration = PressureConfiguration()
+    // nil retains pre-v5 custom semantics until migration; new UI always writes an explicit set.
+    var overrides: Set<ConfigurationComponent>?
+    var effectiveOverrides: Set<ConfigurationComponent> {
+        mode == .custom ? overrides ?? [.curve, .entry, .exit] : []
+    }
+    var summary: String {
+        if mode == .passthrough { return "不映射" }
+        let custom = ConfigurationComponent.allCases.filter { effectiveOverrides.contains($0) }.map(\.title)
+        return custom.isEmpty ? "全部继承设备默认" : "单独设置：" + custom.joined(separator: "、") + "；其余继承"
+    }
+    func resolved(base: PressureConfiguration) -> PressureConfiguration {
+        var value = base
+        for component in effectiveOverrides { value.copy(component, from: configuration) }
+        return value
+    }
+    mutating func setOverride(_ component: ConfigurationComponent, enabled: Bool, base: PressureConfiguration) {
+        var fields = effectiveOverrides
+        if enabled { configuration.copy(component, from: resolved(base: base)); fields.insert(component) }
+        else { fields.remove(component) }
+        overrides = fields; mode = fields.isEmpty ? .inherit : .custom
+    }
     var isValid: Bool {
         !bundleID.isEmpty && bundleID.rangeOfCharacter(from: .whitespacesAndNewlines) == nil
             && !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && configuration.isValid
+    }
+}
+
+extension PressureConfiguration {
+    mutating func copy(_ component: ConfigurationComponent, from other: Self) {
+        switch component {
+        case .curve: curve = other.curve
+        case .entry:
+            taper.entryEnabled = other.taper.entryEnabled; taper.entryDistance = other.taper.entryDistance
+            taper.entryDurationMS = other.taper.entryDurationMS
+        case .exit: taper.exitEnabled = other.taper.exitEnabled; taper.exitDurationMS = other.taper.exitDurationMS
+        case .smoothing: smoothing = other.smoothing
+        }
     }
 }
 
@@ -33,7 +85,7 @@ struct DevicePressureDefaults: Identifiable, Codable, Equatable, Sendable {
 }
 
 struct MappingDefaults: Codable, Equatable, Sendable {
-    var schemaVersion = 2
+    var schemaVersion = 3
     // Read-only compatibility data: used only when migrating profiles created before 0.5.
     var global = PressureConfiguration()
     var applications: [ApplicationPressureRule] = []
@@ -48,7 +100,7 @@ struct MappingDefaults: Codable, Equatable, Sendable {
         devices = try c.decodeIfPresent([DevicePressureDefaults].self, forKey: .devices) ?? []
     }
     var isValid: Bool {
-        [1, 2].contains(schemaVersion) && global.isValid && applications.count <= 256
+        [1, 2, 3].contains(schemaVersion) && global.isValid && applications.count <= 256
             && Set(applications.map(\.bundleID)).count == applications.count && applications.allSatisfy(\.isValid)
             && devices.count <= 256 && Set(devices.map(\.device)).count == devices.count && devices.allSatisfy(\.isValid)
     }
@@ -59,8 +111,8 @@ struct MappingDefaults: Codable, Equatable, Sendable {
     func resolve(_ profile: PressureProfile, bundleID: String) -> PressureProfile? {
         if let rules = profile.applicationRules {
             guard let rule = rules.first(where: { $0.bundleID == bundleID }), rule.mode != .passthrough else { return nil }
-            let configuration = rule.mode == .custom ? rule.configuration : settings(for: profile.device).configuration
-            var result = profile; result.curve = configuration.curve; result.taper = configuration.taper
+            let configuration = rule.resolved(base: settings(for: profile.device).configuration)
+            var result = profile; result.curve = configuration.curve; result.taper = configuration.taper; result.smoothing = configuration.smoothing
             return result
         }
         // Legacy resolver is retained solely for lossless migration and old diagnostic fixtures.
@@ -68,16 +120,16 @@ struct MappingDefaults: Codable, Equatable, Sendable {
         guard app?.mode != .passthrough else { return nil }
         guard profile.usesDefaults else { return profile }
         let configuration = app?.mode == .custom ? app!.configuration : global
-        var result = profile; result.curve = configuration.curve; result.taper = configuration.taper
+        var result = profile; result.curve = configuration.curve; result.taper = configuration.taper; result.smoothing = configuration.smoothing
         return result
     }
     func migrating(_ profiles: [PressureProfile]) -> (defaults: MappingDefaults, profiles: [PressureProfile]) {
-        var defaults = self; defaults.schemaVersion = 2
+        var defaults = self; defaults.schemaVersion = 3
         var migrated = profiles
         for profile in profiles where !defaults.devices.contains(where: { $0.device == profile.device }) {
             // First saved profile seeds the device default. Per-app overrides preserve every other profile.
             let configuration = profile.applicationRules == nil && !profile.usesDefaults
-                ? PressureConfiguration(curve: profile.curve, taper: profile.taper)
+                ? PressureConfiguration(curve: profile.curve, taper: profile.taper, smoothing: profile.smoothing)
                 : profile.applicationRules == nil ? global : PressureConfiguration()
             defaults.devices.append(DevicePressureDefaults(device: profile.device, configuration: configuration))
         }
@@ -87,10 +139,18 @@ struct MappingDefaults: Codable, Equatable, Sendable {
             var seen = Set<String>()
             migrated[i].applicationRules = old.targetBundleIDs.filter { seen.insert($0).inserted }.map { id in
                 let resolved = resolve(old, bundleID: id)
-                let configuration = resolved.map { PressureConfiguration(curve: $0.curve, taper: $0.taper) } ?? base
+                let configuration = resolved.map { PressureConfiguration(curve: $0.curve, taper: $0.taper, smoothing: $0.smoothing) } ?? base
                 var rule = ApplicationPressureRule(bundleID: id, name: applications.first { $0.bundleID == id }?.name ?? id)
                 rule.mode = resolved == nil ? .passthrough : configuration == base ? .inherit : .custom
                 rule.configuration = configuration
+                return rule
+            }
+        }
+        for i in migrated.indices {
+            guard let rules = migrated[i].applicationRules else { continue }
+            migrated[i].applicationRules = rules.map { old in
+                var rule = old
+                if rule.overrides == nil { rule.overrides = rule.effectiveOverrides }
                 return rule
             }
         }

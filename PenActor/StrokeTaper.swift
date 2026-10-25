@@ -64,3 +64,66 @@ struct StrokeTaperState {
 
     private static func smoothstep(_ t: Double) -> Double { t*t*(3-2*t) }
 }
+
+struct TrajectorySmoothingSettings: Codable, Equatable, Sendable {
+    var enabled = false
+    /// 0 is exact passthrough; 1 favors stability. Independent of event frequency.
+    var strength = 0.35
+    var isValid: Bool { strength.isFinite && (0...1).contains(strength) }
+}
+
+struct TrajectoryPosition: Codable, Equatable, Sendable {
+    var x: Double
+    var y: Double
+    init(_ point: CGPoint) { x = point.x; y = point.y }
+    var point: CGPoint { CGPoint(x: x, y: y) }
+}
+
+struct TrajectorySmoothingDiagnostic: Codable, Equatable, Sendable {
+    var enabled: Bool
+    var strength: Double
+    var inputTablet: TrajectoryPosition
+    var outputTablet: TrajectoryPosition
+}
+
+/// One Euro filter, with one speed-dependent coefficient for both coordinate representations.
+/// Screen points determine speed; tablet coordinates retain their own units and precision.
+struct TrajectorySmoothingState {
+    private var time: Double?
+    private var raw = CGPoint.zero
+    private var velocity = CGPoint.zero
+    private(set) var screen = CGPoint.zero
+    private(set) var tablet = CGPoint.zero
+    var hasValue: Bool { time != nil }
+
+    mutating func apply(screen input: CGPoint, tablet tabletInput: CGPoint, timestamp: Double,
+                        settings: TrajectorySmoothingSettings, ending: Bool = false) -> (screen: CGPoint, tablet: CGPoint) {
+        guard input.x.isFinite, input.y.isFinite, tabletInput.x.isFinite, tabletInput.y.isFinite, timestamp.isFinite else {
+            return (input, tabletInput)
+        }
+        guard settings.enabled, settings.strength > 0 else { return (input, tabletInput) }
+        if ending, time != nil { return (screen, tablet) }
+        guard let previousTime = time else {
+            time = timestamp; raw = input; screen = input; tablet = tabletInput
+            return (screen, tablet)
+        }
+        let dt = timestamp-previousTime
+        guard dt > 0 else { return (screen, tablet) }
+        if dt > 0.25 {
+            self = Self()
+            return apply(screen: input, tablet: tabletInput, timestamp: timestamp, settings: settings)
+        }
+        func alpha(_ cutoff: Double) -> Double { 1 / (1 + 1 / (2 * .pi * cutoff * dt)) }
+        let derivativeAlpha = alpha(1)
+        velocity.x += derivativeAlpha * ((input.x-raw.x)/dt-velocity.x)
+        velocity.y += derivativeAlpha * ((input.y-raw.y)/dt-velocity.y)
+        let strength = settings.strength
+        let minCutoff = 12 * pow(0.1, strength) // 12 ... 1.2 Hz
+        let beta = 0.08 * (1-strength) + 0.005
+        let a = alpha(minCutoff + beta * hypot(velocity.x, velocity.y))
+        screen.x += a*(input.x-screen.x); screen.y += a*(input.y-screen.y)
+        tablet.x += a*(tabletInput.x-tablet.x); tablet.y += a*(tabletInput.y-tablet.y)
+        time = timestamp; raw = input
+        return (screen, tablet)
+    }
+}

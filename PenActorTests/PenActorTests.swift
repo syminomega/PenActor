@@ -624,7 +624,7 @@ final class PenActorTests: XCTestCase {
         XCTAssertTrue(exportedAt.contains(".") && exportedAt.hasSuffix("Z"))
         XCTAssertEqual(try XCTUnwrap(formatter.date(from: exportedAt)).timeIntervalSince1970,
                        date.timeIntervalSince1970, accuracy: 0.0011)
-        XCTAssertEqual(object["schemaVersion"] as? Int, 2)
+        XCTAssertEqual(object["schemaVersion"] as? Int, 3)
         XCTAssertEqual(object["retainedEventCount"] as? Int, 4)
         XCTAssertEqual(object["discardedEventCount"] as? Int, 0)
     }

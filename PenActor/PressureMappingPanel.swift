@@ -2,48 +2,89 @@ import SwiftUI
 
 struct PressureConfigurationEditor: View {
     @Binding var configuration: PressureConfiguration
+    var component: ConfigurationComponent? = nil
     @State private var selectedPoint: Int?
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("压力曲线").font(.headline)
-                PressureCurveEditor(curve: $configuration.curve, selected: $selectedPoint)
-                    .frame(width: 230, height: 180)
-                HStack {
-                    Button("线性") { configuration.curve = .linear; selectedPoint = nil }
-                    Button("轻压增强") { configuration.curve = .light; selectedPoint = nil }
-                    Button("删除点") {
-                        guard let i = selectedPoint, i > 0, i < configuration.curve.points.count-1 else { return }
-                        configuration.curve.points.remove(at: i); selectedPoint = nil
-                    }.disabled(selectedPoint == nil || selectedPoint == 0 || selectedPoint == configuration.curve.points.count-1)
-                }
-                Text("双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。")
-                    .font(.caption).foregroundStyle(.secondary).frame(width: 230, alignment: .leading)
+            if component == nil || component == .curve { curveControls }
+            if component != .curve {
+                VStack(alignment: .leading, spacing: 10) {
+                    if component == nil { Text("轨迹与笔锋").font(.headline) }
+                    if component == nil || component == .entry { entryControls }
+                    if component == nil { Divider() }
+                    if component == nil || component == .exit { exitControls }
+                    if component == nil {
+                        Button("首尾测试预设") {
+                            configuration.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12,
+                                entryDurationMS: 60, exitEnabled: true, exitDurationMS: 60)
+                        }
+                        Divider()
+                    }
+                    if component == nil || component == .smoothing { smoothingControls }
+                }.toggleStyle(.checkbox).frame(maxWidth: .infinity, alignment: .leading)
             }
-            VStack(alignment: .leading, spacing: 10) {
-                Text("入锋与出锋").font(.headline)
-                Toggle("入锋 · 从零压力平滑进入", isOn: $configuration.taper.entryEnabled)
-                if configuration.taper.entryEnabled {
-                    parameter("入锋长度", value: $configuration.taper.entryDistance, range: 1...200, step: 1, unit: "点")
-                    parameter("时间上限", value: $configuration.taper.entryDurationMS, range: 10...500, step: 5, unit: "ms")
-                    Text("累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-                Divider()
-                Toggle("出锋 · 缓冲尾部并渐隐", isOn: $configuration.taper.exitEnabled)
-                if configuration.taper.exitEnabled {
-                    parameter("时长 / 延迟", value: $configuration.taper.exitDurationMS, range: 10...200, step: 5, unit: "ms")
-                    Text("会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
-                Button("首尾测试预设") {
-                    configuration.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12,
-                        entryDurationMS: 60, exitEnabled: true, exitDurationMS: 60)
-                }
-            }.toggleStyle(.checkbox).frame(maxWidth: .infinity, alignment: .leading)
         }
     }
+
+    private var curveControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("压力曲线").font(.headline)
+            PressureCurveEditor(curve: $configuration.curve, selected: $selectedPoint)
+                .frame(width: 230, height: 180)
+            HStack {
+                Button("线性") { configuration.curve = .linear; selectedPoint = nil }
+                Button("轻压增强") { configuration.curve = .light; selectedPoint = nil }
+                Button("删除点") {
+                    guard let i = selectedPoint, i > 0, i < configuration.curve.points.count-1 else { return }
+                    configuration.curve.points.remove(at: i); selectedPoint = nil
+                }.disabled(selectedPoint == nil || selectedPoint == 0 || selectedPoint == configuration.curve.points.count-1)
+            }
+            Text("双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .frame(width: 230, alignment: .leading)
+        }
+    }
+
+    private var entryControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle("入锋 · 从零压力平滑进入", isOn: $configuration.taper.entryEnabled)
+            if configuration.taper.entryEnabled {
+                parameter("入锋长度", value: $configuration.taper.entryDistance, range: 1...200, step: 1, unit: "点")
+                parameter("时间上限", value: $configuration.taper.entryDurationMS, range: 10...500, step: 5, unit: "ms")
+                Text("累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var exitControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle("出锋 · 缓冲尾部并渐隐", isOn: $configuration.taper.exitEnabled)
+            if configuration.taper.exitEnabled {
+                parameter("时长 / 延迟", value: $configuration.taper.exitDurationMS, range: 10...200, step: 5, unit: "ms")
+                Text("会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var smoothingControls: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle("平滑输入 · 减轻轨迹抖动", isOn: $configuration.smoothing.enabled)
+            if configuration.smoothing.enabled {
+                HStack {
+                    Text("强度").font(.caption)
+                    Slider(value: $configuration.smoothing.strength, in: 0...1)
+                    Text("\(configuration.smoothing.strength * 100, specifier: "%.0f")%")
+                        .font(.caption.monospacedDigit()).frame(width: 42)
+                }
+            }
+            Text("实时处理位置，不额外缓存；强度越高越稳定，也可能产生跟随偏差或圆化转角。压力不受此选项影响。")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
     private func parameter(_ title: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, unit: String) -> some View {
         HStack(spacing: 8) {
             Text(title).font(.caption).frame(width: 62, alignment: .leading)
