@@ -18,6 +18,15 @@ struct MappingDiagnostic: Codable, Sendable, Equatable {
     var inputPosition: TrajectoryPosition? = nil
     var outputPosition: TrajectoryPosition? = nil
     var smoothing: TrajectorySmoothingDiagnostic? = nil
+    var smoothingBypassReason: String? = nil
+}
+
+struct PenCoordinateProbe: Codable, Sendable, Equatable {
+    let timestamp: Double
+    let device: PenIdentity
+    let eventType: UInt32
+    let targetPID: Int32
+    let eventData: Data
 }
 
 struct MappingSnapshot: Codable, Sendable, Equatable {
@@ -29,6 +38,7 @@ struct MappingSnapshot: Codable, Sendable, Equatable {
     var activeProfiles: [PressureProfile] = []
     var bufferedEventCount = 0
     var defaults = MappingDefaults()
+    var coordinateProbes: [PenCoordinateProbe]? = nil
 }
 
 struct PenMappingResult {
@@ -41,6 +51,9 @@ struct PenMappingResult {
 
 /// Owned exclusively by the engine lock (or by a fixture in tests).
 struct PressureMappingProcessor {
+    // Production remains pressure-only until actual Sidecar/Photoshop coordinate delivery is verified.
+    // Tests may explicitly evaluate the proposed transform without posting events to any application.
+    var coordinateWritesEnabled = false
     private var sessions: [Int: PenIdentity] = [:]
     private var order: [Int] = []
     private struct Stroke {
@@ -55,6 +68,8 @@ struct PressureMappingProcessor {
     var applications: [Int32: String] = [:]
     var defaults = MappingDefaults()
     var snapshot = MappingSnapshot()
+
+    init(coordinateWritesEnabled: Bool = false) { self.coordinateWritesEnabled = coordinateWritesEnabled }
 
     mutating func setProfiles(_ updated: [PressureProfile]) {
         let enabledDevices = Set(updated.map(\.device))
@@ -128,6 +143,15 @@ struct PressureMappingProcessor {
         // Immediate disable overrides any curve latched at stroke start.
         let profile = stroke?.profile.flatMap { old in profiles.contains(where: { $0.device == old.device }) ? old : nil }
         let allowed = profile != nil && stroke?.targetPID == pid && bundle.map { profile!.effectiveTargetBundleIDs.contains($0) } == true
+        if allowed, let identity, (snapshot.coordinateProbes?.count ?? 0) < 16,
+           !(snapshot.coordinateProbes ?? []).contains(where: { $0.device == identity && $0.eventType == event.type.rawValue }),
+           let data = event.data {
+            // Sparse, memory-only copies of recognized pen packets, before any pressure modification.
+            // No keyboard, ordinary mouse or touch events enter this diagnostic sample.
+            if snapshot.coordinateProbes == nil { snapshot.coordinateProbes = [] }
+            snapshot.coordinateProbes?.append(.init(timestamp: Double(event.timestamp)/1_000_000_000,
+                device: identity, eventType: event.type.rawValue, targetPID: pid, eventData: data as Data))
+        }
         let curvePressure = allowed ? profile!.curve.map(input) : input
         let tabletCurvePressure = allowed ? profile!.curve.map(tabletInput) : tabletInput
         var requested = curvePressure
@@ -160,7 +184,7 @@ struct PressureMappingProcessor {
         }
         let primaryMouse = [.leftMouseDown, .leftMouseDragged, .leftMouseUp].contains(event.type)
         let primaryTablet = event.type == .tabletPointer && event.getIntegerValueField(.tabletEventPointButtons) & ~1 == 0
-        if allowed, let profile, profile.smoothing.enabled, profile.smoothing.strength > 0,
+        if coordinateWritesEnabled, allowed, let profile, profile.smoothing.enabled, profile.smoothing.strength > 0,
            primaryMouse || primaryTablet, var current = strokes[id] {
             let inputTablet = CGPoint(x: Double(event.getIntegerValueField(.tabletEventPointX)),
                                       y: Double(event.getIntegerValueField(.tabletEventPointY)))
@@ -197,6 +221,9 @@ struct PressureMappingProcessor {
         diagnostic.eventType = event.type.rawValue
         diagnostic.inputPosition = .init(inputPosition); diagnostic.outputPosition = .init(event.location)
         diagnostic.smoothing = smoothingDiagnostic
+        if allowed, profile?.smoothing.enabled == true, !coordinateWritesEnabled {
+            diagnostic.smoothingBypassReason = "平滑暂不可用：Sidecar / Photoshop 坐标兼容性排查，仅应用压力设置"
+        }
         if recordDiagnostic { record(diagnostic) }
         if ending { strokes[id] = nil }
         return PenMappingResult(diagnostic: diagnostic, deviceID: id, profile: allowed ? profile : nil,
@@ -248,7 +275,7 @@ final class PressureRemappingEngine: @unchecked Sendable {
         lock.unlock()
         post(output)
     }
-    func clearDiagnostics() { lock.lock(); defer { lock.unlock() }; processor.snapshot.diagnostics = []; processor.snapshot.modifiedEventCount = 0 }
+    func clearDiagnostics() { lock.lock(); defer { lock.unlock() }; processor.snapshot.diagnostics = []; processor.snapshot.coordinateProbes = []; processor.snapshot.modifiedEventCount = 0 }
     func start() {
         lock.lock()
         guard !processor.snapshot.isStarting && !processor.snapshot.isRunning else { lock.unlock(); return }

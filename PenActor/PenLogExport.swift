@@ -69,6 +69,7 @@ struct PenLogDocument: Codable {
             lastSqueezeAt: interactions.lastSqueezeAt
         )
         notes = [
+            "mapping.coordinateProbes 最多保留 16 份命中设备/应用的笔事件序列化样本（各设备每种事件形式一份），仅供进程内复现；eventData 是 Base64 Quartz 数据，包含坐标与进程/设备信息，不包含键盘事件。只在导出时写入文件。",
             "mapping.diagnostics.eventType、inputPosition/outputPosition 与 smoothing 为 tap 层轨迹诊断；位置单位为全局屏幕点，inputTablet/outputTablet 保留数位板单位。平滑不增加采样点。",
             "profiles.applicationRules 定义当前配置中的应用继承、覆盖或不映射；mapping.defaults.devices 保存每台设备默认。旧全局字段仅用于迁移，不参与新配置解析。",
             "mapping.diagnostics.taper 记录曲线输出、入锋/出锋系数、累计屏幕距离和经过时间；出锋缓存并延迟输出，delivery 标识直接、延迟或提前排空。诊断在准备输出时记录，不表示目标应用已确认接收。",

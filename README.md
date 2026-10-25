@@ -127,6 +127,8 @@ macOS 提供统一的 **AppKit NSEvent 数位笔事件**。Apple 在 [WWDC19 App
 
 ## 压力重映射测试
 
+**0.6.2：轨迹平滑在 Sidecar / Photoshop 实测出现坐标跳变，已暂停位置改写；压力曲线、笔锋和分项继承仍可使用。平滑参数保留，当前不生效。** 详见 [兼容性排查](docs/trajectory-smoothing.md#062-安全回退轨迹平滑暂不可用)。
+
 实现原理、事件链路与代码入口见 [压力重映射技术说明](docs/pressure-remapping.md)；0.3.0 新增 [入锋与缓冲出锋说明](docs/stroke-taper.md)。
 
 1. 打开「配置」页，在左侧选择设备。设备名称可单独重命名；Sidecar 仍按型号归组，不能区分多支同型号 Pencil。

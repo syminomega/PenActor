@@ -71,11 +71,14 @@ struct PressureConfigurationEditor: View {
 
     private var smoothingControls: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle("平滑输入 · 减轻轨迹抖动", isOn: $configuration.smoothing.enabled)
+            Text("轨迹平滑暂不可用").font(.headline)
+            Text("Sidecar / Photoshop 实测出现坐标跳变，已停止位置改写。压力曲线和笔锋仍正常生效；以下参数保留，等待兼容性修复。")
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Toggle("平滑输入 · 减轻轨迹抖动", isOn: $configuration.smoothing.enabled).disabled(true)
             if configuration.smoothing.enabled {
                 HStack {
                     Text("强度").font(.caption)
-                    Slider(value: $configuration.smoothing.strength, in: 0...1)
+                    Slider(value: $configuration.smoothing.strength, in: 0...1).disabled(true)
                     Text("\(configuration.smoothing.strength * 100, specifier: "%.0f")%")
                         .font(.caption.monospacedDigit()).frame(width: 42)
                 }

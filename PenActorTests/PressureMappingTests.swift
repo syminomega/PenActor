@@ -30,7 +30,7 @@ final class PressureMappingTests: XCTestCase {
         return e
     }
     private func processor(_ p: PressureProfile? = nil) -> PressureMappingProcessor {
-        var m = PressureMappingProcessor(); m.setProfiles([p ?? profile()]); m.applications = [42: "com.adobe.Photoshop", 43: "other.app"]
+        var m = PressureMappingProcessor(coordinateWritesEnabled: true); m.setProfiles([p ?? profile()]); m.applications = [42: "com.adobe.Photoshop", 43: "other.app"]
         return m
     }
 
@@ -1508,5 +1508,59 @@ extension PressureMappingTests {
                 XCTAssertLessThan(drag.location.x,10)
             }
         }
+    }
+}
+
+extension PressureMappingTests {
+    func testProductionSmoothingIsQuarantinedWithoutChangingPressureMapping() throws {
+        var p = smoothingProfile(); p.curve = .light
+        var m = PressureMappingProcessor() // Exact production defaults, no experimental coordinate writes.
+        m.applications = [42: "com.adobe.Photoshop"]; m.setProfiles([p]); m.process(try proximity())
+        for (x,t,type) in [(0.0,1.0,CGEventType.leftMouseDown),(10,1.005,.leftMouseDragged),(30,1.01,.leftMouseUp)] {
+            let e = try trajectoryPoint(x,time: t,pressure: type == .leftMouseUp ? 0 : 0.5,type: type)
+            e.setIntegerValueField(.mouseEventDeltaX,value: 24)
+            e.setIntegerValueField(.mouseEventDeltaY,value: -31)
+            let original = try XCTUnwrap(e.copy())
+            m.process(e)
+            XCTAssertEqual(e.location,original.location)
+            for field: CGEventField in [.mouseEventDeltaX,.mouseEventDeltaY,.tabletEventPointX,.tabletEventPointY,.tabletEventPointButtons,.mouseEventNumber] {
+                XCTAssertEqual(e.getIntegerValueField(field),original.getIntegerValueField(field))
+            }
+            XCTAssertEqual(e.getDoubleValueField(.tabletEventPointPressure),type == .leftMouseUp ? 0 : 0.8,accuracy: 0.005)
+            XCTAssertNotNil(m.snapshot.diagnostics.last?.smoothingBypassReason)
+            XCTAssertNil(m.snapshot.diagnostics.last?.smoothing)
+        }
+        XCTAssertEqual(m.snapshot.coordinateProbes?.count,3)
+        let probe = try XCTUnwrap(m.snapshot.coordinateProbes?.first)
+        let captured = try XCTUnwrap(CGEvent(withDataAllocator: nil, data: probe.eventData as CFData))
+        XCTAssertEqual(captured.type,.leftMouseDown)
+        XCTAssertEqual(captured.getDoubleValueField(.tabletEventPointPressure),0.5,accuracy: 0.005,"Capture precedes pressure processing")
+        XCTAssertEqual(captured.location.x,0)
+        let document = PenLogDocument(store: .init(),interactions: .init(),isMonitoring: true,mapping: m.snapshot)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: document.jsonData()) as? [String: Any])
+        let mapping = try XCTUnwrap(json["mapping"] as? [String: Any])
+        XCTAssertEqual((mapping["coordinateProbes"] as? [Any])?.count,3)
+    }
+
+    func testCoordinateProbesAreSparseBoundedAndExcludeUnmatchedInput() throws {
+        var m = PressureMappingProcessor();m.applications = [42: "com.adobe.Photoshop",43: "other.app"]
+        m.setProfiles([smoothingProfile()]);m.process(try proximity())
+        m.process(try trajectoryPoint(0,time: 1,type: .leftMouseDown,pid: 43))
+        m.process(try trajectoryPoint(0,time: 1.01,pressure: 0,type: .leftMouseUp,pid: 43))
+        m.process(try trajectoryPoint(0,time: 1.02,pen: false))
+        XCTAssertNil(m.snapshot.coordinateProbes)
+        for i in 0..<100 {
+            m.process(try trajectoryPoint(Double(i),time: 2+Double(i)*0.005))
+        }
+        XCTAssertEqual(m.snapshot.coordinateProbes?.count,1)
+        XCTAssertEqual(m.snapshot.coordinateProbes?.first?.eventType,CGEventType.leftMouseDragged.rawValue)
+        // Different recognized devices share a fixed total budget, never an unbounded event archive.
+        for i in 1...24 {
+            let identity = PenIdentity(key: "v1:model:\(String(i,radix:16)):129a:0:pen",level: .model)
+            var profile = smoothingProfile();profile.device = identity
+            m.setProfiles([profile]);m.process(try proximity(id: Int64(i+100),vendor: Int64(i)))
+            m.process(try trajectoryPoint(0,time: 3,type: .leftMouseDown,id: Int64(i+100)))
+        }
+        XCTAssertEqual(m.snapshot.coordinateProbes?.count,16)
     }
 }
