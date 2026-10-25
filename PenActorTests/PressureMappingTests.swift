@@ -544,6 +544,37 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertEqual(window.frame.maxY, top, accuracy: 1)
     }
 
+    @MainActor func testPressureMeterDrawsLatestValueWithoutInheritedAnimation() throws {
+        func meter(_ pressure: Double?) -> some View {
+            PressureLevelBar(pressure: pressure).accentColor(.blue).frame(width: 200, height: 8)
+                .animation(.linear(duration: 1), value: pressure)
+        }
+        let host = NSHostingView(rootView: meter(0.9))
+        host.frame = NSRect(x: 0, y: 0, width: 200, height: 8)
+        let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false; window.contentView = host
+        func render(_ pressure: Double?) throws -> NSBitmapImageRep {
+            host.rootView = meter(pressure)
+            host.layoutSubtreeIfNeeded()
+            let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
+            host.cacheDisplay(in: host.bounds, to: bitmap)
+            return bitmap
+        }
+        func filled(_ bitmap: NSBitmapImageRep, at fraction: Double) throws -> Bool {
+            let color = try XCTUnwrap(bitmap.colorAt(x: Int(Double(bitmap.pixelsWide) * fraction), y: bitmap.pixelsHigh / 2)?.usingColorSpace(.deviceRGB))
+            return color.blueComponent - color.redComponent > 0.2
+        }
+        XCTAssertTrue(try filled(render(0.9), at: 0.8))
+        let dropped = try render(0.1)
+        XCTAssertTrue(try filled(dropped, at: 0.05))
+        XCTAssertFalse(try filled(dropped, at: 0.5), "A falling pressure must not retain an animated tail")
+        for missing in [Double?.none, .some(0), .some(-1), .some(.nan)] {
+            XCTAssertFalse(try filled(render(missing), at: 0.05))
+        }
+        XCTAssertTrue(try filled(render(2), at: 0.9))
+        window.close()
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),
