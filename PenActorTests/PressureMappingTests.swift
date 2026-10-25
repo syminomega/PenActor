@@ -505,6 +505,45 @@ final class PressureMappingTests: XCTestCase {
         window.close()
     }
 
+    @MainActor func testRapidVisiblePageSwitchesDoNotBlockAndKeepFinalGeometry() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let monitor = PenMonitor(profileRepository: .init(url: root.appending(path: "profiles.json")))
+        let controller = PreferencesWindowController(monitor: monitor, setActivationPolicy: { _ in })
+        let window = try XCTUnwrap(controller.window)
+        let tabs = try XCTUnwrap(window.contentViewController as? NSTabViewController)
+        window.setContentSize(NSSize(width: 900, height: 640))
+        window.orderFront(nil)
+        defer { window.close() }
+        let width = window.frame.width, top = window.frame.maxY
+        let start = ProcessInfo.processInfo.systemUptime
+        for section in [PreferencesSection.testing, .general, .debug, .testing] {
+            tabs.selectedTabViewItemIndex = section.rawValue
+        }
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+        print("Rapid-page selection callback duration: \(elapsed) seconds")
+        XCTAssertLessThan(elapsed, 0.18, "Selection callbacks must not run synchronous 0.2-second window animations")
+        try await Task.sleep(for: .milliseconds(450))
+        XCTAssertEqual(tabs.selectedTabViewItemIndex, PreferencesSection.testing.rawValue)
+        XCTAssertEqual(window.frame.width, width, accuracy: 1)
+        XCTAssertEqual(window.frame.maxY, top, accuracy: 1)
+        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).height, PreferencesSection.testing.defaultSize.height, accuracy: 1)
+        tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
+        try await Task.sleep(for: .milliseconds(350))
+        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).height, 640, accuracy: 1)
+        // Retarget while an earlier resize is still in flight.
+        tabs.selectedTabViewItemIndex = PreferencesSection.testing.rawValue
+        try await Task.sleep(for: .milliseconds(60))
+        tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
+        try await Task.sleep(for: .milliseconds(60))
+        tabs.selectedTabViewItemIndex = PreferencesSection.testing.rawValue
+        try await Task.sleep(for: .milliseconds(450))
+        XCTAssertEqual(window.contentRect(forFrameRect: window.frame).height, PreferencesSection.testing.defaultSize.height, accuracy: 1)
+        XCTAssertEqual(window.contentMinSize.height, PreferencesSection.testing.minimumSize.height, accuracy: 1)
+        XCTAssertEqual(window.frame.width, width, accuracy: 1)
+        XCTAssertEqual(window.frame.maxY, top, accuracy: 1)
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),

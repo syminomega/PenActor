@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import QuartzCore
 
 enum PreferencesSection: Int, CaseIterable {
     case general, profiles, debug, testing
@@ -24,11 +25,6 @@ enum PreferencesSection: Int, CaseIterable {
 }
 
 @MainActor
-private final class PreferencesWindow: NSWindow {
-    override func animationResizeTime(_ newFrame: NSRect) -> TimeInterval { 0.2 }
-}
-
-@MainActor
 private final class PreferencesTabController: NSTabViewController {
     var onSelection: ((Int) -> Void)?
     override func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
@@ -49,6 +45,12 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
     private static let navigationItem = NSToolbarItem.Identifier("PenActorPreferencesSections")
     private var activeSection = PreferencesSection.profiles
     private var heights: [PreferencesSection: CGFloat] = [:]
+    private var frameSection = PreferencesSection.profiles
+    private var resizeTarget: NSRect?
+    private var resizeRevision: UInt64 = 0
+    private var requestRevision: UInt64 = 0
+    private var completionMinimum: NSSize?
+    private var pendingResize: DispatchWorkItem?
     private let monitor: PenMonitor
     private let setActivationPolicy: (NSApplication.ActivationPolicy) -> Void
     private var measuredHeights: [PreferencesSection: CGFloat] = [:]
@@ -79,7 +81,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
             tabs.addTabViewItem(item)
         }
         tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
-        let window = PreferencesWindow(contentViewController: tabs)
+        let window = NSWindow(contentViewController: tabs)
         window.title = "PenActor 设置"
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.setContentSize(PreferencesSection.profiles.defaultSize)
@@ -109,10 +111,11 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
         window.setFrameAutosaveName("PenActorCompactPreferences")
         resize(for: .profiles, rememberingPrevious: false)
         tabs.onSelection = { [weak self] index in
-            guard let section = PreferencesSection(rawValue: index) else { return }
-            self?.navigation.selectedSegment = index
-            self?.window?.makeFirstResponder(nil)
-            self?.resize(for: section, rememberingPrevious: true)
+            guard let self, let section = PreferencesSection(rawValue: index) else { return }
+            // A click already selected the segment; don't restart its native highlight animation.
+            if self.navigation.selectedSegment != index { self.navigation.selectedSegment = index }
+            self.window?.makeFirstResponder(nil)
+            self.resize(for: section, rememberingPrevious: true)
         }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) is unavailable") }
@@ -144,14 +147,31 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
     private func resize(for section: PreferencesSection, rememberingPrevious: Bool) {
         guard let window else { return }
         guard section != activeSection || !rememberingPrevious else { return }
-        if rememberingPrevious, section != activeSection {
-            heights[activeSection] = window.contentRect(forFrameRect: window.frame).height
+        if rememberingPrevious, section != activeSection, frameSection == activeSection {
+            // Store the intended height, not an intermediate frame or another page's frame.
+            heights[activeSection] = window.contentRect(forFrameRect: resizeTarget ?? window.frame).height
         }
         activeSection = section
+        pendingResize?.cancel()
+        requestRevision += 1
+        let requestToken = requestRevision
+        if !window.isVisible {
+            applyResize(for: section)
+            return
+        }
+        // Let selection highlighting finish its event callback and coalesce initial SwiftUI measurements.
+        let request = DispatchWorkItem { [weak self] in
+            guard let self, self.activeSection == section, self.requestRevision == requestToken else { return }
+            self.applyResize(for: section)
+        }
+        pendingResize = request
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(24), execute: request)
+    }
+
+    private func applyResize(for section: PreferencesSection) {
+        guard let window, section == activeSection else { return }
         guard !window.isZoomed else { window.contentMinSize = section.minimumSize; return }
         let currentContent = window.contentRect(forFrameRect: window.frame).size
-        // Avoid a minimum-height constraint forcing an instant jump before the animation expands.
-        window.contentMinSize = NSSize(width: section.minimumSize.width, height: min(currentContent.height, section.minimumSize.height))
         let content = NSSize(width: currentContent.width, height: fittedHeight(for: section) ?? heights[section] ?? section.defaultSize.height)
         var frame = window.frameRect(forContentRect: NSRect(origin: .zero, size: content))
         frame.origin = CGPoint(x: window.frame.minX, y: window.frame.maxY-frame.height)
@@ -159,9 +179,41 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
             frame.size.height = min(frame.height, visible.height)
             frame.origin.y = max(visible.minY, min(frame.minY, visible.maxY-frame.height))
         }
-        let animate = window.isVisible && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        window.setFrame(frame, display: true, animate: animate)
-        window.contentMinSize = NSSize(width: section.minimumSize.width, height: fittedHeight(for: section) == nil ? section.minimumSize.height : min(content.height, window.contentRect(forFrameRect: window.frame).height))
+        let minimumHeight = fittedHeight(for: section) == nil ? section.minimumSize.height : min(content.height, frame.height - (window.frame.height-currentContent.height))
+        let minimum = NSSize(width: section.minimumSize.width, height: minimumHeight)
+        frameSection = section
+        completionMinimum = minimum
+        if let target = resizeTarget, abs(target.height-frame.height) < 1, abs(target.width-frame.width) < 1 {
+            return
+        }
+        if resizeTarget == nil, abs(window.frame.height-frame.height) < 1, abs(window.frame.width-frame.width) < 1 {
+            window.contentMinSize = minimum
+            return
+        }
+        resizeRevision += 1
+        let revision = resizeRevision
+        let animate = window.isVisible && !window.inLiveResize && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        // Raising this minimum before an expanding animation would jump straight to its final height.
+        window.contentMinSize = NSSize(width: minimum.width, height: min(currentContent.height, minimum.height))
+        if !animate {
+            resizeTarget = nil
+            window.setFrame(frame, display: true)
+            window.contentMinSize = minimum
+            return
+        }
+        resizeTarget = frame
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.2
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            window.animator().setFrame(frame, display: true)
+        } completionHandler: { [weak self, weak window] in
+            Task { @MainActor in
+                guard let self, let window, self.resizeRevision == revision else { return }
+                self.resizeTarget = nil
+                window.contentMinSize = self.completionMinimum ?? minimum
+                self.completionMinimum = nil
+            }
+        }
     }
 
     private func fittedHeight(for section: PreferencesSection) -> CGFloat? {
@@ -173,6 +225,11 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
     func windowDidBecomeKey(_ notification: Notification) { monitor.refreshPermission() }
     func windowWillClose(_ notification: Notification) {
         guard let closedWindow = notification.object as? NSWindow, closedWindow === window else { return }
+        pendingResize?.cancel()
+        requestRevision += 1
+        resizeRevision += 1
+        resizeTarget = nil
+        completionMinimum = nil
         monitor.interruptPencilInteraction()
         // Losing focus or minimizing must not remove the Dock entry; only closing settings does.
         setActivationPolicy(.accessory)
