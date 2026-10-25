@@ -437,6 +437,74 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertNil(preferences.object(forKey: "automaticallySwitchDevices"))
     }
 
+    func testEditorDraftIgnoresNoOpCallbacksAndRestoredValues() {
+        var state = DeviceProfileDraftState()
+        let settings = DevicePressureDefaults(device: identity, name: "Pencil")
+        let p = deviceProfile()
+        state.load(device: settings, profile: p)
+        state.setDeviceName("Pencil", for: identity)
+        state.setProfileName(p.name, for: p.id)
+        XCTAssertFalse(state.hasChanges)
+        state.setDeviceName("Changed", for: identity); XCTAssertTrue(state.hasChanges)
+        state.setDeviceName("Pencil", for: identity); XCTAssertFalse(state.hasChanges)
+        state.profile?.applicationRules?[0].mode = .custom; XCTAssertTrue(state.hasChanges)
+        state.profile = p; XCTAssertFalse(state.hasChanges)
+        state.device?.configuration.curve = .light; XCTAssertTrue(state.hasChanges)
+    }
+    func testEditorDraftRejectsLateCallbacksAfterSwitchingDevicesAndProfiles() {
+        var state = DeviceProfileDraftState()
+        let oldProfile = deviceProfile()
+        let other = PenIdentity(key: "v1:tool:56a:123:pen", level: .uniqueTool)
+        let currentProfile = deviceProfile(other)
+        let settings = DevicePressureDefaults(device: other, name: "Wacom")
+        state.load(device: settings, profile: currentProfile)
+        state.setDeviceName("Old pencil field editor", for: identity)
+        state.setProfileName("Old profile field editor", for: oldProfile.id)
+        XCTAssertEqual(state.device, settings)
+        XCTAssertEqual(state.profile, currentProfile)
+        XCTAssertFalse(state.hasChanges)
+    }
+    func testSavingDeviceNameDoesNotClearUnsavedCurveOrProfileChanges() throws {
+        var state = DeviceProfileDraftState()
+        let settings = DevicePressureDefaults(device: identity, name: "Pencil")
+        let p = deviceProfile()
+        state.load(device: settings, profile: p)
+        state.device?.configuration.curve = .light
+        state.setDeviceName("My Pencil", for: identity)
+        state.profile?.name = "Edited profile"
+        var savedName = settings; savedName.name = "My Pencil"
+        state.didSaveDevice(savedName)
+        XCTAssertTrue(state.hasChanges)
+        state.didSaveDevice(try XCTUnwrap(state.device))
+        XCTAssertTrue(state.hasChanges, "Saving the device must not discard unsaved profile changes")
+        state.didSaveProfile(try XCTUnwrap(state.profile))
+        XCTAssertFalse(state.hasChanges)
+    }
+    @MainActor func testCompactNavigationSelectsAllPagesWithoutChangingWidth() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let monitor = PenMonitor(profileRepository: .init(url: root.appending(path: "profiles.json")))
+        let controller = PreferencesWindowController(monitor: monitor, setActivationPolicy: { _ in })
+        let window = try XCTUnwrap(controller.window)
+        let tabs = try XCTUnwrap(window.contentViewController as? NSTabViewController)
+        let control = try XCTUnwrap(window.toolbar?.items.compactMap { $0.view as? NSSegmentedControl }.first)
+        XCTAssertEqual(window.toolbarStyle, .unifiedCompact)
+        XCTAssertEqual(control.segmentCount, 4)
+        XCTAssertLessThan(control.fittingSize.height, 34)
+        let width = window.frame.width
+        for section in PreferencesSection.allCases {
+            XCTAssertEqual(control.label(forSegment: section.rawValue), section.title)
+            control.selectedSegment = section.rawValue
+            XCTAssertTrue(control.sendAction(control.action, to: control.target))
+            XCTAssertEqual(tabs.selectedTabViewItemIndex, section.rawValue)
+            XCTAssertEqual(window.frame.width, width, accuracy: 1)
+        }
+        tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
+        XCTAssertEqual(control.selectedSegment, PreferencesSection.profiles.rawValue)
+        XCTAssertLessThan(window.frame.height - window.contentLayoutRect.height, 70)
+        window.close()
+    }
+
     private func deviceProfile(_ device: PenIdentity? = nil) -> PressureProfile {
         PressureProfile(name: "绘画", device: device ?? identity, applicationRules: [
             ApplicationPressureRule(bundleID: "com.adobe.Photoshop", name: "Photoshop"),

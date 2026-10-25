@@ -98,14 +98,46 @@ struct ApplicationPicker: View {
     }
 }
 
+/// A draft is dirty only when its values differ, never merely because a field sent a setter.
+struct DeviceProfileDraftState {
+    var device: DevicePressureDefaults?
+    var profile: PressureProfile?
+    private var savedDevice: DevicePressureDefaults?
+    private var savedProfile: PressureProfile?
+    var hasChanges: Bool { device != savedDevice || profile != savedProfile }
+    mutating func load(device: DevicePressureDefaults?, profile: PressureProfile?) {
+        self.device = device; self.profile = profile
+        savedDevice = device; savedProfile = profile
+    }
+    mutating func setDeviceName(_ name: String, for identity: PenIdentity) {
+        guard device?.device == identity else { return }
+        device?.name = name
+    }
+    mutating func setProfileName(_ name: String, for id: UUID?) {
+        guard let id, profile?.id == id else { return }
+        profile?.name = name
+    }
+    mutating func didSaveDevice(_ value: DevicePressureDefaults) { savedDevice = value }
+    mutating func didSaveProfile(_ value: PressureProfile) { savedProfile = value }
+}
+
 struct DeviceProfilesPreferencesView: View {
     @ObservedObject var monitor: PenMonitor
     @State private var selected: PenIdentity?
     @State private var profileID: UUID?
-    @State private var deviceDraft: DevicePressureDefaults?
-    @State private var profileDraft: PressureProfile?
+    @State private var draft = DeviceProfileDraftState()
+    private var deviceDraft: DevicePressureDefaults? {
+        get { draft.device }
+        nonmutating set { draft.device = newValue }
+    }
+    private var profileDraft: PressureProfile? {
+        get { draft.profile }
+        nonmutating set { draft.profile = newValue }
+    }
+    @FocusState private var focusedField: EditorField?
+    private enum EditorField: Hashable { case deviceName, profileName }
     @State private var saved = false
-    @State private var dirty = false
+    private var dirty: Bool { draft.hasChanges }
     @State private var didLoad = false
     @State private var pendingDevice: PenIdentity?
     @State private var pendingProfile: UUID?
@@ -141,8 +173,9 @@ struct DeviceProfilesPreferencesView: View {
                     if let selected, deviceDraft != nil {
                         PreferencesPageHeader(title: monitor.deviceDisplayName(selected), subtitle: "先调整这台设备的默认笔压，再为配置添加生效应用；需要时才单独覆盖。")
                         HStack {
-                            TextField("设备名称（留空使用系统名称）", text: Binding(get: { deviceDraft?.name ?? "" }, set: { deviceDraft?.name = $0; changed() }))
+                            TextField("设备名称（留空使用系统名称）", text: Binding(get: { deviceDraft?.name ?? "" }, set: { draft.setDeviceName($0, for: selected); changed() }))
                                 .textFieldStyle(.roundedBorder)
+                                .focused($focusedField, equals: .deviceName)
                             Button("保存名称") { saveName() }.disabled(deviceDraft?.isValid != true || selected.level == .session)
                         }
                         DisclosureGroup("设备身份 · \(selected.level.label)") {
@@ -162,14 +195,14 @@ struct DeviceProfilesPreferencesView: View {
                                 Button("新增配置") { create(selected) }.disabled(dirty)
                             }
                             if profileID == nil { deviceEditor }
-                            else if profileDraft != nil { profileEditor }
+                            else if profileDraft != nil { profileEditor.id(profileID) }
                         }
                     } else {
                         PreferencesPageHeader(title: "配置", subtitle: "每台设备独立设置，配置中的应用默认继承所属设备。")
                         ContentUnavailableView("等待数位笔", systemImage: "pencil.tip", description: Text("连接 Sidecar 或数位板，让笔进入感应范围并落笔。保存过的设备会一直显示在左侧。"))
                     }
                     if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
-                }.padding(16)
+                }.padding(16).id(selected)
             }.frame(maxWidth: .infinity)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if let selected, selected.level != .session {
@@ -177,11 +210,13 @@ struct DeviceProfilesPreferencesView: View {
                     }
                 }
         }.onAppear {
+            focusedField = nil
             if !didLoad {
                 if selected == nil { selected = identities.first }
                 load(); didLoad = true
             }
-        }.onChange(of: identities) { _, ids in
+        }.onDisappear { focusedField = nil }
+        .onChange(of: identities) { _, ids in
             if selected == nil { selected = ids.first; load() }
         }
         .confirmationDialog("放弃尚未保存的更改？", isPresented: $confirmDiscard) {
@@ -206,9 +241,11 @@ struct DeviceProfilesPreferencesView: View {
         }
     }
     private var profileEditor: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            TextField("配置名称", text: Binding(get: { profileDraft?.name ?? "" }, set: { profileDraft?.name = $0; changed() }))
+        let editingProfileID = profileDraft?.id
+        return VStack(alignment: .leading, spacing: 12) {
+            TextField("配置名称", text: Binding(get: { profileDraft?.name ?? "" }, set: { draft.setProfileName($0, for: editingProfileID); changed() }))
                 .textFieldStyle(.roundedBorder)
+                .focused($focusedField, equals: .profileName)
             GroupBox("生效应用") {
                 VStack(alignment: .leading, spacing: 0) {
                     if profileDraft?.applicationRules?.isEmpty != false {
@@ -268,45 +305,53 @@ struct DeviceProfilesPreferencesView: View {
     private func activeName(_ id: PenIdentity) -> String {
         monitor.profiles.first { $0.device == id && monitor.enabledProfileIDs.contains($0.id) }.map { "已启用 · "+$0.name } ?? "未启用映射"
     }
-    private func changed() { dirty = true; saved = false }
+    private func changed() { saved = false }
+    private func finishEditing() {
+        focusedField = nil
+        NSApp.keyWindow?.makeFirstResponder(nil)
+    }
     private func load() {
-        deviceDraft = selected.map { monitor.mappingDefaults.settings(for: $0) }
-        profileDraft = monitor.profiles.first { $0.id == profileID && $0.device == selected }
-        if profileDraft == nil { profileID = nil }
-        dirty = false; saved = false
+        focusedField = nil
+        let device = selected.map { monitor.mappingDefaults.settings(for: $0) }
+        let profile = monitor.profiles.first { $0.id == profileID && $0.device == selected }
+        profileID = profile?.id
+        draft.load(device: device, profile: profile)
+        saved = false
     }
     private func requestDevice(_ id: PenIdentity?) {
         guard selected != id else { return }
+        finishEditing()
         if dirty { pendingDevice = id; switchingDevice = true; confirmDiscard = true }
         else { selected = id; profileID = nil; load() }
     }
     private func requestProfile(_ id: UUID?) {
         guard profileID != id else { return }
+        finishEditing()
         if dirty { pendingProfile = id; switchingDevice = false; confirmDiscard = true }
         else { profileID = id; load() }
     }
     @discardableResult private func saveName() -> Bool {
         guard var settings = deviceDraft else { return false }
-        let draftConfiguration = settings.configuration
         let stored = monitor.mappingDefaults.settings(for: settings.device)
         if settings.name == stored.name { return true }
         settings.configuration = monitor.mappingDefaults.settings(for: settings.device).configuration
         settings.name = settings.name.trimmingCharacters(in: .whitespacesAndNewlines)
         if monitor.saveDeviceSettings(settings) {
             deviceDraft?.name = settings.name
-            if profileID == nil && draftConfiguration != settings.configuration { dirty = true }
-            else if profileID == nil { dirty = false; saved = true }
+            draft.didSaveDevice(settings)
+            saved = true
             return true
         }
         return false
     }
     private func saveDevice() {
-        if let settings = deviceDraft, monitor.saveDeviceSettings(settings) { dirty = false; saved = true }
+        if let settings = deviceDraft, monitor.saveDeviceSettings(settings) { draft.didSaveDevice(settings); saved = true }
     }
     @discardableResult private func saveProfile() -> Bool {
         // Name editing is independent of the profile; never overwrite the device's curve here.
         guard let profileDraft, saveName(), monitor.saveProfile(profileDraft) else { return false }
-        dirty = false; saved = true; return true
+        draft.didSaveProfile(profileDraft)
+        saved = true; return true
     }
     private func create(_ identity: PenIdentity) {
         let profile = PressureProfile(name: "配置 \(profiles.count+1)", device: identity, applicationRules: [])

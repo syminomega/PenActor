@@ -43,8 +43,10 @@ private final class PreferencesSizingRelay {
 }
 
 @MainActor
-final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
+final class PreferencesWindowController: NSWindowController, NSWindowDelegate, NSToolbarDelegate {
     private let tabs = PreferencesTabController()
+    private let navigation = NSSegmentedControl(labels: PreferencesSection.allCases.map(\.title), trackingMode: .selectOne, target: nil, action: nil)
+    private static let navigationItem = NSToolbarItem.Identifier("PenActorPreferencesSections")
     private var activeSection = PreferencesSection.profiles
     private var heights: [PreferencesSection: CGFloat] = [:]
     private let monitor: PenMonitor
@@ -54,7 +56,16 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     init(monitor: PenMonitor, setActivationPolicy: @escaping (NSApplication.ActivationPolicy) -> Void = { NSApp.setActivationPolicy($0) }) {
         self.monitor = monitor
         self.setActivationPolicy = setActivationPolicy
-        tabs.tabStyle = .toolbar
+        tabs.tabStyle = .unspecified
+        tabs.tabView.tabViewType = .noTabsNoBorder
+        navigation.selectedSegment = activeSection.rawValue
+        navigation.segmentStyle = .automatic
+        navigation.setAccessibilityLabel("设置页面")
+        for section in PreferencesSection.allCases {
+            navigation.setImage(NSImage(systemSymbolName: section.symbol, accessibilityDescription: section.title), forSegment: section.rawValue)
+            navigation.setImageScaling(.scaleProportionallyDown, forSegment: section.rawValue)
+            navigation.setWidth(78, forSegment: section.rawValue)
+        }
         for section in PreferencesSection.allCases {
             let relay = sizing
             let host = NSHostingController(rootView: ContentView(monitor: monitor, section: section, onContentHeightChange: { [weak relay] height in
@@ -85,11 +96,22 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
             }
         }
         window.delegate = self
+        navigation.target = self
+        navigation.action = #selector(selectSection(_:))
+        let toolbar = NSToolbar(identifier: "PenActorCompactNavigation")
+        toolbar.delegate = self
+        toolbar.allowsUserCustomization = false
+        toolbar.displayMode = .iconOnly
+        toolbar.centeredItemIdentifiers = [Self.navigationItem]
+        window.toolbarStyle = .unifiedCompact
+        window.toolbar = toolbar
         window.center()
         window.setFrameAutosaveName("PenActorCompactPreferences")
         resize(for: .profiles, rememberingPrevious: false)
         tabs.onSelection = { [weak self] index in
             guard let section = PreferencesSection(rawValue: index) else { return }
+            self?.navigation.selectedSegment = index
+            self?.window?.makeFirstResponder(nil)
             self?.resize(for: section, rememberingPrevious: true)
         }
     }
@@ -105,6 +127,20 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
         monitor.refreshPermission()
     }
+    @objc private func selectSection(_ sender: NSSegmentedControl) {
+        guard PreferencesSection(rawValue: sender.selectedSegment) != nil else { return }
+        window?.makeFirstResponder(nil)
+        tabs.selectedTabViewItemIndex = sender.selectedSegment
+    }
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [Self.navigationItem, .flexibleSpace] }
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] { [Self.navigationItem] }
+    func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
+        guard itemIdentifier == Self.navigationItem else { return nil }
+        let item = NSToolbarItem(itemIdentifier: itemIdentifier)
+        item.label = "设置页面"; item.view = navigation
+        return item
+    }
+
     private func resize(for section: PreferencesSection, rememberingPrevious: Bool) {
         guard let window else { return }
         guard section != activeSection || !rememberingPrevious else { return }
