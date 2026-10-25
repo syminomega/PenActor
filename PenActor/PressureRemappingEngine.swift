@@ -49,7 +49,6 @@ struct PressureMappingProcessor {
         var taper = StrokeTaperState()
         var mouseTrajectory = TrajectorySmoothingState()
         var tabletTrajectory = TrajectorySmoothingState()
-        var awaitingMouseUp = false
     }
     private var strokes: [Int: Stroke] = [:]
     private(set) var profiles: [PressureProfile] = []
@@ -72,19 +71,7 @@ struct PressureMappingProcessor {
     @discardableResult mutating func process(_ event: CGEvent, recordDiagnostic: Bool = true) -> PenMappingResult? {
         // Plain mouse-up can terminate a pen stroke even when its tablet subtype is absent.
         let up = [CGEventType.leftMouseUp, .rightMouseUp, .otherMouseUp].contains(event.type)
-        if up {
-            // Some drivers omit tablet metadata on release. Preserve the filtered endpoint.
-            if event.type == .leftMouseUp, event.getIntegerValueField(.mouseEventSubtype) != 1 {
-                let pid = Int32(clamping: event.getIntegerValueField(.eventTargetUnixProcessID))
-                let matching = strokes.values.filter { $0.targetPID == pid && $0.awaitingMouseUp && $0.mouseTrajectory.hasValue
-                    && $0.profile.map { p in profiles.contains { $0.device == p.device } } == true }
-                if matching.count == 1 { event.location = matching[0].mouseTrajectory.screen
-                    event.setIntegerValueField(.mouseEventDeltaX, value: 0)
-                    event.setIntegerValueField(.mouseEventDeltaY, value: 0)
-                }
-            }
-            deferEnd(event)
-        }
+        if up { deferEnd(event) }
         let mouseTypes: [CGEventType] = [.mouseMoved, .leftMouseDown, .leftMouseUp, .leftMouseDragged,
             .rightMouseDown, .rightMouseUp, .rightMouseDragged, .otherMouseDown, .otherMouseUp, .otherMouseDragged]
         let mouse = mouseTypes.contains(event.type)
@@ -129,7 +116,7 @@ struct PressureMappingProcessor {
         // Capture even a passthrough decision, so enabling a profile cannot alter a stroke midway.
         // An untargeted standalone packet must not block the later application mouse-down.
         let untargetedPrelude = down && strokes[id].map { $0.targetPID != pid && applications[$0.targetPID] == nil } == true
-        let beginning = !up && ((strokes[id] == nil && (down || max(input, tabletInput) > 0)) || untargetedPrelude || (down && strokes[id]?.awaitingMouseUp == true))
+        let beginning = !up && ((strokes[id] == nil && (down || max(input, tabletInput) > 0)) || untargetedPrelude)
         let ending = up || (!down && max(input, tabletInput) == 0)
         if beginning {
             let candidate = profiles.first { $0.device == identity && bundle.map($0.effectiveTargetBundleIDs.contains) == true }
@@ -181,7 +168,10 @@ struct PressureMappingProcessor {
             let previous = filter.hasValue ? filter.screen : inputPosition
             let filtered = filter.apply(screen: inputPosition, tablet: inputTablet,
                 timestamp: Double(event.timestamp)/1_000_000_000, settings: profile.smoothing, ending: ending)
-            if filtered.screen.x.isFinite && filtered.screen.y.isFinite {
+            // Keep routing-sensitive button boundaries intact at the annotated tap.
+            // The initial sample seeds the filter; only contact movement is rewritten.
+            if !down && !ending && filtered.screen.x.isFinite && filtered.screen.y.isFinite
+                && (filtered.screen != inputPosition || filtered.tablet != inputTablet) {
                 event.location = filtered.screen
                 event.setIntegerValueField(.tabletEventPointX, value: roundedInteger(filtered.tablet.x))
                 event.setIntegerValueField(.tabletEventPointY, value: roundedInteger(filtered.tablet.y))
@@ -189,11 +179,11 @@ struct PressureMappingProcessor {
                     event.setIntegerValueField(.mouseEventDeltaX, value: roundedInteger(filtered.screen.x-previous.x))
                     event.setIntegerValueField(.mouseEventDeltaY, value: roundedInteger(filtered.screen.y-previous.y))
                 }
-                smoothingDiagnostic = .init(enabled: true, strength: profile.smoothing.strength,
-                    inputTablet: .init(inputTablet), outputTablet: .init(CGPoint(
-                        x: Double(event.getIntegerValueField(.tabletEventPointX)),
-                        y: Double(event.getIntegerValueField(.tabletEventPointY)))))
             }
+            smoothingDiagnostic = .init(enabled: true, strength: profile.smoothing.strength,
+                inputTablet: .init(inputTablet), outputTablet: .init(CGPoint(
+                    x: Double(event.getIntegerValueField(.tabletEventPointX)),
+                    y: Double(event.getIntegerValueField(.tabletEventPointY)))))
             if mouse { current.mouseTrajectory = filter } else { current.tabletTrajectory = filter }
             strokes[id] = current
         }
@@ -208,11 +198,7 @@ struct PressureMappingProcessor {
         diagnostic.inputPosition = .init(inputPosition); diagnostic.outputPosition = .init(event.location)
         diagnostic.smoothing = smoothingDiagnostic
         if recordDiagnostic { record(diagnostic) }
-        if ending {
-            if !up, strokes[id]?.mouseTrajectory.hasValue == true {
-                strokes[id]?.awaitingMouseUp = true
-            } else { strokes[id] = nil }
-        }
+        if ending { strokes[id] = nil }
         return PenMappingResult(diagnostic: diagnostic, deviceID: id, profile: allowed ? profile : nil,
                                 isBeginning: beginning, isEnding: ending)
     }

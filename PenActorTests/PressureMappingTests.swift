@@ -1374,7 +1374,7 @@ extension PressureMappingTests {
         // Standalone zero can precede the companion mouse-up.
         m.process(try trajectoryPoint(20, time: 1.008, pressure: 0, type: .tabletPointer))
         let up = try trajectoryPoint(25, time: 1.01, pressure: 0, type: .leftMouseUp); m.process(up)
-        XCTAssertEqual(up.location, drag.location)
+        XCTAssertEqual(up.location.x, 25, "Release coordinates must retain original delivery metadata")
         XCTAssertEqual(up.getDoubleValueField(.mouseEventPressure), 0)
         XCTAssertEqual(up.getIntegerValueField(.mouseEventDeltaX), 0)
         let next = try trajectoryPoint(80, time: 2, type: .leftMouseDown); m.process(next)
@@ -1420,7 +1420,7 @@ extension PressureMappingTests {
         }
         let output = queue.drain(now: 2)
         XCTAssertEqual(output.map(\.event.type), [.leftMouseDown,.leftMouseDragged,.leftMouseUp])
-        XCTAssertEqual(output[1].event.location, output[2].event.location)
+        XCTAssertEqual(output[2].event.location.x, 20)
         XCTAssertEqual(output[2].event.getDoubleValueField(.mouseEventPressure),0)
         XCTAssertEqual(m.snapshot.diagnostics[1].taper?.distance, 10)
         m.process(try proximity())
@@ -1431,7 +1431,7 @@ extension PressureMappingTests {
 }
 
 extension PressureMappingTests {
-    func testSmoothingStatesAreIndependentAcrossDevicesAndPlainReleaseUsesKnownEndpoint() throws {
+    func testSmoothingStatesAreIndependentAcrossDevicesAndPlainReleaseIsUntouched() throws {
         var pencil = smoothingProfile(), wacom = smoothingProfile()
         pencil.taper.entryEnabled = false
         wacom.device = PenIdentity(key: "v1:model:56a:129a:0:pen", level: .model)
@@ -1447,7 +1447,7 @@ extension PressureMappingTests {
         m.process(try trajectoryPoint(20,time: 1.01,pressure: 0,type: .tabletPointer))
         let plainUp = try trajectoryPoint(30,time: 1.015,pressure: 0,type: .leftMouseUp,pen: false)
         m.process(plainUp)
-        XCTAssertEqual(plainUp.location, pencilDrag.location)
+        XCTAssertEqual(plainUp.location.x, 30)
         // With no known pending pen release an ordinary click remains untouched.
         let mouseUp = try trajectoryPoint(80,time: 2,pressure: 0,type: .leftMouseUp,pen: false)
         m.process(mouseUp); XCTAssertEqual(mouseUp.location.x,80)
@@ -1468,5 +1468,45 @@ extension PressureMappingTests {
         XCTAssertEqual(cancelled[1].diagnostic?.inputPosition,cancelled[1].diagnostic?.outputPosition)
         XCTAssertEqual(cancelled[1].diagnostic?.smoothing?.enabled,false)
         XCTAssertEqual(cancelled[1].diagnostic?.smoothing?.inputTablet,cancelled[1].diagnostic?.smoothing?.outputTablet)
+    }
+}
+
+extension PressureMappingTests {
+    func testSmoothingDoesNotRewriteMouseBoundaryPayloads() throws {
+        var m = processor(smoothingProfile()); m.process(try proximity())
+        let preserved: [CGEventField] = [.mouseEventSubtype,.mouseEventButtonNumber,.mouseEventClickState,
+            .mouseEventNumber,.mouseEventDeltaX,.mouseEventDeltaY,.tabletEventPointX,.tabletEventPointY,
+            .tabletEventPointZ,.tabletEventPointButtons,.tabletEventDeviceID,.tabletEventTiltX,
+            .tabletEventTiltY,.tabletEventRotation,.tabletEventTangentialPressure,
+            .eventTargetUnixProcessID,.eventSourceUnixProcessID]
+        for (x,t,type) in [(0.0,1.0,CGEventType.leftMouseDown),(50,1.01,.leftMouseUp)] {
+            let appKit = try XCTUnwrap(NSEvent.mouseEvent(with: type == .leftMouseDown ? .leftMouseDown : .leftMouseUp,
+                location: .init(x: x,y: 100), modifierFlags: [.shift], timestamp: t,
+                windowNumber: 123, context: nil,eventNumber: 77,clickCount: 1,pressure: type == .leftMouseDown ? 0.5 : 0))
+            let e = try XCTUnwrap(appKit.cgEvent?.copy())
+            e.setIntegerValueField(.mouseEventSubtype,value: 1)
+            e.setIntegerValueField(.tabletEventDeviceID,value: 17)
+            e.setIntegerValueField(.eventTargetUnixProcessID,value: 42)
+            e.setIntegerValueField(.tabletEventPointX,value: Int64(x*100))
+            e.setIntegerValueField(.tabletEventPointY,value: 10000)
+            e.setIntegerValueField(.tabletEventPointButtons,value: type == .leftMouseDown ? 1 : 0)
+            e.setIntegerValueField(.mouseEventDeltaX,value: 27)
+            e.setIntegerValueField(.mouseEventDeltaY,value: -13)
+            e.setDoubleValueField(.tabletEventPointPressure,value: type == .leftMouseDown ? 0.5 : 0)
+            let location = e.location, flags = e.flags, timestamp = e.timestamp
+            let values = preserved.map { e.getDoubleValueField($0) }
+            let before = try XCTUnwrap(NSEvent(cgEvent: e))
+            m.process(e)
+            XCTAssertEqual(e.location,location); XCTAssertEqual(e.flags,flags); XCTAssertEqual(e.timestamp,timestamp)
+            XCTAssertEqual(preserved.map { e.getDoubleValueField($0) },values)
+            let after = try XCTUnwrap(NSEvent(cgEvent: e))
+            XCTAssertEqual(after.type,before.type); XCTAssertEqual(after.windowNumber,before.windowNumber)
+            XCTAssertEqual(after.eventNumber,before.eventNumber); XCTAssertEqual(after.clickCount,before.clickCount)
+            XCTAssertEqual(after.buttonMask,before.buttonMask); XCTAssertEqual(after.deviceID,before.deviceID)
+            if type == .leftMouseDown {
+                let drag = try trajectoryPoint(10,time: t+0.005); m.process(drag)
+                XCTAssertLessThan(drag.location.x,10)
+            }
+        }
     }
 }
