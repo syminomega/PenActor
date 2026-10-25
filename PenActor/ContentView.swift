@@ -131,9 +131,6 @@ struct ContentView: View {
                     Text("输入 \(number(last.inputPressure)) → 输出 \(number(last.outputPressure))").monospacedDigit()
                     Text(last.reason).foregroundStyle(.secondary).lineLimit(2)
                 }.font(.callout)
-                if let reason = last.smoothingBypassReason {
-                    Text(reason).font(.caption).foregroundStyle(.orange)
-                }
                 DisclosureGroup("匹配详情") {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("目标：\(last.targetBundleID ?? "未知应用") · PID \(last.targetPID)")

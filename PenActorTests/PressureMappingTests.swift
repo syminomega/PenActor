@@ -30,7 +30,7 @@ final class PressureMappingTests: XCTestCase {
         return e
     }
     private func processor(_ p: PressureProfile? = nil) -> PressureMappingProcessor {
-        var m = PressureMappingProcessor(coordinateWritesEnabled: true); m.setProfiles([p ?? profile()]); m.applications = [42: "com.adobe.Photoshop", 43: "other.app"]
+        var m = PressureMappingProcessor(); m.setProfiles([p ?? profile()]); m.applications = [42: "com.adobe.Photoshop", 43: "other.app"]
         return m
     }
 
@@ -263,115 +263,6 @@ final class PressureMappingTests: XCTestCase {
         window.close()
     }
 
-    private func touchRightEvent(_ type: CGEventType = .rightMouseDown, subtype: Int64? = nil, pid: Int64 = 42, source: Int64 = 9, number: Int64 = 15) throws -> CGEvent {
-        let event = try XCTUnwrap(CGEvent(source: nil))
-        event.type = type; event.location = CGPoint(x: 125, y: 87); event.timestamp = 123456789
-        event.setIntegerValueField(.mouseEventSubtype, value: subtype ?? Int64(NSEvent.EventSubtype.touch.rawValue))
-        event.setIntegerValueField(.eventTargetUnixProcessID, value: pid)
-        event.setIntegerValueField(.eventSourceUnixProcessID, value: source)
-        event.setIntegerValueField(.mouseEventNumber, value: number)
-        return event
-    }
-    private func touchFilter() -> TouchRightClickFilter {
-        var filter = TouchRightClickFilter()
-        filter.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [42: "com.adobe.Photoshop", 43: "other.app"])
-        return filter
-    }
-    func testTouchRightClickOnlyMatchesTaggedTargetAndNeverChangesEvent() throws {
-        var filter = touchFilter()
-        for subtype: Int64 in [0, 1, 2] { XCTAssertFalse(filter.suppress(try touchRightEvent(subtype: subtype))) }
-        XCTAssertFalse(filter.suppress(try touchRightEvent(pid: 43)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(pid: 0)))
-        let control = try touchRightEvent(); control.flags = .maskControl
-        XCTAssertFalse(filter.suppress(control))
-        let event = try touchRightEvent()
-        let original = event.data
-        XCTAssertTrue(filter.suppress(event))
-        XCTAssertEqual(event.data as Data?, original as Data?)
-        XCTAssertEqual(filter.snapshot.suppressedPressCount, 1)
-    }
-    func testTouchRightClickSequenceSurvivesDisableAndTargetSwitch() throws {
-        var filter = touchFilter()
-        XCTAssertTrue(filter.suppress(try touchRightEvent()))
-        filter.configure(enabled: false, targets: [], applications: [:])
-        XCTAssertTrue(filter.suppress(try touchRightEvent(.rightMouseDragged, subtype: 0, pid: 43)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, source: 10)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, number: 16)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 1)))
-        XCTAssertTrue(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 0, pid: 43)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent()))
-        XCTAssertEqual(filter.snapshot.suppressedEventCount, 3)
-    }
-    func testTouchRightClickDoesNotSwallowReleaseOfDeliveredDown() throws {
-        var filter = TouchRightClickFilter()
-        XCTAssertFalse(filter.suppress(try touchRightEvent()))
-        filter.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [42: "com.adobe.Photoshop"])
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp)))
-        XCTAssertTrue(filter.suppress(try touchRightEvent()))
-        // Reusing an event number for an ordinary right click must not inherit suppression.
-        XCTAssertFalse(filter.suppress(try touchRightEvent(subtype: 0)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 0)))
-        XCTAssertTrue(filter.suppress(try touchRightEvent(number: 0)))
-        XCTAssertFalse(filter.suppress(try touchRightEvent(.rightMouseUp, subtype: 0, number: 0)))
-        XCTAssertTrue(filter.suppress(try touchRightEvent(.rightMouseUp, number: 0)))
-    }
-    func testTouchRightClickLeavesNonRightEventsAloneAndBoundsDiagnostics() throws {
-        var filter = touchFilter()
-        for type: CGEventType in [.leftMouseDown, .leftMouseUp, .tabletPointer, .tabletProximity, .scrollWheel, .flagsChanged, .keyDown] {
-            XCTAssertFalse(filter.suppress(try touchRightEvent(type)))
-        }
-        XCTAssertEqual(filter.snapshot.observedCount, 0)
-        for i in 0..<600 { _ = filter.suppress(try touchRightEvent(subtype: 0, number: Int64(i))) }
-        XCTAssertEqual(filter.snapshot.observedCount, 600)
-        XCTAssertEqual(filter.snapshot.diagnostics.count, 500)
-        filter.clear(); XCTAssertEqual(filter.snapshot.observedCount, 0)
-        XCTAssertTrue(filter.snapshot.diagnostics.isEmpty)
-    }
-    func testTouchRightClickTapFailureAndSystemDisableStopWithoutRetry() {
-        let failed = TouchRightClickEngine(createTap: { _, _, _ in nil })
-        failed.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [:])
-        failed.start(); failed.start()
-        for _ in 0..<100 where failed.snapshot().isStarting { Thread.sleep(forTimeInterval: 0.001) }
-        XCTAssertFalse(failed.snapshot().enabled); XCTAssertFalse(failed.snapshot().isRunning)
-        XCTAssertTrue(failed.snapshot().status.contains("无法创建"))
-        failed.stop(); failed.stop()
-        for type: CGEventType in [.tapDisabledByTimeout, .tapDisabledByUserInput] {
-            let engine = TouchRightClickEngine(createTap: { _, callback, context in
-                _ = callback(OpaquePointer(bitPattern: 1)!, type, CGEvent(source: nil)!, context)
-                return nil
-            })
-            engine.configure(enabled: true, targets: ["com.adobe.Photoshop"], applications: [:]); engine.start()
-            for _ in 0..<100 where engine.snapshot().isStarting { Thread.sleep(forTimeInterval: 0.001) }
-            XCTAssertFalse(engine.snapshot().enabled); XCTAssertTrue(engine.snapshot().status.contains("系统停用了"))
-        }
-    }
-    @MainActor func testTouchRightClickTargetsPersistButActivationDoesNotAndExportIncludesDiagnostics() throws {
-        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        defer { try? FileManager.default.removeItem(at: root) }
-        let suite = "PenActorTests." + UUID().uuidString
-        let preferences = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { preferences.removePersistentDomain(forName: suite) }
-        let repository = PressureProfileRepository(url: root.appending(path: "profiles.json"))
-        let monitor = PenMonitor(preferences: preferences, profileRepository: repository)
-        XCTAssertFalse(monitor.touchBlocking.enabled)
-        monitor.addTouchBlockingTarget("test.app"); monitor.addTouchBlockingTarget("test.app")
-        XCTAssertEqual(monitor.touchBlockingTargets.filter { $0 == "test.app" }.count, 1)
-        let restored = PenMonitor(preferences: preferences, profileRepository: repository)
-        XCTAssertTrue(restored.touchBlockingTargets.contains("test.app")); XCTAssertFalse(restored.touchBlocking.enabled)
-        monitor.setTouchBlocking(true)
-        XCTAssertFalse(monitor.touchBlocking.enabled); XCTAssertNotNil(monitor.touchBlockingError)
-        var filter = touchFilter(); _ = filter.suppress(try touchRightEvent())
-        let document = PenLogDocument(store: PenStore(), interactions: PencilInteractionStats(), isMonitoring: true, touchBlocking: filter.snapshot)
-        let decoded = try JSONDecoder().decode(TouchRightClickSnapshot.self, from: JSONEncoder().encode(filter.snapshot))
-        XCTAssertEqual(decoded, filter.snapshot)
-        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: document.jsonData()) as? [String: Any])
-        let exported = try XCTUnwrap(object["touchBlocking"] as? [String: Any])
-        XCTAssertEqual(exported["suppressedPressCount"] as? Int, 1)
-        monitor.removeTouchBlockingTarget("test.app")
-        XCTAssertFalse(monitor.touchBlockingTargets.contains("test.app"))
-    }
-
     @MainActor func testSettingsDockPresenceFollowsOpenAndCloseWithoutStoppingService() throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -430,7 +321,7 @@ final class PressureMappingTests: XCTestCase {
         LegacyPreferencesMigration.migrate(legacy: legacy, into: preferences)
         XCTAssertTrue(preferences.bool(forKey: "showSettingsOnLaunch"))
         XCTAssertEqual(preferences.object(forKey: "automaticallySwitchDevices") as? Bool, false)
-        XCTAssertEqual(preferences.stringArray(forKey: "touchBlockingTargets"), ["test.app"])
+        XCTAssertNil(preferences.stringArray(forKey: "touchBlockingTargets"))
         XCTAssertNil(preferences.object(forKey: "unrelatedKey"))
         preferences.removeObject(forKey: "automaticallySwitchDevices")
         LegacyPreferencesMigration.migrate(legacy: legacy, into: preferences)
@@ -860,7 +751,7 @@ final class PressureMappingTests: XCTestCase {
         let document = PenLogDocument(store:PenStore(),interactions:PencilInteractionStats(),isMonitoring:true,profiles:[profile()],mapping:m.snapshot)
         let data = try document.jsonData()
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with:data) as? [String:Any])
-        XCTAssertEqual(object["schemaVersion"] as? Int,3)
+        XCTAssertEqual(object["schemaVersion"] as? Int,4)
         XCTAssertEqual(document.events.count,0); XCTAssertEqual(document.mapping.diagnostics.count,1)
         XCTAssertEqual(document.mapping.diagnostics[0].inputPressure,0.5,accuracy:0.005)
         XCTAssertEqual(document.mapping.diagnostics[0].outputPressure,0.8,accuracy:0.005)
@@ -952,7 +843,7 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertTrue(reloaded.enabledProfileIDs.isEmpty)
     }
 
-    func testLegacyProfilesPreserveCustomValuesAndSaveAsVersionFive() throws {
+    func testLegacyProfilesPreserveCustomValuesAndSaveAsVersionSix() throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -966,7 +857,7 @@ final class PressureMappingTests: XCTestCase {
         XCTAssertEqual(loaded.first?.curve, .light)
         try repo.save(loaded)
         let saved = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: repo.url)) as? [String: Any])
-        XCTAssertEqual(saved["schemaVersion"] as? Int, 5)
+        XCTAssertEqual(saved["schemaVersion"] as? Int, 6)
     }
     func testInvalidTaperSettingsAreRejected() {
         var p = profile()
@@ -1262,305 +1153,115 @@ final class PressureMappingTests: XCTestCase {
 }
 
 extension PressureMappingTests {
-    func testComponentOverridesResolveIndependentlyAndFollowDefaults() throws {
+    func testPressureComponentsStillInheritIndependently() throws {
         var base = PressureConfiguration(curve: .light)
         base.taper.entryEnabled = true; base.taper.exitEnabled = true
-        var rule = ApplicationPressureRule(bundleID: "ps", name: "PS")
-        rule.setOverride(.smoothing, enabled: true, base: base)
-        rule.configuration.smoothing.enabled = true
-        XCTAssertEqual(rule.effectiveOverrides, [.smoothing])
-        XCTAssertEqual(rule.resolved(base: base).curve, .light)
-        XCTAssertTrue(rule.resolved(base: base).taper.entryEnabled)
-        base.curve = .linear; base.taper.entryDurationMS = 120
-        XCTAssertEqual(rule.resolved(base: base).curve, .linear)
-        XCTAssertEqual(rule.resolved(base: base).taper.entryDurationMS, 120)
-        rule.setOverride(.entry, enabled: true, base: base)
+        var rule = ApplicationPressureRule(bundleID: "ps",name: "Photoshop")
+        rule.setOverride(.entry,enabled: true,base: base)
+        XCTAssertEqual(rule.configuration.taper.entryEnabled,true)
         rule.configuration.taper.entryDurationMS = 90
-        base.taper.entryDurationMS = 150; base.taper.exitDurationMS = 100
-        XCTAssertEqual(rule.resolved(base: base).taper.entryDurationMS, 90)
-        XCTAssertEqual(rule.resolved(base: base).taper.exitDurationMS, 100)
-        rule.setOverride(.entry, enabled: false, base: base)
-        XCTAssertEqual(rule.resolved(base: base).taper.entryDurationMS, 150)
-        rule.setOverride(.entry, enabled: true, base: base)
-        XCTAssertEqual(rule.configuration.taper.entryDurationMS, 150, "Re-enabling copies the latest inherited value")
-        rule.setOverride(.curve, enabled: true, base: base)
-        rule.configuration.curve = .light
-        rule.setOverride(.exit, enabled: true, base: base)
-        rule.configuration.taper.exitEnabled = false
-        XCTAssertEqual(rule.resolved(base: base).curve, .light)
+        base.curve = .linear; base.taper.entryDurationMS = 120; base.taper.exitDurationMS = 100
+        XCTAssertEqual(rule.resolved(base: base).curve,.linear)
+        XCTAssertEqual(rule.resolved(base: base).taper.entryDurationMS,90)
+        XCTAssertEqual(rule.resolved(base: base).taper.exitDurationMS,100)
+        rule.setOverride(.exit,enabled: true,base: base);rule.configuration.taper.exitEnabled = false
         XCTAssertFalse(rule.resolved(base: base).taper.exitEnabled)
-        XCTAssertTrue(rule.summary.contains("轨迹平滑"))
+        rule.setOverride(.entry,enabled: false,base: base)
+        XCTAssertEqual(rule.resolved(base: base).taper.entryDurationMS,120)
+        rule.setOverride(.curve,enabled: true,base: base);rule.configuration.curve = .light
+        XCTAssertEqual(rule.resolved(base: base).curve,.light)
+        XCTAssertEqual(ConfigurationComponent.allCases,[.curve,.entry,.exit])
     }
 
-    func testLegacyConfigurationDecodesAndMigratesComponentFlagsWithoutChangingValues() throws {
+    @MainActor func testRemovedExperimentalFieldsMigrateWithBackupAndPreservePressureSettings() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root,withIntermediateDirectories: true)
         var p = deviceProfile()
         p.applicationRules?[0].mode = .custom
-        p.applicationRules?[0].configuration = .init(curve: .light, taper: .init(entryEnabled: true, exitEnabled: true))
-        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(p)) as? [String: Any])
-        object.removeValue(forKey: "smoothing")
-        var rules = try XCTUnwrap(object["applicationRules"] as? [[String: Any]])
+        p.applicationRules?[1].mode = .custom
+        p.applicationRules?[1].configuration.curve = .light
+        p.applicationRules?[1].configuration.taper.entryDurationMS = 125
+        var rawProfile = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(p)) as? [String: Any])
+        rawProfile["smoothing"] = ["enabled": true,"strength": 0.35]
+        var rules = rawProfile["applicationRules"] as! [[String: Any]]
         for i in rules.indices {
-            rules[i].removeValue(forKey: "overrides")
-            var c = rules[i]["configuration"] as! [String: Any]; c.removeValue(forKey: "smoothing"); rules[i]["configuration"] = c
+            rules[i]["overrides"] = i == 0 ? ["smoothing"] : ["smoothing","curve","entry"]
+            var c = rules[i]["configuration"] as! [String: Any]
+            c["smoothing"] = ["enabled": true,"strength": 0.7];rules[i]["configuration"] = c
         }
-        object["applicationRules"] = rules
-        let old = try JSONDecoder().decode(PressureProfile.self, from: JSONSerialization.data(withJSONObject: object))
-        var defaults = MappingDefaults(); defaults.schemaVersion = 2
-        let result = defaults.migrating([old])
-        XCTAssertEqual(result.defaults.schemaVersion, 3)
-        let custom = try XCTUnwrap(result.profiles[0].applicationRules?.first)
-        XCTAssertEqual(custom.overrides, [.curve, .entry, .exit])
-        XCTAssertEqual(custom.configuration.curve, .light)
-        XCTAssertTrue(custom.configuration.taper.entryEnabled); XCTAssertTrue(custom.configuration.taper.exitEnabled)
-        XCTAssertFalse(custom.resolved(base: .init()).smoothing.enabled)
-        XCTAssertEqual(result.profiles[0].applicationRules?[1].overrides, [])
-        XCTAssertEqual(result.defaults.migrating(result.profiles).profiles, result.profiles)
-        XCTAssertEqual(try JSONDecoder().decode(PressureProfile.self, from: JSONEncoder().encode(result.profiles[0])), result.profiles[0])
-        var bad = PressureConfiguration(); bad.smoothing.strength = .nan; XCTAssertFalse(bad.isValid)
-        bad.smoothing.strength = 1.1; XCTAssertFalse(bad.isValid)
-    }
-
-    func testOneEuroSmoothsJitterAdaptsToSpeedAndHandlesTimestamps() {
-        let settings = TrajectorySmoothingSettings(enabled: true, strength: 0.7)
-        var filter = TrajectorySmoothingState()
-        var inputEnergy = 0.0, outputEnergy = 0.0
-        for i in 0..<240 {
-            let x = i == 0 ? 0.0 : (i.isMultiple(of: 2) ? 1.0 : -1.0)
-            let value = filter.apply(screen: .init(x: x, y: 0), tablet: .init(x: x*10, y: 0), timestamp: Double(i)/240, settings: settings)
-            inputEnergy += x*x; outputEnergy += value.screen.x*value.screen.x
-            XCTAssertEqual(value.tablet.x, value.screen.x*10, accuracy: 1e-9)
+        rawProfile["applicationRules"] = rules
+        let originalProfile = try JSONSerialization.data(withJSONObject: ["schemaVersion":5,"profiles":[rawProfile]])
+        try originalProfile.write(to: root.appending(path:"profiles.json"))
+        var defaults = MappingDefaults(); defaults.schemaVersion = 3
+        defaults.devices = [.init(device: identity,name: "我的 Pencil",configuration: .init(curve: .light,taper: .init(exitEnabled:true)))]
+        var rawDefaults = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(defaults)) as? [String: Any])
+        var devices = rawDefaults["devices"] as! [[String:Any]]
+        var c = devices[0]["configuration"] as! [String:Any]
+        c["smoothing"] = ["enabled": true,"strength": 1];devices[0]["configuration"] = c;rawDefaults["devices"] = devices
+        let originalDefaults = try JSONSerialization.data(withJSONObject:rawDefaults)
+        try originalDefaults.write(to:root.appending(path:"defaults.json"))
+        let preferences = UserDefaults(suiteName: "PenActor-removal-"+UUID().uuidString)!
+        preferences.set(["ps"],forKey:"touchBlockingTargets")
+        let monitor = PenMonitor(preferences:preferences,profileRepository:.init(url:root.appending(path:"profiles.json")))
+        XCTAssertNil(monitor.profileError)
+        XCTAssertNil(preferences.object(forKey:"touchBlockingTargets"))
+        XCTAssertEqual(monitor.profiles.first?.id,p.id)
+        XCTAssertEqual(monitor.profiles.first?.applicationRules?[0].mode,.inherit)
+        XCTAssertEqual(monitor.profiles.first?.applicationRules?[0].overrides,[])
+        XCTAssertEqual(monitor.profiles.first?.applicationRules?[1].overrides,[.curve,.entry])
+        let migrated = try XCTUnwrap(monitor.profiles.first)
+        let inherited = try XCTUnwrap(monitor.mappingDefaults.resolve(migrated,bundleID:"com.adobe.Photoshop"))
+        XCTAssertEqual(inherited.curve,.light);XCTAssertTrue(inherited.taper.exitEnabled)
+        let custom = try XCTUnwrap(monitor.mappingDefaults.resolve(migrated,bundleID:"other.app"))
+        XCTAssertEqual(custom.curve,.light);XCTAssertEqual(custom.taper.entryDurationMS,125);XCTAssertTrue(custom.taper.exitEnabled)
+        XCTAssertEqual(monitor.deviceDisplayName(identity),"我的 Pencil")
+        XCTAssertTrue(monitor.enabledProfileIDs.isEmpty)
+        let backups = try FileManager.default.contentsOfDirectory(at:root.appending(path:"Backups"),includingPropertiesForKeys:nil)
+        XCTAssertEqual(backups.count,1)
+        XCTAssertEqual(try Data(contentsOf:backups[0].appending(path:"profiles.json")),originalProfile)
+        XCTAssertEqual(try Data(contentsOf:backups[0].appending(path:"defaults.json")),originalDefaults)
+        for name in ["profiles.json","defaults.json"] {
+            let content = try String(contentsOf:root.appending(path:name),encoding:.utf8)
+            XCTAssertFalse(content.contains("smoothing"))
+            let data = try XCTUnwrap(JSONSerialization.jsonObject(with:Data(content.utf8)) as? [String: Any])
+            XCTAssertEqual(data["schemaVersion"] as? Int,name == "profiles.json" ? 6 : 4)
         }
-        XCTAssertLessThan(outputEnergy, inputEnergy*0.2)
-        let last = filter.screen
-        XCTAssertEqual(filter.apply(screen: .init(x: 999,y: 0), tablet: .zero, timestamp: 0, settings: settings).screen, last)
-        XCTAssertEqual(filter.apply(screen: .init(x: 999,y: 0), tablet: .zero, timestamp: 1, settings: settings, ending: true).screen, last)
-        let reset = filter.apply(screen: .init(x: 50,y: 0), tablet: .init(x: 500,y: 0), timestamp: 2, settings: settings)
-        XCTAssertEqual(reset.screen.x, 50)
-        var adaptive = TrajectorySmoothingState(), slow = TrajectorySmoothingState()
-        for i in 0..<100 {
-            let t = Double(i)*0.006 + (i.isMultiple(of: 2) ? 0 : 0.001)
-            _ = adaptive.apply(screen: .init(x: Double(i)*10,y: 0), tablet: .zero, timestamp: t, settings: settings)
-            _ = slow.apply(screen: .init(x: Double(i)*0.01,y: 0), tablet: .zero, timestamp: t, settings: settings)
-        }
-        XCTAssertLessThan((990-adaptive.screen.x)/990, (0.99-slow.screen.x)/0.99)
-        var bypass = TrajectorySmoothingState()
-        for config in [TrajectorySmoothingSettings(), .init(enabled: true, strength: 0)] {
-            XCTAssertEqual(bypass.apply(screen: .init(x: 20,y: 5), tablet: .zero, timestamp: 1, settings: config).screen.x, 20)
-        }
+        let export = try monitor.makeLogDocument().jsonData()
+        let text = String(decoding:export,as:UTF8.self)
+        for removed in ["smoothing","touchBlocking","coordinateProbes","eventData"] { XCTAssertFalse(text.contains(removed)) }
+        let restarted = PenMonitor(preferences:preferences,profileRepository:.init(url:root.appending(path:"profiles.json")))
+        XCTAssertEqual(restarted.profiles,monitor.profiles)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(at:root.appending(path:"Backups"),includingPropertiesForKeys:nil).count,1)
+        // An interrupted previous migration may have saved defaults first, leaving the old profile file.
+        try originalProfile.write(to:root.appending(path:"profiles.json"))
+        let recovered = PenMonitor(preferences:preferences,profileRepository:.init(url:root.appending(path:"profiles.json")))
+        XCTAssertEqual(recovered.profiles,monitor.profiles)
+        XCTAssertFalse(try String(contentsOf:root.appending(path:"profiles.json"),encoding:.utf8).contains("smoothing"))
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(at:root.appending(path:"Backups"),includingPropertiesForKeys:nil).count,2)
+        var invalid = rules[1];invalid["overrides"] = ["unknown-future-option"]
+        XCTAssertThrowsError(try JSONDecoder().decode(ApplicationPressureRule.self,from:JSONSerialization.data(withJSONObject:invalid)))
     }
 
-    private func trajectoryPoint(_ x: Double, time: Double, pressure: Double = 0.5, type: CGEventType = .leftMouseDragged, id: Int64 = 17, pid: Int64 = 42, pen: Bool = true) throws -> CGEvent {
-        let e = try point(pressure, id: id, pid: pid, type: type, pen: pen)
-        e.timestamp = UInt64((time*1_000_000_000).rounded()); e.location = .init(x: x, y: 100)
-        e.setIntegerValueField(.tabletEventPointX, value: Int64(x*100)); e.setIntegerValueField(.tabletEventPointY, value: 10_000)
-        return e
-    }
-    private func smoothingProfile() -> PressureProfile {
-        var p = profile(curve: .linear); p.smoothing = .init(enabled: true, strength: 0.7); return p
-    }
-
-    func testQuartzSmoothingKeepsCoordinateSpacesPressureAndReleaseCoherent() throws {
-        var m = processor(smoothingProfile()); m.process(try proximity())
-        let down = try trajectoryPoint(0, time: 1, type: .leftMouseDown); m.process(down)
-        XCTAssertEqual(down.location.x, 0)
-        let drag = try trajectoryPoint(10, time: 1.005); m.process(drag)
-        XCTAssertGreaterThan(drag.location.x, 0); XCTAssertLessThan(drag.location.x, 10)
-        XCTAssertEqual(Double(drag.getIntegerValueField(.tabletEventPointX)), drag.location.x*100, accuracy: 0.51)
-        XCTAssertEqual(drag.getIntegerValueField(.mouseEventDeltaX), Int64(drag.location.x.rounded()))
-        XCTAssertEqual(drag.getDoubleValueField(.mouseEventPressure), down.getDoubleValueField(.mouseEventPressure))
-        XCTAssertEqual(drag.getDoubleValueField(.tabletEventTiltX), down.getDoubleValueField(.tabletEventTiltX))
-        XCTAssertEqual(drag.getDoubleValueField(.tabletEventRotation), down.getDoubleValueField(.tabletEventRotation))
-        XCTAssertEqual(drag.timestamp, 1_005_000_000)
-        // Standalone zero can precede the companion mouse-up.
-        m.process(try trajectoryPoint(20, time: 1.008, pressure: 0, type: .tabletPointer))
-        let up = try trajectoryPoint(25, time: 1.01, pressure: 0, type: .leftMouseUp); m.process(up)
-        XCTAssertEqual(up.location.x, 25, "Release coordinates must retain original delivery metadata")
-        XCTAssertEqual(up.getDoubleValueField(.mouseEventPressure), 0)
-        XCTAssertEqual(up.getIntegerValueField(.mouseEventDeltaX), 0)
-        let next = try trajectoryPoint(80, time: 2, type: .leftMouseDown); m.process(next)
-        XCTAssertEqual(next.location.x, 80)
-        XCTAssertNotNil(m.snapshot.diagnostics.first?.eventType)
-        XCTAssertNotNil(m.snapshot.diagnostics.first?.smoothing)
-        let document = PenLogDocument(store: .init(), interactions: .init(), isMonitoring: true, mapping: m.snapshot)
-        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: document.jsonData()) as? [String: Any])
-        let mapping = try XCTUnwrap(json["mapping"] as? [String: Any])
-        let diagnostics = try XCTUnwrap(mapping["diagnostics"] as? [[String: Any]])
-        XCTAssertEqual((diagnostics.last?["outputPosition"] as? [String: Double])?["x"], 80)
-    }
-
-    func testSmoothingPassthroughLatchDisableAndProximityReset() throws {
-        var m = processor(smoothingProfile()); m.process(try proximity()); m.process(try proximity(id: 18, vendor: 1386))
-        for event in [try trajectoryPoint(10,time: 1,id: 18), try trajectoryPoint(10,time: 1,pid: 43),
-                      try trajectoryPoint(10,time: 1,pen: false), try trajectoryPoint(10,time: 1,type: .rightMouseDown),
-                      try trajectoryPoint(10,time: 1,type: .mouseMoved)] {
-            let original = event.location; m.process(event); XCTAssertEqual(event.location, original)
-        }
-        m.process(try trajectoryPoint(10,time: 1.5,pressure: 0,type: .leftMouseUp))
-        // Explicit new contact after the passthrough decisions above.
-        m.process(try trajectoryPoint(0,time: 2,type: .leftMouseDown))
-        m.setProfiles([profile(curve: .linear)])
-        let held = try trajectoryPoint(10,time: 2.005); m.process(held)
-        XCTAssertLessThan(held.location.x, 10, "Settings remain latched until release")
-        m.setProfiles([])
-        let disabled = try trajectoryPoint(20,time: 2.01); m.process(disabled); XCTAssertEqual(disabled.location.x, 20)
-        m.setProfiles([smoothingProfile()]); m.process(try proximity(entering: false)); m.process(try proximity())
-        let next = try trajectoryPoint(90,time: 3,type: .leftMouseDown); m.process(next); XCTAssertEqual(next.location.x, 90)
-    }
-
-    func testSmoothingAndExitQueuePreserveOrderAndCancellationRestoresPositions() throws {
-        var p = smoothingProfile(); p.taper.exitEnabled = true; p.taper.entryEnabled = true
-        var m = processor(p); m.process(try proximity())
-        var queue = BufferedPenEvents()
-        var originals: [CGEvent] = []
-        for (x,t,type) in [(0.0,1.0,CGEventType.leftMouseDown),(10,1.005,.leftMouseDragged),(20,1.01,.leftMouseUp)] {
-            let e = try trajectoryPoint(x,time: t,pressure: type == .leftMouseUp ? 0 : 0.5,type: type)
-            let original = try XCTUnwrap(e.copy()); originals.append(original)
-            let result = try XCTUnwrap(m.process(e))
-            XCTAssertTrue(queue.accept(e, original: original, result: result, now: t).suppress)
-        }
-        let output = queue.drain(now: 2)
-        XCTAssertEqual(output.map(\.event.type), [.leftMouseDown,.leftMouseDragged,.leftMouseUp])
-        XCTAssertEqual(output[2].event.location.x, 20)
-        XCTAssertEqual(output[2].event.getDoubleValueField(.mouseEventPressure),0)
-        XCTAssertEqual(m.snapshot.diagnostics[1].taper?.distance, 10)
-        m.process(try proximity())
-        let e = try trajectoryPoint(30,time: 3,type: .leftMouseDown), original = try XCTUnwrap(try trajectoryPoint(30,time: 3,type: .leftMouseDown).copy())
-        _ = queue.accept(e, original: original, result: m.process(e), now: 3)
-        XCTAssertEqual(queue.cancel().first?.event.location, original.location)
-    }
-}
-
-extension PressureMappingTests {
-    func testSmoothingStatesAreIndependentAcrossDevicesAndPlainReleaseIsUntouched() throws {
-        var pencil = smoothingProfile(), wacom = smoothingProfile()
-        pencil.taper.entryEnabled = false
-        wacom.device = PenIdentity(key: "v1:model:56a:129a:0:pen", level: .model)
-        var m = processor(pencil); m.setProfiles([pencil,wacom])
-        m.process(try proximity()); m.process(try proximity(id: 18,vendor: 1386))
-        m.process(try trajectoryPoint(0,time: 1,type: .leftMouseDown))
-        let tabletDown = try trajectoryPoint(500,time: 1,type: .leftMouseDown,id: 18); m.process(tabletDown)
-        XCTAssertEqual(tabletDown.location.x, 500)
-        let pencilDrag = try trajectoryPoint(10,time: 1.005); m.process(pencilDrag)
-        let tabletDrag = try trajectoryPoint(510,time: 1.005,id: 18); m.process(tabletDrag)
-        XCTAssertEqual(tabletDrag.location.x-pencilDrag.location.x, 500, accuracy: 1e-9)
-        m.process(try proximity(id: 18,entering: false,vendor: 1386))
-        m.process(try trajectoryPoint(20,time: 1.01,pressure: 0,type: .tabletPointer))
-        let plainUp = try trajectoryPoint(30,time: 1.015,pressure: 0,type: .leftMouseUp,pen: false)
-        m.process(plainUp)
-        XCTAssertEqual(plainUp.location.x, 30)
-        // With no known pending pen release an ordinary click remains untouched.
-        let mouseUp = try trajectoryPoint(80,time: 2,pressure: 0,type: .leftMouseUp,pen: false)
-        m.process(mouseUp); XCTAssertEqual(mouseUp.location.x,80)
-    }
-
-    func testCancelledSmoothedQueueRestoresCoordinatesAndDiagnostic() throws {
-        var p = smoothingProfile(); p.taper.exitEnabled = true
-        var m = processor(p); m.process(try proximity())
-        var queue = BufferedPenEvents()
-        for (x,t,type) in [(0.0,1.0,CGEventType.leftMouseDown),(10,1.005,.leftMouseDragged)] {
-            let e = try trajectoryPoint(x,time: t,type: type), original = try XCTUnwrap(try trajectoryPoint(x,time: t,type: type).copy())
-            let result = m.process(e)
-            XCTAssertTrue(queue.accept(e,original: original,result: result,now: t).suppress)
-        }
-        let cancelled = queue.cancel()
-        XCTAssertEqual(cancelled[1].event.location.x,10)
-        XCTAssertEqual(cancelled[1].event.getIntegerValueField(.tabletEventPointX),1000)
-        XCTAssertEqual(cancelled[1].diagnostic?.inputPosition,cancelled[1].diagnostic?.outputPosition)
-        XCTAssertEqual(cancelled[1].diagnostic?.smoothing?.enabled,false)
-        XCTAssertEqual(cancelled[1].diagnostic?.smoothing?.inputTablet,cancelled[1].diagnostic?.smoothing?.outputTablet)
-    }
-}
-
-extension PressureMappingTests {
-    func testSmoothingDoesNotRewriteMouseBoundaryPayloads() throws {
-        var m = processor(smoothingProfile()); m.process(try proximity())
-        let preserved: [CGEventField] = [.mouseEventSubtype,.mouseEventButtonNumber,.mouseEventClickState,
-            .mouseEventNumber,.mouseEventDeltaX,.mouseEventDeltaY,.tabletEventPointX,.tabletEventPointY,
-            .tabletEventPointZ,.tabletEventPointButtons,.tabletEventDeviceID,.tabletEventTiltX,
-            .tabletEventTiltY,.tabletEventRotation,.tabletEventTangentialPressure,
-            .eventTargetUnixProcessID,.eventSourceUnixProcessID]
-        for (x,t,type) in [(0.0,1.0,CGEventType.leftMouseDown),(50,1.01,.leftMouseUp)] {
-            let appKit = try XCTUnwrap(NSEvent.mouseEvent(with: type == .leftMouseDown ? .leftMouseDown : .leftMouseUp,
-                location: .init(x: x,y: 100), modifierFlags: [.shift], timestamp: t,
-                windowNumber: 123, context: nil,eventNumber: 77,clickCount: 1,pressure: type == .leftMouseDown ? 0.5 : 0))
-            let e = try XCTUnwrap(appKit.cgEvent?.copy())
-            e.setIntegerValueField(.mouseEventSubtype,value: 1)
-            e.setIntegerValueField(.tabletEventDeviceID,value: 17)
-            e.setIntegerValueField(.eventTargetUnixProcessID,value: 42)
-            e.setIntegerValueField(.tabletEventPointX,value: Int64(x*100))
-            e.setIntegerValueField(.tabletEventPointY,value: 10000)
-            e.setIntegerValueField(.tabletEventPointButtons,value: type == .leftMouseDown ? 1 : 0)
-            e.setIntegerValueField(.mouseEventDeltaX,value: 27)
-            e.setIntegerValueField(.mouseEventDeltaY,value: -13)
-            e.setDoubleValueField(.tabletEventPointPressure,value: type == .leftMouseDown ? 0.5 : 0)
-            let location = e.location, flags = e.flags, timestamp = e.timestamp
-            let values = preserved.map { e.getDoubleValueField($0) }
-            let before = try XCTUnwrap(NSEvent(cgEvent: e))
+    func testPressureProcessingNeverChangesPointerCoordinatesOrMousePayload() throws {
+        var m = processor();m.process(try proximity())
+        let fields: [CGEventField] = [.mouseEventDeltaX,.mouseEventDeltaY,.tabletEventPointX,.tabletEventPointY,
+            .tabletEventPointButtons,.mouseEventNumber,.mouseEventClickState,.tabletEventDeviceID,.mouseEventSubtype]
+        for type: CGEventType in [.leftMouseDown,.leftMouseDragged,.leftMouseUp] {
+            let e = try point(type == .leftMouseUp ? 0 : 0.5,type:type)
+            e.location = .init(x:-1091,y:367.5625)
+            e.setIntegerValueField(.tabletEventPointX,value:-1091)
+            e.setIntegerValueField(.tabletEventPointY,value:367)
+            e.setIntegerValueField(.mouseEventDeltaY,value:-3)
+            let location = e.location, values = fields.map { e.getIntegerValueField($0) }
             m.process(e)
-            XCTAssertEqual(e.location,location); XCTAssertEqual(e.flags,flags); XCTAssertEqual(e.timestamp,timestamp)
-            XCTAssertEqual(preserved.map { e.getDoubleValueField($0) },values)
-            let after = try XCTUnwrap(NSEvent(cgEvent: e))
-            XCTAssertEqual(after.type,before.type); XCTAssertEqual(after.windowNumber,before.windowNumber)
-            XCTAssertEqual(after.eventNumber,before.eventNumber); XCTAssertEqual(after.clickCount,before.clickCount)
-            XCTAssertEqual(after.buttonMask,before.buttonMask); XCTAssertEqual(after.deviceID,before.deviceID)
-            if type == .leftMouseDown {
-                let drag = try trajectoryPoint(10,time: t+0.005); m.process(drag)
-                XCTAssertLessThan(drag.location.x,10)
-            }
+            XCTAssertEqual(e.location,location);XCTAssertEqual(fields.map { e.getIntegerValueField($0) },values)
+            XCTAssertEqual(e.getDoubleValueField(.tabletEventPointPressure),type == .leftMouseUp ? 0 : 0.8,accuracy:0.005)
         }
-    }
-}
-
-extension PressureMappingTests {
-    func testProductionSmoothingIsQuarantinedWithoutChangingPressureMapping() throws {
-        var p = smoothingProfile(); p.curve = .light
-        var m = PressureMappingProcessor() // Exact production defaults, no experimental coordinate writes.
-        m.applications = [42: "com.adobe.Photoshop"]; m.setProfiles([p]); m.process(try proximity())
-        for (x,t,type) in [(0.0,1.0,CGEventType.leftMouseDown),(10,1.005,.leftMouseDragged),(30,1.01,.leftMouseUp)] {
-            let e = try trajectoryPoint(x,time: t,pressure: type == .leftMouseUp ? 0 : 0.5,type: type)
-            e.setIntegerValueField(.mouseEventDeltaX,value: 24)
-            e.setIntegerValueField(.mouseEventDeltaY,value: -31)
-            let original = try XCTUnwrap(e.copy())
-            m.process(e)
-            XCTAssertEqual(e.location,original.location)
-            for field: CGEventField in [.mouseEventDeltaX,.mouseEventDeltaY,.tabletEventPointX,.tabletEventPointY,.tabletEventPointButtons,.mouseEventNumber] {
-                XCTAssertEqual(e.getIntegerValueField(field),original.getIntegerValueField(field))
-            }
-            XCTAssertEqual(e.getDoubleValueField(.tabletEventPointPressure),type == .leftMouseUp ? 0 : 0.8,accuracy: 0.005)
-            XCTAssertNotNil(m.snapshot.diagnostics.last?.smoothingBypassReason)
-            XCTAssertNil(m.snapshot.diagnostics.last?.smoothing)
+        for type: CGEventType in [.rightMouseDown,.rightMouseDragged,.rightMouseUp] {
+            let mouse = try point(0.5,type:type,pen:false)
+            let original = mouse.data
+            XCTAssertNil(m.process(mouse));XCTAssertEqual(mouse.data,original)
         }
-        XCTAssertEqual(m.snapshot.coordinateProbes?.count,3)
-        let probe = try XCTUnwrap(m.snapshot.coordinateProbes?.first)
-        let captured = try XCTUnwrap(CGEvent(withDataAllocator: nil, data: probe.eventData as CFData))
-        XCTAssertEqual(captured.type,.leftMouseDown)
-        XCTAssertEqual(captured.getDoubleValueField(.tabletEventPointPressure),0.5,accuracy: 0.005,"Capture precedes pressure processing")
-        XCTAssertEqual(captured.location.x,0)
-        let document = PenLogDocument(store: .init(),interactions: .init(),isMonitoring: true,mapping: m.snapshot)
-        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: document.jsonData()) as? [String: Any])
-        let mapping = try XCTUnwrap(json["mapping"] as? [String: Any])
-        XCTAssertEqual((mapping["coordinateProbes"] as? [Any])?.count,3)
-    }
-
-    func testCoordinateProbesAreSparseBoundedAndExcludeUnmatchedInput() throws {
-        var m = PressureMappingProcessor();m.applications = [42: "com.adobe.Photoshop",43: "other.app"]
-        m.setProfiles([smoothingProfile()]);m.process(try proximity())
-        m.process(try trajectoryPoint(0,time: 1,type: .leftMouseDown,pid: 43))
-        m.process(try trajectoryPoint(0,time: 1.01,pressure: 0,type: .leftMouseUp,pid: 43))
-        m.process(try trajectoryPoint(0,time: 1.02,pen: false))
-        XCTAssertNil(m.snapshot.coordinateProbes)
-        for i in 0..<100 {
-            m.process(try trajectoryPoint(Double(i),time: 2+Double(i)*0.005))
-        }
-        XCTAssertEqual(m.snapshot.coordinateProbes?.count,1)
-        XCTAssertEqual(m.snapshot.coordinateProbes?.first?.eventType,CGEventType.leftMouseDragged.rawValue)
-        // Different recognized devices share a fixed total budget, never an unbounded event archive.
-        for i in 1...24 {
-            let identity = PenIdentity(key: "v1:model:\(String(i,radix:16)):129a:0:pen",level: .model)
-            var profile = smoothingProfile();profile.device = identity
-            m.setProfiles([profile]);m.process(try proximity(id: Int64(i+100),vendor: Int64(i)))
-            m.process(try trajectoryPoint(0,time: 3,type: .leftMouseDown,id: Int64(i+100)))
-        }
-        XCTAssertEqual(m.snapshot.coordinateProbes?.count,16)
     }
 }

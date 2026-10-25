@@ -10,7 +10,7 @@ struct PressureConfigurationEditor: View {
             if component == nil || component == .curve { curveControls }
             if component != .curve {
                 VStack(alignment: .leading, spacing: 10) {
-                    if component == nil { Text("轨迹与笔锋").font(.headline) }
+                    if component == nil { Text("入锋与出锋").font(.headline) }
                     if component == nil || component == .entry { entryControls }
                     if component == nil { Divider() }
                     if component == nil || component == .exit { exitControls }
@@ -19,9 +19,7 @@ struct PressureConfigurationEditor: View {
                             configuration.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12,
                                 entryDurationMS: 60, exitEnabled: true, exitDurationMS: 60)
                         }
-                        Divider()
                     }
-                    if component == nil || component == .smoothing { smoothingControls }
                 }.toggleStyle(.checkbox).frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -66,25 +64,6 @@ struct PressureConfigurationEditor: View {
                 Text("会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。")
                     .font(.caption).foregroundStyle(.secondary)
             }
-        }
-    }
-
-    private var smoothingControls: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("轨迹平滑暂不可用").font(.headline)
-            Text("Sidecar / Photoshop 实测出现坐标跳变，已停止位置改写。压力曲线和笔锋仍正常生效；以下参数保留，等待兼容性修复。")
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Toggle("平滑输入 · 减轻轨迹抖动", isOn: $configuration.smoothing.enabled).disabled(true)
-            if configuration.smoothing.enabled {
-                HStack {
-                    Text("强度").font(.caption)
-                    Slider(value: $configuration.smoothing.strength, in: 0...1).disabled(true)
-                    Text("\(configuration.smoothing.strength * 100, specifier: "%.0f")%")
-                        .font(.caption.monospacedDigit()).frame(width: 42)
-                }
-            }
-            Text("实时处理位置，不额外缓存；强度越高越稳定，也可能产生跟随偏差或圆化转角。压力不受此选项影响。")
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 

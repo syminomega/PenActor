@@ -217,12 +217,7 @@ struct BufferedPenEvents {
                 targetBundleID: old.targetBundleID, profileID: nil, inputPressure: old.inputPressure,
                 outputPressure: old.inputPressure, tabletInputPressure: old.tabletInputPressure,
                 tabletOutputPressure: old.tabletInputPressure, reason: "暂停 / 禁用：缓存恢复原输入", delivery: "取消缓冲")
-            diagnostic?.eventType = old.eventType
-            diagnostic?.inputPosition = old.inputPosition; diagnostic?.outputPosition = old.inputPosition
-            if var smoothing = old.smoothing {
-                smoothing.enabled = false; smoothing.outputTablet = smoothing.inputTablet
-                diagnostic?.smoothing = smoothing
-            }
+
         }
         return .init(original: packet.original, event: packet.original, diagnostic: diagnostic, route: packet.route,
                      contact: packet.contact, deadline: packet.deadline)
