@@ -16,6 +16,15 @@ preferences, including per-app language settings. Relaunch after changing langua
 - Test pen strokes and local Pencil double-tap/squeeze callbacks.
 - Export diagnostic snapshots as JSON for offline analysis.
 
+## Install a prebuilt release
+
+Download the universal DMG and matching SHA-256 file from
+[GitHub Releases](https://github.com/syminomega/PenActor/releases), then drag
+PenActor into Applications. If no binary release is listed, build from source below.
+Current builds use a development signature and are not notarized by Apple.
+See [installation and first-launch troubleshooting](docs/installation.md) for
+checksum checks, macOS security prompts, and the app-specific quarantine command.
+
 ## Getting started
 
 Open `PenActor.xcodeproj` in Xcode, select the shared **PenActor** scheme and
@@ -48,6 +57,7 @@ builds separate from the app used daily; see the [development guide](docs/develo
 
 ## Documentation
 
+- [Installation](docs/installation.md): DMG setup, first launch, and security prompts.
 - [Usage and diagnostics](docs/usage.md): configuration, permissions, tapering, and JSON exports.
 - [Architecture](docs/architecture.md): source layout, ownership, and event flow.
 - [Development](docs/development.md): builds, tests, signing, localization, and contribution conventions.

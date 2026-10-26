@@ -68,12 +68,55 @@ scripts/build-signed.sh <40-character-identity-SHA-1> <10-character-team-ID>
 
 The script verifies the resulting signature and team and writes to
 `build/Signed/Build/Products/Release/PenActor.app`. It does not install certificates,
-change trust, grant privacy access, or replace the installed app. No notarization
-or distribution workflow is configured.
+change trust, grant privacy access, or replace the installed app. DMG packaging
+is available below; notarization and automatic release uploads are not configured.
 
 Avoid keeping full app-shaped signing probes or versioned backups with the same
 bundle ID. Launch Services can discover them even with a different extension and
 show confusing names in privacy settings. Keep necessary backups as ZIP archives.
+
+## DMG packaging
+
+Create a universal Release DMG using the current Xcode signing configuration:
+
+```sh
+scripts/package-dmg.sh
+```
+
+The script builds into `build/Packaging`, packages the app without altering its
+signature, and writes `build/Release/PenActor-<version>-macos-universal.dmg` plus
+its `.dmg.sha256` checksum. The version comes from the compiled app's Info.plist.
+The image contains `PenActor.app`, an Applications shortcut, and both installation
+guides. It verifies the app signature, both architectures, compiled languages,
+image integrity, and mounted contents. Existing output files are not overwritten.
+
+To package an already-built app, or select another artifact directory:
+
+```sh
+scripts/package-dmg.sh \
+  --app build/Signed/Build/Products/Release/PenActor.app \
+  --output-dir build/ReleaseCandidate
+```
+
+The provided app must have bundle ID `dev.SyminStudio.PenActor`, a valid code
+signature, both arm64/x86_64 slices, and both compiled language resources. Without
+a local signing override, a fresh default build uses ad-hoc signing. The current
+maintainer build uses Apple Development signing. Neither is a Developer ID-signed,
+notarized public-distribution build. For that workflow, obtain a Developer ID
+Application identity and follow Apple's
+[notarization guidance](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
+The packaging script does not alter signing configuration, install/launch the app,
+grant permissions, remove quarantine, or submit a notarization request.
+
+For GitHub distribution, create a release in
+[the repository's Releases page](https://github.com/syminomega/PenActor/releases),
+choose a tag matching the packaged app version, and attach **both** the DMG and
+its checksum file. Include the current signing/notarization status and a link to
+[installation instructions](installation.md) in the release notes. Commit/push the
+packaging and documentation changes before publishing their links. The script
+only creates local artifacts; it does not create tags, push commits, or publish a
+GitHub release. Test an actual browser download and first launch on a separate
+Mac; local packaging checks cannot reproduce a clean recipient's Gatekeeper/TCC state.
 
 ## Change conventions
 

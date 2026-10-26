@@ -64,11 +64,48 @@ scripts/build-signed.sh <40-character-identity-SHA-1> <10-character-team-ID>
 脚本会校验签名和团队，将产物写入
 `build/Signed/Build/Products/Release/PenActor.app`。
 它不会安装证书、修改信任、授予隐私权限或替换已安装应用。
-项目尚未配置公证和分发流程。
+下方提供 DMG 打包流程；项目尚未配置公证和自动发布上传。
 
 避免保留与正式应用具有相同 bundle ID 的完整应用形态签名探针或版本备份。
 即使修改扩展名，Launch Services 仍可能发现它们，导致隐私设置中的名称混淆。
 需要保留的备份请保存为 ZIP 归档。
+
+## DMG 打包
+
+使用当前 Xcode 签名配置创建通用 Release DMG：
+
+```sh
+scripts/package-dmg.sh
+```
+
+脚本在 `build/Packaging` 中构建，在不改动签名的情况下打包应用，并输出
+`build/Release/PenActor-<version>-macos-universal.dmg` 和对应的 `.dmg.sha256`
+校验文件。版本号读取自编译后的应用 Info.plist。
+映像包含 `PenActor.app`、Applications 快捷方式和两种语言的安装指南。
+脚本检查应用签名、双架构、已编译语言资源、映像完整性和挂载后的内容，不覆盖已有输出文件。
+
+打包已经构建的应用，或选择其他产物目录：
+
+```sh
+scripts/package-dmg.sh \
+  --app build/Signed/Build/Products/Release/PenActor.app \
+  --output-dir build/ReleaseCandidate
+```
+
+指定应用的 bundle ID 必须为 `dev.SyminStudio.PenActor`，具有有效代码签名、
+arm64/x86_64 两种架构和两种已编译语言资源。
+没有本地签名覆盖时，默认的新构建使用 ad-hoc 签名；当前维护者构建使用 Apple Development
+签名。它们都不是使用 Developer ID 签名并完成公证的公开分发构建。
+如需该流程，请获取 Developer ID Application 身份，并遵循 Apple 的
+[公证指南](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)。
+打包脚本不会修改签名配置、安装或启动应用、授予权限、移除隔离属性或提交公证请求。
+
+在 GitHub 分发时，通过[仓库 Releases 页面](https://github.com/syminomega/PenActor/releases)
+创建发布，选择与应用版本对应的标签，同时上传 DMG 和校验文件。
+发布说明中写明当前签名及公证状态，并链接到[安装说明](installation.zh-CN.md)。
+公开链接前先提交并推送打包与文档改动。脚本只生成本地产物，不创建标签、推送提交或发布 GitHub Release。
+应在另一台 Mac 上测试通过浏览器实际下载后的首次启动；本地打包检查无法复现接收者干净系统的
+Gatekeeper 和 TCC 状态。
 
 ## 修改约定
 

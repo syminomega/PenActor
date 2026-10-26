@@ -15,6 +15,15 @@ PenActor 是一款 macOS 菜单栏工具，用于观察数位笔输入，并调�
 - 测试笔迹，以及当前窗口的 Pencil 双击和挤压回调。
 - 导出 JSON 诊断快照，供离线分析。
 
+## 安装预编译版本
+
+从 [GitHub Releases](https://github.com/syminomega/PenActor/releases) 下载通用 DMG
+和对应的 SHA-256 校验文件，再将 PenActor 拖入 Applications。
+如果尚未列出二进制发布版本，请按下方说明从源码构建。
+当前构建使用开发签名，尚未经过 Apple 公证。
+[安装与首次启动排查](docs/installation.zh-CN.md)说明了校验步骤、macOS 安全提示，
+以及仅针对本应用的隔离属性移除命令。
+
 ## 快速开始
 
 使用 Xcode 打开 `PenActor.xcodeproj`，选择共享方案 **PenActor** 和 **My Mac**，然后运行。
@@ -44,6 +53,7 @@ xcodebuild -project PenActor.xcodeproj -scheme PenActor \
 
 ## 文档
 
+- [安装说明](docs/installation.zh-CN.md)：DMG 安装、首次启动和安全提示。
 - [使用与诊断](docs/usage.zh-CN.md)：配置、权限、笔锋与 JSON 导出。
 - [架构说明](docs/architecture.zh-CN.md)：源码目录、职责归属与事件流。
 - [开发指南](docs/development.zh-CN.md)：构建、测试、签名、本地化与贡献约定。
