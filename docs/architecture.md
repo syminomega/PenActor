@@ -2,8 +2,8 @@
 
 English | [简体中文](architecture.zh-CN.md)
 
-PenActor uses responsibility-based folders, following Mos's separation of input,
-options, application managers, windows, and reusable components. These are source
+PenActor uses responsibility-based folders for input, options, application
+managers, windows, and reusable components. These are source
 boundaries within one application target, not separate frameworks.
 
 ## Source map

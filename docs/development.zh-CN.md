@@ -96,8 +96,7 @@ PenActor 提供**简体中文（`zh-Hans`）**和**英文（`en`）**。
 均为 `en`，`knownRegions` 包含 `en` 和 `zh-Hans`。英文是开发语言回退值。保持这些设置一致，
 并将目录加入应用资源编译阶段。本项目没有 storyboard，也没有独立的 Interface Builder 翻译目录。
 
-与 Mos 一样，功能开发时同步维护翻译。Mos 最低支持 macOS 10.13，而 PenActor 最低支持
-macOS 14，因此可使用 `String(localized:comment:)`。
+功能开发时同步维护翻译。PenActor 最低支持 macOS 14，可使用 `String(localized:comment:)`。
 字符串保存到模型属性，或传给接收 `String` 的辅助函数时，优先显式本地化：
 
 ```swift

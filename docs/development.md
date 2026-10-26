@@ -108,9 +108,9 @@ catalog `sourceLanguage` are `en`; `knownRegions` includes `en` and `zh-Hans`.
 English is the development-language fallback. Keep these settings consistent.
 Include the catalog in the app's resource build phase. This project has no storyboards or separate Interface Builder catalog.
 
-Following Mos, translations are maintained alongside feature work. Unlike Mos's
-macOS 10.13 target, PenActor supports `String(localized:comment:)` on its macOS 14
-minimum. Prefer explicit localization when a string is stored in a model property
+Maintain translations alongside feature work. PenActor's macOS 14 minimum
+supports `String(localized:comment:)`.
+Prefer explicit localization when a string is stored in a model property
 or passed through a helper accepting `String`:
 
 ```swift
