@@ -43,25 +43,25 @@ struct ContentView: View {
 
     private var globalStatusBar: some View {
         HStack(spacing: 10) {
-            Label(monitor.mapping.isRunning ? String(localized: "映射已启用") : monitor.mapping.isStarting ? String(localized: "映射正在启动") : String(localized: "映射已暂停"),
+            Label(monitor.mapping.isRunning ? String(localized: "Mapping enabled") : monitor.mapping.isStarting ? String(localized: "Mapping starting") : String(localized: "Mapping paused"),
                   systemImage: monitor.mapping.isRunning ? "arrow.triangle.2.circlepath" : "pause.circle")
             Divider().frame(height: 12)
-            Button(String(localized: "暂停全部映射"), systemImage: "pause.fill") { monitor.pauseMapping() }
+            Button(String(localized: "Pause All Mapping"), systemImage: "pause.fill") { monitor.pauseMapping() }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.primary)
                 .keyboardShortcut("r", modifiers: [.command, .shift])
                 .disabled(!monitor.mapping.isRunning && !monitor.mapping.isStarting && monitor.enabledProfileIDs.isEmpty)
-                .help(String(localized: "暂停所有设备的压力映射，不停止输入服务（⌘⇧R）"))
+                .help(String(localized: "Pause pressure mapping for all devices while keeping the input service running (⌘⇧R)"))
             Spacer(minLength: 20)
-            Label(monitor.isRunning ? String(localized: "输入服务运行中") : String(localized: "输入服务已停止"), systemImage: monitor.isRunning ? "waveform" : "pause.circle")
+            Label(monitor.isRunning ? String(localized: "Input service running") : String(localized: "Input service stopped"), systemImage: monitor.isRunning ? "waveform" : "pause.circle")
         }
         .font(.caption).foregroundStyle(.secondary)
         .padding(.horizontal, 16).padding(.vertical, 8)
         .background(Color(nsColor: .underPageBackgroundColor))
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(String(localized: "全局运行状态与控制"))
+        .accessibilityLabel(String(localized: "Global service status and controls"))
     }
 
 }

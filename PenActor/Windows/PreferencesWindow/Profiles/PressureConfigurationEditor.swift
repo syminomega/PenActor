@@ -10,12 +10,12 @@ struct PressureConfigurationEditor: View {
             if component == nil || component == .curve { curveControls }
             if component != .curve {
                 VStack(alignment: .leading, spacing: 10) {
-                    if component == nil { Text(String(localized: "入锋与出锋")).font(.headline) }
+                    if component == nil { Text(String(localized: "Stroke tapering")).font(.headline) }
                     if component == nil || component == .entry { entryControls }
                     if component == nil { Divider() }
                     if component == nil || component == .exit { exitControls }
                     if component == nil {
-                        Button(String(localized: "首尾测试预设")) {
+                        Button(String(localized: "Taper Test Preset")) {
                             configuration.taper = StrokeTaperSettings(entryEnabled: true, entryDistance: 12,
                                 entryDurationMS: 60, exitEnabled: true, exitDurationMS: 60)
                         }
@@ -27,18 +27,18 @@ struct PressureConfigurationEditor: View {
 
     private var curveControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(String(localized: "压力曲线")).font(.headline)
+            Text(String(localized: "Pressure curve")).font(.headline)
             PressureCurveEditor(curve: $configuration.curve, selected: $selectedPoint)
                 .frame(width: 230, height: 180)
             HStack {
-                Button(String(localized: "线性")) { configuration.curve = .linear; selectedPoint = nil }
-                Button(String(localized: "轻压增强")) { configuration.curve = .light; selectedPoint = nil }
-                Button(String(localized: "删除点")) {
+                Button(String(localized: "Linear")) { configuration.curve = .linear; selectedPoint = nil }
+                Button(String(localized: "Light Pressure")) { configuration.curve = .light; selectedPoint = nil }
+                Button(String(localized: "Delete Point")) {
                     guard let i = selectedPoint, i > 0, i < configuration.curve.points.count-1 else { return }
                     configuration.curve.points.remove(at: i); selectedPoint = nil
                 }.disabled(selectedPoint == nil || selectedPoint == 0 || selectedPoint == configuration.curve.points.count-1)
             }
-            Text(String(localized: "双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。"))
+            Text(String(localized: "Double-click to add a point; drag to adjust. Input is horizontal, output vertical. Endpoints are fixed."))
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 .frame(width: 230, alignment: .leading)
         }
@@ -46,11 +46,11 @@ struct PressureConfigurationEditor: View {
 
     private var entryControls: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(String(localized: "入锋 · 从零压力平滑进入"), isOn: $configuration.taper.entryEnabled)
+            Toggle(String(localized: "Entry taper · Fade in from zero pressure"), isOn: $configuration.taper.entryEnabled)
             if configuration.taper.entryEnabled {
-                parameter(String(localized: "入锋长度"), value: $configuration.taper.entryDistance, range: 1...200, step: 1, unit: String(localized: "点"))
-                parameter(String(localized: "时间上限"), value: $configuration.taper.entryDurationMS, range: 10...500, step: 5, unit: "ms")
-                Text(String(localized: "累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。"))
+                parameter(String(localized: "Entry length"), value: $configuration.taper.entryDistance, range: 1...200, step: 1, unit: String(localized: "pt"))
+                parameter(String(localized: "Time limit"), value: $configuration.taper.entryDurationMS, range: 10...500, step: 5, unit: "ms")
+                Text(String(localized: "Entry taper ends when the distance or time limit is reached. Very short strokes may fade."))
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -58,10 +58,10 @@ struct PressureConfigurationEditor: View {
 
     private var exitControls: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(String(localized: "出锋 · 缓冲尾部并渐隐"), isOn: $configuration.taper.exitEnabled)
+            Toggle(String(localized: "Exit taper · Buffer and fade the tail"), isOn: $configuration.taper.exitEnabled)
             if configuration.taper.exitEnabled {
-                parameter(String(localized: "时长 / 延迟"), value: $configuration.taper.exitDurationMS, range: 10...200, step: 5, unit: "ms")
-                Text(String(localized: "会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。"))
+                parameter(String(localized: "Delay"), value: $configuration.taper.exitDurationMS, range: 10...200, step: 5, unit: "ms")
+                Text(String(localized: "Delays pen input and tapers the queued tail after lift-off. Shortcuts flush the queue early."))
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

@@ -101,11 +101,12 @@ There is no separate in-app language preference. Relaunch after changing the
 preferred language.
 
 `PenActor/Localizable.xcstrings` is the single Xcode String Catalog for SwiftUI,
-AppKit, errors, help, accessibility, and display labels. The existing development
-language is Simplified Chinese, so Chinese phrases remain source keys; English
-translations live in the same catalog. Keep `developmentRegion`, `knownRegions`,
-and catalog source language consistent. Include the catalog in the app's resource
-build phase. This project has no storyboards or separate Interface Builder catalog.
+AppKit, errors, help, accessibility, and display labels. English is the development
+and source language: use readable English phrases as keys and keep Simplified
+Chinese translations in the same catalog. The project’s `developmentRegion` and
+catalog `sourceLanguage` are `en`; `knownRegions` includes `en` and `zh-Hans`.
+English is the development-language fallback. Keep these settings consistent.
+Include the catalog in the app's resource build phase. This project has no storyboards or separate Interface Builder catalog.
 
 Following Mos, translations are maintained alongside feature work. Unlike Mos's
 macOS 10.13 target, PenActor supports `String(localized:comment:)` on its macOS 14
@@ -113,11 +114,11 @@ minimum. Prefer explicit localization when a string is stored in a model propert
 or passed through a helper accepting `String`:
 
 ```swift
-let title = String(localized: "压力曲线", comment: "Pressure response editor title")
+let title = String(localized: "Pressure curve", comment: "Pressure response editor title")
 Text(title)
 
 // Translate the complete sentence, keeping values as typed interpolations.
-let name = String(localized: "配置 \(profileNumber)", comment: "New profile name")
+let name = String(localized: "Profile \(profileNumber)", comment: "New profile name")
 ```
 
 Direct SwiftUI literals can also be extracted, but plain `String` variables,
@@ -127,10 +128,12 @@ complete interpolated phrases and `ListFormatter` for human-readable lists.
 
 ### Adding and reviewing copy
 
-1. Add a source phrase and a useful translator comment for ambiguous terms or
-   dynamic arguments. Reuse a key only when its meaning is the same.
+1. Add a readable English source phrase and a useful translator comment for
+   ambiguous terms or dynamic arguments. Reuse a key only when its meaning is the same.
 2. Build in Xcode to extract strings, then complete **both** catalog language
-   columns. Preserve argument types such as `%@`, `%lld`, `%llu`, and `%d`.
+   columns; the English value must match its source key. Do not use Chinese phrases
+   as localization keys or rewrite stable data values to create English keys.
+   Preserve argument types such as `%@`, `%lld`, `%llu`, and `%d`.
    Use positional placeholders when translation requires changing argument order.
 3. Keep proper names (`PenActor`, `Sidecar`, `Apple Pencil`, `SwiftUI`) and keyboard
    symbols unchanged. Use macOS terms such as Input Monitoring / 输入监控 and
@@ -162,10 +165,11 @@ states, and tool names. Keep them unchanged. Use `EventSource.label`,
 Device identity resolution continues to use the original tool value.
 
 Mapping status and diagnostic reason strings are also retained verbatim in logs;
-`localizedStatus` and `localizedReason` translate them only for the UI. Their
-runtime lookup keys have manually managed catalog entries: keep those entries
-even if automatic extraction cannot find the dynamic lookup. Do not perform
-localization inside high-frequency event-tap processing. Exported diagnostic
+`localizedStatus` and `localizedReason` translate them only for the UI by matching
+legacy raw values to explicit `String(localized:)` calls with English source keys.
+Xcode can extract these display keys normally. Never pass a Chinese raw value as
+a localization key. Unknown diagnostic values pass through unchanged. Do not
+perform localization inside high-frequency event-tap processing. Exported diagnostic
 values and explanatory log notes are not a translated user interface.
 
 ### Validation commands
@@ -182,9 +186,10 @@ xcodebuild -project PenActor.xcodeproj -scheme PenActor \
   -derivedDataPath build/Localization -testLanguage zh-Hans -testRegion CN test
 ```
 
-The validator checks language coverage, completed values, stale entries, and
-format arguments. `LocalizationTests` checks the compiled language resources,
-formatted values, and stable data. The existing rendering/window suite runs in
+The validator checks the English source language/keys, source-value consistency,
+language coverage, completed values, stale entries, and format arguments.
+`LocalizationTests` checks the compiled language resources, formatted values,
+and stable data. The existing rendering/window suite runs in
 the selected test language. Tests must compare display text with localized
 expectations; assertions about persisted or diagnostic values remain invariant.
 

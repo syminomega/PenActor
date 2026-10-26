@@ -7,8 +7,8 @@ enum EventSource: String, Sendable, Codable {
     /// Display labels are localized separately from the legacy Codable raw values.
     var label: String {
         switch self {
-        case .local: String(localized: "本应用")
-        case .global: String(localized: "其他应用")
+        case .local: String(localized: "This app")
+        case .global: String(localized: "Other apps")
         }
     }
 }
@@ -61,10 +61,10 @@ struct PenDeviceInfo: Equatable, Codable {
     /// Keep toolType unchanged: identity resolution and existing logs use these values.
     var localizedToolType: String {
         switch toolType {
-        case "笔": String(localized: "笔")
-        case "橡皮擦": String(localized: "橡皮擦")
-        case "数位板光标": String(localized: "数位板光标")
-        case "未知工具": String(localized: "未知工具")
+        case "笔": String(localized: "Pen")
+        case "橡皮擦": String(localized: "Eraser")
+        case "数位板光标": String(localized: "Tablet cursor")
+        case "未知工具": String(localized: "Unknown tool")
         default: toolType
         }
     }
@@ -77,8 +77,8 @@ enum PenCapability: Int {
     case pressure = 0x0400, tangentialPressure = 0x0800, rotation = 0x2000
 
     func support(mask: Int?) -> String {
-        guard let mask, mask != 0 else { return String(localized: "支持情况未知") }
-        return mask & rawValue != 0 ? String(localized: "驱动声明支持") : String(localized: "驱动未声明支持")
+        guard let mask, mask != 0 else { return String(localized: "Support unknown") }
+        return mask & rawValue != 0 ? String(localized: "Declared by driver") : String(localized: "Not declared by driver")
     }
 }
 

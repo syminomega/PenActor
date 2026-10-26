@@ -14,11 +14,11 @@ enum PencilSqueezeStatus: String, Codable {
 
     var label: String {
         switch self {
-        case .waiting: String(localized: "尚未收到")
-        case .active: String(localized: "正在挤压")
-        case .ended: String(localized: "挤压已结束")
-        case .failed: String(localized: "失败 / 取消")
-        case .interrupted: String(localized: "监听停止 / 窗口失活，已中断")
+        case .waiting: String(localized: "Not received yet")
+        case .active: String(localized: "Squeezing")
+        case .ended: String(localized: "Squeeze ended")
+        case .failed: String(localized: "Failed / canceled")
+        case .interrupted: String(localized: "Interrupted: monitoring stopped or window lost focus")
         }
     }
 }

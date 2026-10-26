@@ -42,9 +42,9 @@ struct PressureCurveEditor: View {
                                 y: min(right.y, max(left.y, 1-(value.location.y-origin.y)/size.height)))
                         })
                 }
-                Text(String(localized: "输出 100%")).font(.caption2).offset(x: 0, y: -5)
+                Text(String(localized: "Output 100%")).font(.caption2).offset(x: 0, y: -5)
                 Text("0%").font(.caption2).position(x: origin.x, y: origin.y+size.height+12)
-                Text(String(localized: "输入压力")).font(.caption2).position(x: origin.x+size.width/2, y: origin.y+size.height+12)
+                Text(String(localized: "Input pressure")).font(.caption2).position(x: origin.x+size.width/2, y: origin.y+size.height+12)
                 Text("100%").font(.caption2).position(x: origin.x+size.width-10, y: origin.y+size.height+12)
             }.coordinateSpace(name: "curve")
         }

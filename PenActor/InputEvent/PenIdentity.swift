@@ -7,10 +7,10 @@ struct PenIdentity: Hashable, Codable, Sendable {
 
         var label: String {
             switch self {
-            case .uniqueTool: String(localized: "笔唯一标识")
-            case .serialNumber: String(localized: "笔序列号")
-            case .model: String(localized: "型号归组（无法区分同型号实体）")
-            case .session: String(localized: "临时会话（等待硬件信息）")
+            case .uniqueTool: String(localized: "Unique pen ID")
+            case .serialNumber: String(localized: "Pen serial number")
+            case .model: String(localized: "Model group (cannot distinguish identical devices)")
+            case .session: String(localized: "Temporary session (awaiting hardware metadata)")
             }
         }
     }

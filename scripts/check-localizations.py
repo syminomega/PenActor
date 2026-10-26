@@ -24,9 +24,11 @@ def signature(value):
 def validate(path):
     catalog = json.loads(path.read_text())
     errors = []
-    if catalog.get("sourceLanguage") != "zh-Hans":
-        errors.append("The source language must remain zh-Hans.")
+    if catalog.get("sourceLanguage") != "en":
+        errors.append("The source language must remain en.")
     for key, row in catalog["strings"].items():
+        if re.search(r"[\u4e00-\u9fff]", key):
+            errors.append(f"{key!r}: use an English source key")
         units = row.get("localizations", {})
         if set(units) != LANGUAGES:
             errors.append(f"{key!r}: expected complete en and zh-Hans coverage")
@@ -35,6 +37,8 @@ def validate(path):
             value = string.get("value", "")
             if not value.strip() or string.get("state") != "translated":
                 errors.append(f"{key!r} ({language}): translation is empty or unfinished")
+            if language == "en" and value != key:
+                errors.append(f"{key!r}: English source value must match its key")
             if signature(value) != signature(key):
                 errors.append(f"{key!r} ({language}): format arguments differ")
         if row.get("extractionState") == "stale":

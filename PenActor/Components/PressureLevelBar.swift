@@ -25,7 +25,7 @@ struct PressureLevelBar: View {
             transaction.disablesAnimations = true
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "压力"))
-        .accessibilityValue(pressure?.isFinite == true ? fraction.formatted(.percent.precision(.fractionLength(1))) : String(localized: "未取得"))
+        .accessibilityLabel(String(localized: "Pressure"))
+        .accessibilityValue(pressure?.isFinite == true ? fraction.formatted(.percent.precision(.fractionLength(1))) : String(localized: "Unavailable"))
     }
 }

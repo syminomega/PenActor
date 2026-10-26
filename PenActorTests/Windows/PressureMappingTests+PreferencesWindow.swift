@@ -21,7 +21,7 @@ extension PressureMappingTests {
         let window = try XCTUnwrap(controller.window)
         let profileWidth = window.frame.width
         let tabs = try XCTUnwrap(window.contentViewController as? NSTabViewController)
-        XCTAssertEqual(tabs.tabViewItems.map(\.label), [String(localized: "通用"), String(localized: "配置"), String(localized: "调试"), String(localized: "测试")])
+        XCTAssertEqual(tabs.tabViewItems.map(\.label), [String(localized: "General"), String(localized: "Profiles"), String(localized: "Debug"), String(localized: "Testing")])
         XCTAssertEqual(tabs.selectedTabViewItemIndex, PreferencesSection.profiles.rawValue)
         tabs.selectedTabViewItemIndex = PreferencesSection.general.rawValue
         XCTAssertEqual(window.frame.width, profileWidth, accuracy: 1)

@@ -18,11 +18,11 @@ struct ApplicationRuleRow: View {
             }
             Spacer()
             Button { editing = true } label: { Image(systemName: "slider.horizontal.3") }
-                .help(String(localized: "设置此应用的继承、覆盖或透传"))
+                .help(String(localized: "Set inheritance, overrides, or passthrough for this app"))
                 .popover(isPresented: $editing, arrowEdge: .trailing) {
                     ApplicationRuleEditor(rule: $rule, base: base).padding(16).frame(width: 600)
                 }
-            Button(role: .destructive, action: remove) { Image(systemName: "minus.circle") }.help(String(localized: "移除此应用"))
+            Button(role: .destructive, action: remove) { Image(systemName: "minus.circle") }.help(String(localized: "Remove this app"))
         }.padding(10)
     }
 }
@@ -34,16 +34,16 @@ struct ApplicationRuleEditor: View {
     private var inherits: Bool { !rule.effectiveOverrides.contains(component) }
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            PreferencesPageHeader(title: rule.name, subtitle: String(localized: "各项独立继承设备默认；完成后保存配置。"))
+            PreferencesPageHeader(title: rule.name, subtitle: String(localized: "Each component inherits device defaults independently. Save the profile when finished."))
             Text(rule.bundleID).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-            Toggle(String(localized: "在此应用中处理输入"), isOn: Binding(get: { rule.mode != .passthrough }, set: { enabled in
+            Toggle(String(localized: "Process input in this app"), isOn: Binding(get: { rule.mode != .passthrough }, set: { enabled in
                 rule.mode = enabled ? ((rule.overrides ?? []).isEmpty ? .inherit : .custom) : .passthrough
             })).toggleStyle(.checkbox)
             if rule.mode != .passthrough {
-                Picker(String(localized: "设置项目"), selection: $component) {
+                Picker(String(localized: "Component"), selection: $component) {
                     ForEach(ConfigurationComponent.allCases, id: \.self) { Text($0.title).tag($0) }
                 }.pickerStyle(.segmented)
-                Toggle(String(localized: "继承设备默认"), isOn: Binding(get: { inherits }, set: { inherit in
+                Toggle(String(localized: "Inherit device defaults"), isOn: Binding(get: { inherits }, set: { inherit in
                     rule.setOverride(component, enabled: !inherit, base: base)
                 })).toggleStyle(.checkbox)
                 PressureConfigurationEditor(configuration: Binding(get: {
@@ -53,10 +53,10 @@ struct ApplicationRuleEditor: View {
                     rule.configuration.copy(component, from: value)
                 }), component: component)
                     .disabled(inherits)
-                Text(inherits ? String(localized: "当前值来自设备默认，设备默认保存后会从下一笔跟随更新。") : String(localized: "只覆盖本项；其它继承项仍跟随设备默认。"))
+                Text(inherits ? String(localized: "Using the device default. Saved changes apply from the next stroke.") : String(localized: "Override this component only. Other inherited components follow the device defaults."))
                     .font(.caption).foregroundStyle(.secondary)
             } else {
-                Text(String(localized: "保留系统输入，不应用此配置的压力曲线、笔锋或轨迹平滑。"))
+                Text(String(localized: "Keep system input unchanged without applying this profile’s pressure curve or tapering."))
                     .foregroundStyle(.secondary)
             }
         }

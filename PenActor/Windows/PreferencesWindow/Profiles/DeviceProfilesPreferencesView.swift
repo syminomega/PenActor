@@ -37,7 +37,7 @@ struct DeviceProfilesPreferencesView: View {
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(String(localized: "设备")).font(.headline).padding(16)
+                Text(String(localized: "Device")).font(.headline).padding(16)
                 List(selection: Binding(get: { selected }, set: { requestDevice($0) })) {
                     ForEach(identities, id: \.self) { id in
                         VStack(alignment: .leading, spacing: 5) {
@@ -51,35 +51,35 @@ struct DeviceProfilesPreferencesView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if let selected, deviceDraft != nil {
-                        PreferencesPageHeader(title: monitor.deviceDisplayName(selected), subtitle: String(localized: "先调整这台设备的默认笔压，再为配置添加生效应用；需要时才单独覆盖。"))
+                        PreferencesPageHeader(title: monitor.deviceDisplayName(selected), subtitle: String(localized: "Set this device’s pressure defaults, then add target apps to a profile. Override settings only when needed."))
                         HStack {
-                            TextField(String(localized: "设备名称（留空使用系统名称）"), text: Binding(get: { deviceDraft?.name ?? "" }, set: { draft.setDeviceName($0, for: selected); changed() }))
+                            TextField(String(localized: "Device name (leave blank for system name)"), text: Binding(get: { deviceDraft?.name ?? "" }, set: { draft.setDeviceName($0, for: selected); changed() }))
                                 .textFieldStyle(.roundedBorder)
                                 .focused($focusedField, equals: .deviceName)
-                            Button(String(localized: "保存名称")) { saveName() }.disabled(deviceDraft?.isValid != true || selected.level == .session)
+                            Button(String(localized: "Save Name")) { saveName() }.disabled(deviceDraft?.isValid != true || selected.level == .session)
                         }
-                        DisclosureGroup(String(localized: "设备身份 · \(selected.level.label)")) {
+                        DisclosureGroup(String(localized: "Device identity · \(selected.level.label)")) {
                             Text(selected.key).font(.caption.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                             if selected.level == .model {
-                                Text(String(localized: "此身份按型号归组，不能区分多支同型号的笔；重命名不改变匹配身份。")).font(.caption).foregroundStyle(.secondary)
+                                Text(String(localized: "This identity groups pens by model and cannot distinguish identical pens. Renaming does not change matching.")).font(.caption).foregroundStyle(.secondary)
                             }
                         }
                         if selected.level == .session {
-                            Text(String(localized: "等待 proximity 硬件元数据后才能保存持久配置。请让笔离开再进入感应范围。")).foregroundStyle(.secondary)
+                            Text(String(localized: "Hardware proximity metadata is needed before settings can be saved. Move the pen out of range and back in.")).foregroundStyle(.secondary)
                         } else {
                             HStack {
-                                Picker(String(localized: "编辑"), selection: Binding(get: { profileID }, set: { requestProfile($0) })) {
-                                    Text(String(localized: "设备默认")).tag(UUID?.none)
+                                Picker(String(localized: "Edit"), selection: Binding(get: { profileID }, set: { requestProfile($0) })) {
+                                    Text(String(localized: "Device defaults")).tag(UUID?.none)
                                     ForEach(profiles) { Text($0.name).tag(Optional($0.id)) }
                                 }
-                                Button(String(localized: "新增配置")) { create(selected) }.disabled(dirty)
+                                Button(String(localized: "New Profile")) { create(selected) }.disabled(dirty)
                             }
                             if profileID == nil { deviceEditor }
                             else if profileDraft != nil { profileEditor.id(profileID) }
                         }
                     } else {
-                        PreferencesPageHeader(title: String(localized: "配置"), subtitle: String(localized: "每台设备独立设置，配置中的应用默认继承所属设备。"))
-                        ContentUnavailableView(String(localized: "等待数位笔"), systemImage: "pencil.tip", description: Text(String(localized: "连接 Sidecar 或数位板，让笔进入感应范围并落笔。保存过的设备会一直显示在左侧。")))
+                        PreferencesPageHeader(title: String(localized: "Profiles"), subtitle: String(localized: "Configure each device separately. Apps in a profile inherit that device’s defaults."))
+                        ContentUnavailableView(String(localized: "Waiting for a pen"), systemImage: "pencil.tip", description: Text(String(localized: "Connect Sidecar or a tablet, bring the pen into range, and draw. Saved devices remain in the sidebar.")))
                     }
                     if let error = monitor.profileError { Text(error).foregroundStyle(.red).textSelection(.enabled) }
                 }.padding(16).id(selected)
@@ -99,37 +99,37 @@ struct DeviceProfilesPreferencesView: View {
         .onChange(of: identities) { _, ids in
             if selected == nil { selected = ids.first; load() }
         }
-        .confirmationDialog(String(localized: "放弃尚未保存的更改？"), isPresented: $confirmDiscard) {
-            Button(String(localized: "放弃更改"), role: .destructive) {
+        .confirmationDialog(String(localized: "Discard unsaved changes?"), isPresented: $confirmDiscard) {
+            Button(String(localized: "Discard Changes"), role: .destructive) {
                 if switchingDevice { selected = pendingDevice; profileID = nil }
                 else { profileID = pendingProfile }
                 load()
             }
-            Button(String(localized: "继续编辑"), role: .cancel) { }
-        } message: { Text(String(localized: "切换后将加载已保存的设备设置或配置。")) }
+            Button(String(localized: "Keep Editing"), role: .cancel) { }
+        } message: { Text(String(localized: "Switching loads the saved device settings or profile.")) }
     }
     private var deviceEditor: some View {
         VStack(alignment: .leading, spacing: 12) {
-            GroupBox(String(localized: "设备默认压力设置")) {
+            GroupBox(String(localized: "Default pressure settings")) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(String(localized: "此处的曲线和入锋 / 出锋仅属于当前设备。配置中选择继承的应用会共同使用它。"))
+                    Text(String(localized: "These curve and taper settings belong only to this device and are shared by apps that inherit them."))
                         .font(.caption).foregroundStyle(.secondary)
                     PressureConfigurationEditor(configuration: Binding(get: { deviceDraft?.configuration ?? PressureConfiguration() }, set: { deviceDraft?.configuration = $0; changed() }))
                 }.padding(10)
             }
-            Text(String(localized: "设备默认值不会自动启用映射，请添加配置和生效应用。")).font(.caption).foregroundStyle(.secondary)
+            Text(String(localized: "Device defaults do not enable mapping. Add a profile and target apps.")).font(.caption).foregroundStyle(.secondary)
         }
     }
     private var profileEditor: some View {
         let editingProfileID = profileDraft?.id
         return VStack(alignment: .leading, spacing: 12) {
-            TextField(String(localized: "配置名称"), text: Binding(get: { profileDraft?.name ?? "" }, set: { draft.setProfileName($0, for: editingProfileID); changed() }))
+            TextField(String(localized: "Profile name"), text: Binding(get: { profileDraft?.name ?? "" }, set: { draft.setProfileName($0, for: editingProfileID); changed() }))
                 .textFieldStyle(.roundedBorder)
                 .focused($focusedField, equals: .profileName)
-            GroupBox(String(localized: "生效应用")) {
+            GroupBox(String(localized: "Target apps")) {
                 VStack(alignment: .leading, spacing: 0) {
                     if profileDraft?.applicationRules?.isEmpty != false {
-                        Text(String(localized: "添加一个或多个软件，默认继承当前设备的压力设置。")).foregroundStyle(.secondary).padding(10)
+                        Text(String(localized: "Add target apps. Each inherits this device’s pressure settings by default.")).foregroundStyle(.secondary).padding(10)
                     }
                     ForEach(profileDraft?.applicationRules ?? []) { rule in
                         ApplicationRuleRow(rule: ruleBinding(rule.bundleID), base: deviceDraft?.configuration ?? PressureConfiguration(), remove: {
@@ -140,21 +140,21 @@ struct DeviceProfilesPreferencesView: View {
                     HStack { ApplicationPicker(add: addApplication); Spacer() }.padding(10)
                 }
             }
-            Text(String(localized: "继承会随设备默认更新；单独覆盖仅影响本配置中的这个应用。未列出的应用保持透传。"))
+            Text(String(localized: "Inherited settings follow device defaults. Overrides affect only this app in this profile. Unlisted apps pass through."))
                 .font(.caption).foregroundStyle(.secondary)
-            Text(String(localized: "每台设备同时启用一个配置，各设备互不影响。保存从下一笔生效；禁用或暂停立即停止修改。首次启用后请让笔重新进入感应范围。"))
+            Text(String(localized: "Enable one profile per device; devices work independently. Saved settings apply from the next stroke. Disabling or pausing stops changes immediately. Bring the pen back into range after first enabling."))
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
     private var editingActions: some View {
         HStack {
             if profileID == nil {
-                Text(String(localized: "设备默认设置")).font(.caption).foregroundStyle(.secondary)
+                Text(String(localized: "Device default settings")).font(.caption).foregroundStyle(.secondary)
                 savedLabel
                 Spacer()
-                Button(String(localized: "保存设备默认")) { saveDevice() }.buttonStyle(.borderedProminent).disabled(deviceDraft?.isValid != true)
+                Button(String(localized: "Save Defaults")) { saveDevice() }.buttonStyle(.borderedProminent).disabled(deviceDraft?.isValid != true)
             } else {
-                Button(String(localized: "删除配置"), role: .destructive) {
+                Button(String(localized: "Delete Profile"), role: .destructive) {
                     if let id = profileDraft?.id {
                         monitor.deleteProfile(id)
                         if !monitor.profiles.contains(where: { $0.id == id }) { profileID = nil; load() }
@@ -162,28 +162,28 @@ struct DeviceProfilesPreferencesView: View {
                 }
                 Spacer()
                 savedLabel
-                Button(String(localized: "保存配置")) { saveProfile() }.disabled(profileDraft?.isValid != true)
+                Button(String(localized: "Save Profile")) { saveProfile() }.disabled(profileDraft?.isValid != true)
                 if let id = profileDraft?.id, monitor.enabledProfileIDs.contains(id) {
-                    Button(String(localized: "禁用此配置")) { monitor.disableProfile(id) }
+                    Button(String(localized: "Disable Profile")) { monitor.disableProfile(id) }
                 } else {
-                    Button(String(localized: "保存并启用")) { if saveProfile(), let id = profileDraft?.id { monitor.enableProfile(id) } }
+                    Button(String(localized: "Save and Enable")) { if saveProfile(), let id = profileDraft?.id { monitor.enableProfile(id) } }
                         .buttonStyle(.borderedProminent)
                         .disabled(profileDraft?.isValid != true || profileDraft?.effectiveTargetBundleIDs.isEmpty != false || !monitor.isRunning)
                 }
             }
         }.padding(.horizontal, 16).padding(.vertical, 10)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(String(localized: "当前设备或配置的编辑操作"))
+        .accessibilityLabel(String(localized: "Editing actions for the selected device or profile"))
     }
 
     private var savedLabel: some View {
         Group {
-            if dirty { Text(String(localized: "未保存")).foregroundStyle(.orange) }
-            else if saved { Text(String(localized: "已保存")).foregroundStyle(.secondary) }
+            if dirty { Text(String(localized: "Unsaved")).foregroundStyle(.orange) }
+            else if saved { Text(String(localized: "Saved")).foregroundStyle(.secondary) }
         }.font(.caption)
     }
     private func activeName(_ id: PenIdentity) -> String {
-        monitor.profiles.first { $0.device == id && monitor.enabledProfileIDs.contains($0.id) }.map { String(localized: "已启用 · \($0.name)") } ?? String(localized: "未启用映射")
+        monitor.profiles.first { $0.device == id && monitor.enabledProfileIDs.contains($0.id) }.map { String(localized: "Enabled · \($0.name)") } ?? String(localized: "Mapping disabled")
     }
     private func changed() { saved = false }
     private func finishEditing() {
@@ -234,7 +234,7 @@ struct DeviceProfilesPreferencesView: View {
         saved = true; return true
     }
     private func create(_ identity: PenIdentity) {
-        let profile = PressureProfile(name: String(localized: "配置 \(profiles.count+1)"), device: identity, applicationRules: [])
+        let profile = PressureProfile(name: String(localized: "Profile \(profiles.count+1)"), device: identity, applicationRules: [])
         if monitor.saveProfile(profile) { profileID = profile.id; load(); saved = true }
     }
     private func addApplication(_ id: String, _ name: String) {

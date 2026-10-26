@@ -5,18 +5,18 @@ struct StatusMenu: View {
     @ObservedObject var monitor: PenMonitor
     let open: (PreferencesSection?) -> Void
     var body: some View {
-        Text(monitor.isRunning ? String(localized: "PenActor · 输入服务运行中") : String(localized: "PenActor · 服务已停止"))
-        Text(monitor.mapping.isRunning ? String(localized: "映射已启用") : String(localized: "映射已暂停"))
+        Text(monitor.isRunning ? String(localized: "PenActor · Input service running") : String(localized: "PenActor · Service stopped"))
+        Text(monitor.mapping.isRunning ? String(localized: "Mapping enabled") : String(localized: "Mapping paused"))
         Divider()
-        Button(String(localized: "设置…")) { open(nil) }.keyboardShortcut(",")
-        Button(String(localized: "实时调试…")) { open(.debug) }
-        Button(String(localized: "笔迹测试…")) { open(.testing) }
+        Button(String(localized: "Settings…")) { open(nil) }.keyboardShortcut(",")
+        Button(String(localized: "Live Debug…")) { open(.debug) }
+        Button(String(localized: "Stroke Testing…")) { open(.testing) }
         Divider()
-        Button(String(localized: "暂停全部映射")) { monitor.pauseMapping() }.keyboardShortcut("r", modifiers: [.command, .shift])
-        Button(monitor.isRunning ? String(localized: "停止输入服务") : String(localized: "启动输入服务")) {
+        Button(String(localized: "Pause All Mapping")) { monitor.pauseMapping() }.keyboardShortcut("r", modifiers: [.command, .shift])
+        Button(monitor.isRunning ? String(localized: "Stop Input Service") : String(localized: "Start Input Service")) {
             if monitor.isRunning { monitor.stop() } else { monitor.start() }
         }.keyboardShortcut("p", modifiers: [.command, .shift])
         Divider()
-        Button(String(localized: "退出 PenActor")) { NSApp.terminate(nil) }.keyboardShortcut("q")
+        Button(String(localized: "Quit PenActor")) { NSApp.terminate(nil) }.keyboardShortcut("q")
     }
 }

@@ -10,8 +10,8 @@ struct ApplicationPicker: View {
                 Button(app.localizedName ?? app.bundleIdentifier!) { add(app.bundleIdentifier!, app.localizedName ?? app.bundleIdentifier!) }
             }
             Divider()
-            Button(String(localized: "浏览应用程序…")) { browse() }
-        } label: { Label(String(localized: "添加应用"), systemImage: "plus") }
+            Button(String(localized: "Browse Applications…")) { browse() }
+        } label: { Label(String(localized: "Add App"), systemImage: "plus") }
     }
     private func browse() {
         let panel = NSOpenPanel(); panel.allowedContentTypes = [.application]; panel.canChooseDirectories = false

@@ -3,7 +3,7 @@ import Foundation
 enum ConfigurationComponent: String, CaseIterable, Codable, Sendable {
     case curve, entry, exit
     var title: String {
-        switch self { case .curve: String(localized: "压力曲线"); case .entry: String(localized: "入锋"); case .exit: String(localized: "出锋") }
+        switch self { case .curve: String(localized: "Pressure curve"); case .entry: String(localized: "Entry taper"); case .exit: String(localized: "Exit taper") }
     }
 }
 
@@ -11,7 +11,7 @@ struct ApplicationPressureRule: Identifiable, Codable, Equatable, Sendable {
     enum Mode: String, CaseIterable, Codable, Sendable {
         case inherit, custom, passthrough
         var title: String {
-            switch self { case .inherit: String(localized: "继承设备默认"); case .custom: String(localized: "单独覆盖"); case .passthrough: String(localized: "不映射") }
+            switch self { case .inherit: String(localized: "Inherit device defaults"); case .custom: String(localized: "Override"); case .passthrough: String(localized: "Pass through") }
         }
     }
     var id: String { bundleID }
@@ -46,9 +46,9 @@ struct ApplicationPressureRule: Identifiable, Codable, Equatable, Sendable {
         mode == .custom ? overrides ?? [.curve, .entry, .exit] : []
     }
     var summary: String {
-        if mode == .passthrough { return String(localized: "不映射") }
+        if mode == .passthrough { return String(localized: "Pass through") }
         let custom = ConfigurationComponent.allCases.filter { effectiveOverrides.contains($0) }.map(\.title)
-        return custom.isEmpty ? String(localized: "全部继承设备默认") : String(localized: "单独设置：\(ListFormatter.localizedString(byJoining: custom))；其余继承")
+        return custom.isEmpty ? String(localized: "Inherit all device defaults") : String(localized: "Override: \(ListFormatter.localizedString(byJoining: custom)); inherit the rest")
     }
     func resolved(base: PressureConfiguration) -> PressureConfiguration {
         var value = base

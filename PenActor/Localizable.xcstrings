@@ -1,5 +1,5 @@
 {
-  "sourceLanguage": "zh-Hans",
+  "sourceLanguage": "en",
   "strings": {
     "%.0f %@": {
       "localizations": {
@@ -37,7 +37,7 @@
       "shouldTranslate": false,
       "comment": " Preserve the format specifier types and argument order."
     },
-    "%@ · %@（型号）": {
+    "%@ · %@ (model)": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -54,7 +54,7 @@
       },
       "comment": "Device title: localized tool name, then hexadecimal model ID. This groups identical models."
     },
-    "%@ · 会话 %lld": {
+    "%@ · Session %lld": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -71,7 +71,7 @@
       },
       "comment": " Preserve the format specifier types and argument order."
     },
-    "%@：%@ · %@": {
+    "%@: %@ · %@": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -124,6 +124,214 @@
       "shouldTranslate": false,
       "comment": " Preserve the format specifier types and argument order."
     },
+    "A modified callback does not confirm delivery to the target app. Export a log for analysis.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回调已修改不等于目标应用已确认接收；可导出日志分析。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A modified callback does not confirm delivery to the target app. Export a log for analysis."
+          }
+        }
+      }
+    },
+    "Absolute X / Y / Z": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "绝对 X / Y / Z"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absolute X / Y / Z"
+          }
+        }
+      }
+    },
+    "Accessibility": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辅助功能"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility"
+          }
+        }
+      }
+    },
+    "Add App": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加应用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add App"
+          }
+        }
+      }
+    },
+    "Add target apps. Each inherits this device’s pressure settings by default.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加一个或多个软件，默认继承当前设备的压力设置。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add target apps. Each inherits this device’s pressure settings by default."
+          }
+        }
+      }
+    },
+    "All devices · Latest 500 events · Newest first": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部设备 · 最近 500 条 · 最新在前"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All devices · Latest 500 events · Newest first"
+          }
+        }
+      }
+    },
+    "Allow Accessibility access, then recheck and enable the profile.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请允许辅助功能权限，然后重新检查并启用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Accessibility access, then recheck and enable the profile."
+          }
+        }
+      }
+    },
+    "Allowed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已允许"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed"
+          }
+        }
+      }
+    },
+    "AppKit event readings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用事件层读数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AppKit event readings"
+          }
+        }
+      }
+    },
+    "Barrel rotation °": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔轴旋转 °"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barrel rotation °"
+          }
+        }
+      }
+    },
+    "Bring the pen into range and draw": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让笔进入感应范围并落笔"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring the pen into range and draw"
+          }
+        }
+      }
+    },
+    "Browse Applications…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览应用程序…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse Applications…"
+          }
+        }
+      }
+    },
+    "Button mask": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按钮掩码"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Button mask"
+          }
+        }
+      }
+    },
     "Capability mask": {
       "localizations": {
         "zh-Hans": {
@@ -140,7 +348,1659 @@
         }
       }
     },
-    "NSEvent 读数可能已包含映射结果；tap 诊断记录处理前后压力，两类事件流不逐条对应。": {
+    "Clear": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "Clear Strokes and History": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清空笔迹与记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Strokes and History"
+          }
+        }
+      }
+    },
+    "Component": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置项目"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Component"
+          }
+        }
+      }
+    },
+    "Configuration migration did not finish. Saving and mapping are blocked. Check the original files and Backups: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置迁移未完成，已停止配置写入和映射，请检查原文件及 Backups：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration migration did not finish. Saving and mapping are blocked. Check the original files and Backups: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Configure each device separately. Apps in a profile inherit that device’s defaults.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每台设备独立设置，配置中的应用默认继承所属设备。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure each device separately. Apps in a profile inherit that device’s defaults."
+          }
+        }
+      }
+    },
+    "Connect Sidecar or a tablet, bring the pen into range, and draw. Saved devices remain in the sidebar.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接 Sidecar 或数位板，让笔进入感应范围并落笔。保存过的设备会一直显示在左侧。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Sidecar or a tablet, bring the pen into range, and draw. Saved devices remain in the sidebar."
+          }
+        }
+      }
+    },
+    "Could not create the event tap. Check Accessibility access.": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法创建事件 tap，请检查辅助功能权限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not create the event tap. Check Accessibility access."
+          }
+        }
+      }
+    },
+    "Could not load defaults. The original file was preserved: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认设置读取失败，未覆盖原文件：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load defaults. The original file was preserved: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Could not load profiles. The original file was preserved: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置读取失败，未覆盖原文件：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load profiles. The original file was preserved: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Could not open System Settings. Go to System Settings → Privacy & Security → %@ and allow PenActor.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开系统设置，请手动前往「系统设置 → 隐私与安全性 → %@」允许 PenActor。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open System Settings. Go to System Settings → Privacy & Security → %@ and allow PenActor."
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Could not save configuration: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存配置失败：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not save configuration: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Creating event tap…": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在创建事件 tap…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating event tap…"
+          }
+        }
+      }
+    },
+    "Curve applied": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已应用曲线"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Curve applied"
+          }
+        }
+      }
+    },
+    "Debug": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug"
+          }
+        }
+      }
+    },
+    "Debug view": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调试内容"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug view"
+          }
+        }
+      }
+    },
+    "Declared by driver": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驱动声明支持"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declared by driver"
+          }
+        }
+      }
+    },
+    "Default pressure settings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备默认压力设置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default pressure settings"
+          }
+        }
+      }
+    },
+    "Delay": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长 / 延迟"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delay"
+          }
+        }
+      }
+    },
+    "Delays pen input and tapers the queued tail after lift-off. Shortcuts flush the queue early.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delays pen input and tapers the queued tail after lift-off. Shortcuts flush the queue early."
+          }
+        }
+      }
+    },
+    "Delete Point": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Point"
+          }
+        }
+      }
+    },
+    "Delete Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Profile"
+          }
+        }
+      }
+    },
+    "Device": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device"
+          }
+        }
+      }
+    },
+    "Device Details": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备详情"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device Details"
+          }
+        }
+      }
+    },
+    "Device default settings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备默认设置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device default settings"
+          }
+        }
+      }
+    },
+    "Device defaults": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备默认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device defaults"
+          }
+        }
+      }
+    },
+    "Device defaults do not enable mapping. Add a profile and target apps.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备默认值不会自动启用映射，请添加配置和生效应用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device defaults do not enable mapping. Add a profile and target apps."
+          }
+        }
+      }
+    },
+    "Device identity · %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备身份 · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device identity · %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Device name (leave blank for system name)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备名称（留空使用系统名称）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device name (leave blank for system name)"
+          }
+        }
+      }
+    },
+    "Device: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Disable Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "禁用此配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable Profile"
+          }
+        }
+      }
+    },
+    "Discard Changes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃更改"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard Changes"
+          }
+        }
+      }
+    },
+    "Discard unsaved changes?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃尚未保存的更改？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard unsaved changes?"
+          }
+        }
+      }
+    },
+    "Double taps: %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双击 %lld 次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double taps: %lld"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Double-click to add a point; drag to adjust. Input is horizontal, output vertical. Endpoints are fixed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-click to add a point; drag to adjust. Input is horizontal, output vertical. Endpoints are fixed."
+          }
+        }
+      }
+    },
+    "Each component inherits device defaults independently. Save the profile when finished.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各项独立继承设备默认；完成后保存配置。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each component inherits device defaults independently. Save the profile when finished."
+          }
+        }
+      }
+    },
+    "Edit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        }
+      }
+    },
+    "Editing actions for the selected device or profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前设备或配置的编辑操作"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editing actions for the selected device or profile"
+          }
+        }
+      }
+    },
+    "Enable one profile per device; devices work independently. Saved settings apply from the next stroke. Disabling or pausing stops changes immediately. Bring the pen back into range after first enabling.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每台设备同时启用一个配置，各设备互不影响。保存从下一笔生效；禁用或暂停立即停止修改。首次启用后请让笔重新进入感应范围。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable one profile per device; devices work independently. Saved settings apply from the next stroke. Disabling or pausing stops changes immediately. Bring the pen back into range after first enabling."
+          }
+        }
+      }
+    },
+    "Enabled · %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用 · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled · %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Entered": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entered"
+          }
+        }
+      }
+    },
+    "Entry length": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入锋长度"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry length"
+          }
+        }
+      }
+    },
+    "Entry taper": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入锋"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry taper"
+          }
+        }
+      },
+      "comment": "Pressure fade-in at the beginning of a stroke."
+    },
+    "Entry taper ends when the distance or time limit is reached. Very short strokes may fade.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry taper ends when the distance or time limit is reached. Very short strokes may fade."
+          }
+        }
+      }
+    },
+    "Entry taper · Fade in from zero pressure": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入锋 · 从零压力平滑进入"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry taper · Fade in from zero pressure"
+          }
+        }
+      }
+    },
+    "Eraser": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "橡皮擦"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eraser"
+          }
+        }
+      }
+    },
+    "Events": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事件记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Events"
+          }
+        }
+      }
+    },
+    "Exit taper": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出锋"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit taper"
+          }
+        }
+      },
+      "comment": "Pressure fade-out at the end of a stroke, using buffered input."
+    },
+    "Exit taper · Buffer and fade the tail": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出锋 · 缓冲尾部并渐隐"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exit taper · Buffer and fade the tail"
+          }
+        }
+      }
+    },
+    "Exited": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离开"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exited"
+          }
+        }
+      }
+    },
+    "Export Event Log": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出事件日志"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Event Log"
+          }
+        }
+      }
+    },
+    "Export Failed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出失败"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Failed"
+          }
+        }
+      }
+    },
+    "Export JSON": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出 JSON"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export JSON"
+          }
+        }
+      }
+    },
+    "Exported: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已导出：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exported: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Failed / canceled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失败 / 取消"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed / canceled"
+          }
+        }
+      }
+    },
+    "Follow the active pen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔变化时自动切换"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow the active pen"
+          }
+        }
+      }
+    },
+    "For Sidecar, move this window onto the iPad. This pad tests input without applying smoothing or a pressure curve.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 Sidecar 时请把此窗口移至 iPad。此区域是输入验证工具；不应用平滑或压力曲线。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For Sidecar, move this window onto the iPad. This pad tests input without applying smoothing or a pressure curve."
+          }
+        }
+      }
+    },
+    "Foreground app (context)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前台应用（上下文）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foreground app (context)"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        }
+      }
+    },
+    "Gesture details and sources": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手势说明与来源"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesture details and sources"
+          }
+        }
+      }
+    },
+    "Global": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全局"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global"
+          }
+        }
+      }
+    },
+    "Global service status and controls": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全局运行状态与控制"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global service status and controls"
+          }
+        }
+      }
+    },
+    "Hardware metadata": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "硬件元数据"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hardware metadata"
+          }
+        }
+      }
+    },
+    "Hardware proximity metadata is needed before settings can be saved. Move the pen out of range and back in.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待 proximity 硬件元数据后才能保存持久配置。请让笔离开再进入感应范围。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hardware proximity metadata is needed before settings can be saved. Move the pen out of range and back in."
+          }
+        }
+      }
+    },
+    "IDs are reported by the system or driver; zero may be a placeholder. Model groups cannot distinguish pens without unique IDs. Silence does not mean disconnection. Up to 32 identities are retained.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标识为系统 / 驱动报告值，0 可能是占位。同型号归组无法区分缺少唯一标识的多支笔；无事件不代表断开。最多保留 32 个身份。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IDs are reported by the system or driver; zero may be a placeholder. Model groups cannot distinguish pens without unique IDs. Silence does not mean disconnection. Up to 32 identities are retained."
+          }
+        }
+      }
+    },
+    "Identity matching": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份匹配"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identity matching"
+          }
+        }
+      }
+    },
+    "If PenActor is missing, click + and add /Applications/PenActor.app. Relaunch if requested. Local testing does not require Input Monitoring.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "若列表中没有 PenActor，请点 + 添加 /Applications/PenActor.app。授权后按系统提示重新打开应用；窗口内测试无需输入监控权限。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If PenActor is missing, click + and add /Applications/PenActor.app. Relaunch if requested. Local testing does not require Input Monitoring."
+          }
+        }
+      }
+    },
+    "In range (last reported)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在感应范围内（最近报告）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In range (last reported)"
+          }
+        }
+      }
+    },
+    "Inherit all device defaults": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部继承设备默认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inherit all device defaults"
+          }
+        }
+      }
+    },
+    "Inherit device defaults": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继承设备默认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inherit device defaults"
+          }
+        }
+      }
+    },
+    "Inherited settings follow device defaults. Overrides affect only this app in this profile. Unlisted apps pass through.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继承会随设备默认更新；单独覆盖仅影响本配置中的这个应用。未列出的应用保持透传。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inherited settings follow device defaults. Overrides affect only this app in this profile. Unlisted apps pass through."
+          }
+        }
+      }
+    },
+    "Input %@ → Output %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入 %@ → 输出 %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input %@ → Output %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Input Monitoring": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入监控"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Monitoring"
+          }
+        }
+      }
+    },
+    "Input pressure": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入压力"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input pressure"
+          }
+        }
+      }
+    },
+    "Input service running": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入服务运行中"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input service running"
+          }
+        }
+      }
+    },
+    "Input service stopped": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入服务已停止"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input service stopped"
+          }
+        }
+      }
+    },
+    "Interrupted: monitoring stopped or window lost focus": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "监听停止 / 窗口失活，已中断"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interrupted: monitoring stopped or window lost focus"
+          }
+        }
+      }
+    },
+    "Keep Editing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Editing"
+          }
+        }
+      }
+    },
+    "Keep on Top": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "置顶"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep on Top"
+          }
+        }
+      }
+    },
+    "Keep system input unchanged without applying this profile’s pressure curve or tapering.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留系统输入，不应用此配置的压力曲线、笔锋或轨迹平滑。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep system input unchanged without applying this profile’s pressure curve or tapering."
+          }
+        }
+      }
+    },
+    "Last 5 seconds": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近 5 秒"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 5 seconds"
+          }
+        }
+      }
+    },
+    "Last double tap: %@ · %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "双击最近：%@ · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last double tap: %@ · %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Last squeeze: %@ · Completed %lld · Failed / canceled %lld · SwiftUI": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挤压最近：%@ · 完成 %lld · 失败 / 取消 %lld · SwiftUI"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last squeeze: %@ · Completed %lld · Failed / canceled %lld · SwiftUI"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Light Pressure": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻压增强"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light Pressure"
+          }
+        }
+      }
+    },
+    "Linear": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线性"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linear"
+          }
+        }
+      }
+    },
+    "Live Debug": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时调试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Debug"
+          }
+        }
+      }
+    },
+    "Live Debug…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时调试…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Debug…"
+          }
+        }
+      }
+    },
+    "Live Values": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时数值"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live Values"
+          }
+        }
+      }
+    },
+    "Local": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local"
+          }
+        }
+      }
+    },
+    "Local testing works without Input Monitoring permission.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本窗口测试可在未授予输入监控权限时使用。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local testing works without Input Monitoring permission."
+          }
+        }
+      }
+    },
+    "Mapping active (waiting for matching input)": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在映射（等待匹配事件）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapping active (waiting for matching input)"
+          }
+        }
+      }
+    },
+    "Mapping disabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未启用映射"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapping disabled"
+          }
+        }
+      }
+    },
+    "Mapping enabled": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "映射已启用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapping enabled"
+          }
+        }
+      }
+    },
+    "Mapping paused": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "映射已暂停"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapping paused"
+          }
+        }
+      }
+    },
+    "Mapping starting": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "映射正在启动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapping starting"
+          }
+        }
+      }
+    },
+    "Mapping starts paused after a restart. Enable a profile manually. Use the menu bar to open settings, pause mapping, or quit.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重启程序后映射默认关闭，需手动启用硬件配置。可从菜单栏随时打开设置、暂停映射或退出。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapping starts paused after a restart. Enable a profile manually. Use the menu bar to open settings, pause mapping, or quit."
+          }
+        }
+      }
+    },
+    "Match details": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匹配详情"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match details"
+          }
+        }
+      }
+    },
+    "Match key": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匹配键"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match key"
+          }
+        }
+      }
+    },
+    "Model group (cannot distinguish identical devices)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "型号归组（无法区分同型号实体）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model group (cannot distinguish identical devices)"
+          }
+        }
+      }
+    },
+    "Modified %llu · Queued %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修改 %llu · 缓存 %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modified %llu · Queued %lld"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Monitor installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "监听器已创建"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor installed"
+          }
+        }
+      }
+    },
+    "Monitoring status and reading notes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "监听状态与读数说明"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitoring status and reading notes"
+          }
+        }
+      }
+    },
+    "Move this window onto the iPad and activate it. Enable double tap in display settings; squeeze requires Pencil Pro. Gestures belong to this window, not a specific pen, and do not represent other apps.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "窗口移到 iPad 并激活后测试。双击需在显示器设置中启用；挤压需 Pencil Pro。仅记录本窗口手势，不归属某支笔，也不代表可监听其他应用手势。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move this window onto the iPad and activate it. Enable double tap in display settings; squeeze requires Pencil Pro. Gestures belong to this window, not a specific pen, and do not represent other apps."
+          }
+        }
+      }
+    },
+    "NSEvent may already include mapped pressure. Tap diagnostics record input and output separately; the streams do not match event for event.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -152,6 +2012,459 @@
           "stringUnit": {
             "state": "translated",
             "value": "NSEvent may already include mapped pressure. Tap diagnostics record input and output separately; the streams do not match event for event."
+          }
+        }
+      }
+    },
+    "New Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Profile"
+          }
+        }
+      }
+    },
+    "No enabled profile for this device or app / Passing through this stroke": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备或应用未启用配置 / 本笔透传"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No enabled profile for this device or app / Passing through this stroke"
+          }
+        }
+      }
+    },
+    "No pen events received yet": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未收到笔事件"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pen events received yet"
+          }
+        }
+      }
+    },
+    "Not allowed / Pending": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未允许 / 待确认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not allowed / Pending"
+          }
+        }
+      }
+    },
+    "Not declared by driver": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驱动未声明支持"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not declared by driver"
+          }
+        }
+      }
+    },
+    "Not installed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未安装"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not installed"
+          }
+        }
+      }
+    },
+    "Not received yet": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未收到"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not received yet"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Open settings at launch": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动时打开设置窗口"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open settings at launch"
+          }
+        }
+      }
+    },
+    "Other apps": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他应用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other apps"
+          }
+        }
+      },
+      "comment": "Event source display label; the Codable raw value must stay unchanged."
+    },
+    "Out of range · Showing previous readings": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已离开感应范围 · 显示历史读数"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of range · Showing previous readings"
+          }
+        }
+      }
+    },
+    "Output 100%": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输出 100%"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output 100%"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Override": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单独覆盖"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override"
+          }
+        }
+      }
+    },
+    "Override this component only. Other inherited components follow the device defaults.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只覆盖本项；其它继承项仍跟随设备默认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override this component only. Other inherited components follow the device defaults."
+          }
+        }
+      }
+    },
+    "Override: %@; inherit the rest": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单独设置：%@；其余继承"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Override: %@; inherit the rest"
+          }
+        }
+      },
+      "comment": "Application-rule summary. Argument is a locale-formatted list of overridden components."
+    },
+    "Pass through": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不映射"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pass through"
+          }
+        }
+      }
+    },
+    "Pass through this stroke": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本笔透传"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pass through this stroke"
+          }
+        }
+      }
+    },
+    "Pause All Mapping": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停全部映射"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause All Mapping"
+          }
+        }
+      }
+    },
+    "Pause pressure mapping for all devices while keeping the input service running (⌘⇧R)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停所有设备的压力映射，不停止输入服务（⌘⇧R）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause pressure mapping for all devices while keeping the input service running (⌘⇧R)"
+          }
+        }
+      }
+    },
+    "Paused / Disabled: queued input restored": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停 / 禁用：缓存恢复原输入"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused / Disabled: queued input restored"
+          }
+        }
+      }
+    },
+    "Pen": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen"
+          }
+        }
+      }
+    },
+    "Pen events received": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收到笔事件"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen events received"
+          }
+        }
+      }
+    },
+    "Pen events received · Range unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收到笔事件 · 感应状态未知"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen events received · Range unknown"
+          }
+        }
+      }
+    },
+    "Pen serial number": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔序列号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen serial number"
+          }
+        }
+      }
+    },
+    "Pen test pad": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔输入测试区"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen test pad"
+          }
+        }
+      }
+    },
+    "Pen · Model group": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数位笔 · 型号归组"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen · Model group"
+          }
+        }
+      }
+    },
+    "Pen · Saved device": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数位笔 · 已保存设备"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen · Saved device"
+          }
+        }
+      }
+    },
+    "Pen · Temporary session": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数位笔 · 临时会话"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen · Temporary session"
           }
         }
       }
@@ -173,55 +2486,7 @@
       },
       "shouldTranslate": false
     },
-    "PenActor · 服务已停止": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PenActor · 服务已停止"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PenActor · Service stopped"
-          }
-        }
-      }
-    },
-    "PenActor · 输入服务运行中": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PenActor · 输入服务运行中"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PenActor · Input service running"
-          }
-        }
-      }
-    },
-    "PenActor 在菜单栏持续运行，关闭设置窗口后仍会处理已启用的笔输入。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PenActor 在菜单栏持续运行，关闭设置窗口后仍会处理已启用的笔输入。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PenActor runs in the menu bar and keeps processing enabled pen input after settings close."
-          }
-        }
-      }
-    },
-    "PenActor 设置": {
+    "PenActor Settings": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -237,7 +2502,55 @@
         }
       }
     },
-    "Pencil 手势": {
+    "PenActor runs in the menu bar and keeps processing enabled pen input after settings close.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PenActor 在菜单栏持续运行，关闭设置窗口后仍会处理已启用的笔输入。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PenActor runs in the menu bar and keeps processing enabled pen input after settings close."
+          }
+        }
+      }
+    },
+    "PenActor · Input service running": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PenActor · 输入服务运行中"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PenActor · Input service running"
+          }
+        }
+      }
+    },
+    "PenActor · Service stopped": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PenActor · 服务已停止"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PenActor · Service stopped"
+          }
+        }
+      }
+    },
+    "Pencil gestures": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -249,6 +2562,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pencil gestures"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "访问权限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissions"
           }
         }
       }
@@ -269,7 +2598,700 @@
         }
       }
     },
-    "SwiftUI 双击 / 挤压需 macOS 14.5 或更新；当前仅接入 changeMode 双击。": {
+    "Pressure": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压力"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pressure"
+          }
+        }
+      }
+    },
+    "Pressure / 1": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压力 / 1"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pressure / 1"
+          }
+        }
+      }
+    },
+    "Pressure curve": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压力曲线"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pressure curve"
+          }
+        }
+      }
+    },
+    "Pressure history": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压力趋势"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pressure history"
+          }
+        }
+      }
+    },
+    "Pressure mapping": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压力映射"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pressure mapping"
+          }
+        }
+      }
+    },
+    "Process input in this app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在此应用中处理输入"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Process input in this app"
+          }
+        }
+      }
+    },
+    "Profile %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置 %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile %lld"
+          }
+        }
+      },
+      "comment": "Default name for a newly created profile. Saved names are user content and are not translated again."
+    },
+    "Profile name": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置名称"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile name"
+          }
+        }
+      }
+    },
+    "Profile: %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile: %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Profiles": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profiles"
+          }
+        }
+      },
+      "comment": "Preferences page for named pressure profiles. Not a configuration file."
+    },
+    "Quit PenActor": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出 PenActor"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit PenActor"
+          }
+        }
+      }
+    },
+    "Range": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "感应"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range"
+          }
+        }
+      }
+    },
+    "Recent events": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近事件"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent events"
+          }
+        }
+      }
+    },
+    "Recheck": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recheck"
+          }
+        }
+      }
+    },
+    "Remove this app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除此应用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this app"
+          }
+        }
+      }
+    },
+    "Request Access": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求权限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Access"
+          }
+        }
+      }
+    },
+    "Save Defaults": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存设备默认"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Defaults"
+          }
+        }
+      }
+    },
+    "Save Name": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存名称"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Name"
+          }
+        }
+      }
+    },
+    "Save Profile": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save Profile"
+          }
+        }
+      }
+    },
+    "Save a snapshot of the latest 500 events across all devices, captured when Export was clicked. Includes device IDs and app context.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存点击导出时的全部设备最近 500 条事件快照；包含设备标识和应用上下文。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save a snapshot of the latest 500 events across all devices, captured when Export was clicked. Includes device IDs and app context."
+          }
+        }
+      }
+    },
+    "Save and Enable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存并启用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save and Enable"
+          }
+        }
+      }
+    },
+    "Saved": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
+          }
+        }
+      }
+    },
+    "Screen coordinates: %@ / %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏幕坐标：%@ / %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen coordinates: %@ / %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Serial number": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "序列号"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serial number"
+          }
+        }
+      }
+    },
+    "Service and startup": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行与启动"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service and startup"
+          }
+        }
+      }
+    },
+    "Session device ID": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会话 Device ID"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session device ID"
+          }
+        }
+      }
+    },
+    "Set inheritance, overrides, or passthrough for this app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置此应用的继承、覆盖或透传"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set inheritance, overrides, or passthrough for this app"
+          }
+        }
+      }
+    },
+    "Set this device’s pressure defaults, then add target apps to a profile. Override settings only when needed.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先调整这台设备的默认笔压，再为配置添加生效应用；需要时才单独覆盖。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set this device’s pressure defaults, then add target apps to a profile. Override settings only when needed."
+          }
+        }
+      }
+    },
+    "Settings pages": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置页面"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings pages"
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings…"
+          }
+        }
+      }
+    },
+    "Source": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        }
+      }
+    },
+    "Squeeze ended": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挤压已结束"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Squeeze ended"
+          }
+        }
+      }
+    },
+    "Squeezes: %lld · %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挤压 %lld 次 · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Squeezes: %lld · %@"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Squeezing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在挤压"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Squeezing"
+          }
+        }
+      }
+    },
+    "Start Input Service": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动输入服务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Input Service"
+          }
+        }
+      }
+    },
+    "Start Service": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动服务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Service"
+          }
+        }
+      }
+    },
+    "Start monitoring when PenActor launches": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启动 PenActor 后自动监听"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start monitoring when PenActor launches"
+          }
+        }
+      }
+    },
+    "Stop Input Service": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止输入服务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Input Service"
+          }
+        }
+      }
+    },
+    "Stop Service": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止服务"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Service"
+          }
+        }
+      }
+    },
+    "Stroke Testing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔迹测试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroke Testing"
+          }
+        }
+      }
+    },
+    "Stroke Testing…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔迹测试…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroke Testing…"
+          }
+        }
+      }
+    },
+    "Stroke tapering": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入锋与出锋"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroke tapering"
+          }
+        }
+      }
+    },
+    "Support unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持情况未知"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support unknown"
+          }
+        }
+      }
+    },
+    "SwiftUI double tap and squeeze require macOS 14.5 or later. Only changeMode double taps are available here.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -281,6 +3303,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "SwiftUI double tap and squeeze require macOS 14.5 or later. Only changeMode double taps are available here."
+          }
+        }
+      }
+    },
+    "Switching loads the saved device settings or profile.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换后将加载已保存的设备设置或配置。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switching loads the saved device settings or profile."
           }
         }
       }
@@ -317,6 +3355,380 @@
         }
       }
     },
+    "Tablet cursor": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数位板光标"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tablet cursor"
+          }
+        }
+      }
+    },
+    "Tangential pressure": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切向压力"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangential pressure"
+          }
+        }
+      }
+    },
+    "Taper Test Preset": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首尾测试预设"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taper Test Preset"
+          }
+        }
+      }
+    },
+    "Target app unknown": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标应用未知"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target app unknown"
+          }
+        }
+      }
+    },
+    "Target apps": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生效应用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target apps"
+          }
+        }
+      }
+    },
+    "Target: %@ · PID %d": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标：%@ · PID %d"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target: %@ · PID %d"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
+    "Temporary session (awaiting hardware metadata)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "临时会话（等待硬件信息）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temporary session (awaiting hardware metadata)"
+          }
+        }
+      }
+    },
+    "Testing": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testing"
+          }
+        }
+      }
+    },
+    "The event thread ended. Mapping stopped; enable it again manually.": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事件线程已结束；映射已停止，请手动重新启用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The event thread ended. Mapping stopped; enable it again manually."
+          }
+        }
+      }
+    },
+    "The system disabled the event tap. Mapping stopped; enable it again manually.": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统停用了事件 tap；映射已停止，请手动重新启用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The system disabled the event tap. Mapping stopped; enable it again manually."
+          }
+        }
+      }
+    },
+    "These curve and taper settings belong only to this device and are shared by apps that inherit them.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处的曲线和入锋 / 出锋仅属于当前设备。配置中选择继承的应用会共同使用它。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These curve and taper settings belong only to this device and are shared by apps that inherit them."
+          }
+        }
+      }
+    },
+    "This app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本应用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app"
+          }
+        }
+      },
+      "comment": "Event source display label; the Codable raw value must stay unchanged."
+    },
+    "This identity groups pens by model and cannot distinguish identical pens. Renaming does not change matching.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此身份按型号归组，不能区分多支同型号的笔；重命名不改变匹配身份。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This identity groups pens by model and cannot distinguish identical pens. Renaming does not change matching."
+          }
+        }
+      }
+    },
+    "Tilt X": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "倾斜 X"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilt X"
+          }
+        }
+      }
+    },
+    "Tilt Y": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "倾斜 Y"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilt Y"
+          }
+        }
+      }
+    },
+    "Time": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        }
+      }
+    },
+    "Time limit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间上限"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time limit"
+          }
+        }
+      }
+    },
+    "Timing and coordinate context": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间与坐标上下文"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timing and coordinate context"
+          }
+        }
+      }
+    },
+    "Tool type": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工具类型"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tool type"
+          }
+        }
+      }
+    },
+    "Type": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类型"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        }
+      }
+    },
+    "Unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未取得"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        }
+      }
+    },
+    "Unidentified": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待识别"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unidentified"
+          }
+        }
+      }
+    },
+    "Unidentified tool · Session %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待识别工具 · 会话 %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unidentified tool · Session %lld"
+          }
+        }
+      },
+      "comment": " Preserve the format specifier types and argument order."
+    },
     "Unique ID": {
       "localizations": {
         "zh-Hans": {
@@ -329,6 +3741,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Unique ID"
+          }
+        }
+      }
+    },
+    "Unique pen ID": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔唯一标识"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unique pen ID"
+          }
+        }
+      }
+    },
+    "Unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        }
+      }
+    },
+    "Unknown app": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知应用"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown app"
+          }
+        }
+      }
+    },
+    "Unknown tool": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知工具"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown tool"
+          }
+        }
+      }
+    },
+    "Unsaved": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未保存"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsaved"
+          }
+        }
+      }
+    },
+    "Up to 600 samples. History remains when input stops; missing values leave gaps.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 600 点；停止输入保留曲线，缺失值留空。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 600 samples. History remains when input stops; missing values leave gaps."
+          }
+        }
+      }
+    },
+    "Using the device default. Saved changes apply from the next stroke.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前值来自设备默认，设备默认保存后会从下一笔跟随更新。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Using the device default. Saved changes apply from the next stroke."
           }
         }
       }
@@ -349,670 +3873,7 @@
         }
       }
     },
-    "changeMode + SwiftUI（已去重）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "changeMode + SwiftUI（已去重）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "changeMode + SwiftUI (paired)"
-          }
-        }
-      }
-    },
-    "uptime %@ s · 最近 %@ · 前台应用仅为观察上下文": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "uptime %@ s · 最近 %@ · 前台应用仅为观察上下文"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "uptime %@ s · Last %@ · Foreground app is observation context only"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "不映射": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "不映射"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pass through"
-          }
-        }
-      }
-    },
-    "临时会话（等待硬件信息）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "临时会话（等待硬件信息）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Temporary session (awaiting hardware metadata)"
-          }
-        }
-      }
-    },
-    "事件记录": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "事件记录"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Events"
-          }
-        }
-      }
-    },
-    "会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "会延迟笔输入，抬笔后修整尚未输出的尾部。快捷键会提前排空缓存。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delays pen input and tapers the queued tail after lift-off. Shortcuts flush the queue early."
-          }
-        }
-      }
-    },
-    "会话 Device ID": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "会话 Device ID"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Session device ID"
-          }
-        }
-      }
-    },
-    "使用 Sidecar 时请把此窗口移至 iPad。此区域是输入验证工具；不应用平滑或压力曲线。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用 Sidecar 时请把此窗口移至 iPad。此区域是输入验证工具；不应用平滑或压力曲线。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "For Sidecar, move this window onto the iPad. This pad tests input without applying smoothing or a pressure curve."
-          }
-        }
-      }
-    },
-    "保存名称": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存名称"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save Name"
-          }
-        }
-      }
-    },
-    "保存并启用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存并启用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save and Enable"
-          }
-        }
-      }
-    },
-    "保存点击导出时的全部设备最近 500 条事件快照；包含设备标识和应用上下文。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存点击导出时的全部设备最近 500 条事件快照；包含设备标识和应用上下文。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save a snapshot of the latest 500 events across all devices, captured when Export was clicked. Includes device IDs and app context."
-          }
-        }
-      }
-    },
-    "保存设备默认": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存设备默认"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save Defaults"
-          }
-        }
-      }
-    },
-    "保存配置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存配置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save Profile"
-          }
-        }
-      }
-    },
-    "保存配置失败：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保存配置失败：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not save configuration: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "保留系统输入，不应用此配置的压力曲线、笔锋或轨迹平滑。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保留系统输入，不应用此配置的压力曲线、笔锋或轨迹平滑。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep system input unchanged without applying this profile’s pressure curve or tapering."
-          }
-        }
-      }
-    },
-    "修改 %llu · 缓存 %lld": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "修改 %llu · 缓存 %lld"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modified %llu · Queued %lld"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "倾斜 X": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "倾斜 X"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tilt X"
-          }
-        }
-      }
-    },
-    "倾斜 Y": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "倾斜 Y"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tilt Y"
-          }
-        }
-      }
-    },
-    "停止服务": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "停止服务"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop Service"
-          }
-        }
-      }
-    },
-    "停止输入服务": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "停止输入服务"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stop Input Service"
-          }
-        }
-      }
-    },
-    "先调整这台设备的默认笔压，再为配置添加生效应用；需要时才单独覆盖。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "先调整这台设备的默认笔压，再为配置添加生效应用；需要时才单独覆盖。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set this device’s pressure defaults, then add target apps to a profile. Override settings only when needed."
-          }
-        }
-      }
-    },
-    "入锋": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入锋"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entry taper"
-          }
-        }
-      },
-      "comment": "Pressure fade-in at the beginning of a stroke."
-    },
-    "入锋 · 从零压力平滑进入": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入锋 · 从零压力平滑进入"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entry taper · Fade in from zero pressure"
-          }
-        }
-      }
-    },
-    "入锋与出锋": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入锋与出锋"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stroke tapering"
-          }
-        }
-      }
-    },
-    "入锋长度": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "入锋长度"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entry length"
-          }
-        }
-      }
-    },
-    "全局": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全局"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Global"
-          }
-        }
-      }
-    },
-    "全局运行状态与控制": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全局运行状态与控制"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Global service status and controls"
-          }
-        }
-      }
-    },
-    "全部继承设备默认": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部继承设备默认"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inherit all device defaults"
-          }
-        }
-      }
-    },
-    "全部设备 · 最近 500 条 · 最新在前": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部设备 · 最近 500 条 · 最新在前"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All devices · Latest 500 events · Newest first"
-          }
-        }
-      }
-    },
-    "其他应用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "其他应用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Other apps"
-          }
-        }
-      },
-      "comment": "Event source display label; the Codable raw value must stay unchanged."
-    },
-    "出锋": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "出锋"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exit taper"
-          }
-        }
-      },
-      "comment": "Pressure fade-out at the end of a stroke, using buffered input."
-    },
-    "出锋 · 缓冲尾部并渐隐": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "出锋 · 缓冲尾部并渐隐"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exit taper · Buffer and fade the tail"
-          }
-        }
-      }
-    },
-    "切向压力": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切向压力"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tangential pressure"
-          }
-        }
-      }
-    },
-    "切换后将加载已保存的设备设置或配置。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切换后将加载已保存的设备设置或配置。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Switching loads the saved device settings or profile."
-          }
-        }
-      }
-    },
-    "删除点": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除点"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete Point"
-          }
-        }
-      }
-    },
-    "删除配置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "删除配置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delete Profile"
-          }
-        }
-      }
-    },
-    "前台应用（上下文）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "前台应用（上下文）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Foreground app (context)"
-          }
-        }
-      }
-    },
-    "匹配详情": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "匹配详情"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Match details"
-          }
-        }
-      }
-    },
-    "匹配键": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "匹配键"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Match key"
-          }
-        }
-      }
-    },
-    "单独覆盖": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "单独覆盖"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Override"
-          }
-        }
-      }
-    },
-    "单独设置：%@；其余继承": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "单独设置：%@；其余继承"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Override: %@; inherit the rest"
-          }
-        }
-      },
-      "comment": "Application-rule summary. Argument is a locale-formatted list of overridden components."
-    },
-    "厂商工具类型": {
+    "Vendor tool type": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -1028,1553 +3889,136 @@
         }
       }
     },
-    "压力": {
+    "Waiting for a pen": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "压力"
+            "value": "等待数位笔"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pressure"
+            "value": "Waiting for a pen"
           }
         }
       }
     },
-    "压力 / 1": {
+    "Waiting for callback": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "压力 / 1"
+            "value": "等待回调"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pressure / 1"
+            "value": "Waiting for callback"
           }
         }
       }
     },
-    "压力映射": {
+    "Waiting for hardware metadata. Move the pen out of range and back in.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "压力映射"
+            "value": "硬件信息待获取，请让笔离开再进入感应范围。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pressure mapping"
+            "value": "Waiting for hardware metadata. Move the pen out of range and back in."
           }
         }
       }
     },
-    "压力曲线": {
+    "Waiting for pen input": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "压力曲线"
+            "value": "等待笔输入"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pressure curve"
+            "value": "Waiting for pen input"
           }
         }
       }
     },
-    "压力趋势": {
+    "Waiting for pen input. Connect Sidecar or a tablet, bring the pen into range, and draw.": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "压力趋势"
+            "value": "等待笔输入。连接 Sidecar 或数位板后让笔进入感应范围并落笔。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pressure history"
+            "value": "Waiting for pen input. Connect Sidecar or a tablet, bring the pen into range, and draw."
           }
         }
       }
     },
-    "双击 %lld 次": {
+    "Waiting for proximity metadata to identify the device": {
+      "comment": "Display label for a stable diagnostic value. Do not change the raw value stored in logs.",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "双击 %lld 次"
+            "value": "等待 proximity 识别设备"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Double taps: %lld"
+            "value": "Waiting for proximity metadata to identify the device"
           }
         }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "双击最近：%@ · %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "双击最近：%@ · %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last double tap: %@ · %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "双击添加控制点，拖动调整。横轴输入，纵轴输出；端点固定。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Double-click to add a point; drag to adjust. Input is horizontal, output vertical. Endpoints are fixed."
-          }
-        }
-      }
-    },
-    "只覆盖本项；其它继承项仍跟随设备默认。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "只覆盖本项；其它继承项仍跟随设备默认。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Override this component only. Other inherited components follow the device defaults."
-          }
-        }
-      }
-    },
-    "各项独立继承设备默认；完成后保存配置。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "各项独立继承设备默认；完成后保存配置。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Each component inherits device defaults independently. Save the profile when finished."
-          }
-        }
-      }
-    },
-    "启动 PenActor 后自动监听": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启动 PenActor 后自动监听"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start monitoring when PenActor launches"
-          }
-        }
-      }
-    },
-    "启动时打开设置窗口": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启动时打开设置窗口"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open settings at launch"
-          }
-        }
-      }
-    },
-    "启动服务": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启动服务"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start Service"
-          }
-        }
-      }
-    },
-    "启动输入服务": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启动输入服务"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start Input Service"
-          }
-        }
-      }
-    },
-    "回调已修改不等于目标应用已确认接收；可导出日志分析。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "回调已修改不等于目标应用已确认接收；可导出日志分析。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A modified callback does not confirm delivery to the target app. Export a log for analysis."
-          }
-        }
-      }
-    },
-    "在感应范围内（最近报告）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在感应范围内（最近报告）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "In range (last reported)"
-          }
-        }
-      }
-    },
-    "在此应用中处理输入": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在此应用中处理输入"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Process input in this app"
-          }
-        }
-      }
-    },
-    "型号归组（无法区分同型号实体）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "型号归组（无法区分同型号实体）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Model group (cannot distinguish identical devices)"
-          }
-        }
-      }
-    },
-    "失败 / 取消": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "失败 / 取消"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Failed / canceled"
-          }
-        }
-      }
-    },
-    "好": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "好"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OK"
-          }
-        }
-      }
-    },
-    "实时数值": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "实时数值"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live Values"
-          }
-        }
-      }
-    },
-    "实时调试": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "实时调试"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live Debug"
-          }
-        }
-      }
-    },
-    "实时调试…": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "实时调试…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live Debug…"
-          }
-        }
-      }
-    },
-    "导出 JSON": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "导出 JSON"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Export JSON"
-          }
-        }
-      }
-    },
-    "导出事件日志": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "导出事件日志"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Export Event Log"
-          }
-        }
-      }
-    },
-    "导出失败": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "导出失败"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Export Failed"
-          }
-        }
-      }
-    },
-    "尚未收到": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚未收到"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not received yet"
-          }
-        }
-      }
-    },
-    "尚未收到笔事件": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚未收到笔事件"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No pen events received yet"
-          }
-        }
-      }
-    },
-    "屏幕坐标：%@ / %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "屏幕坐标：%@ / %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Screen coordinates: %@ / %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "工具类型": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "工具类型"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tool type"
-          }
-        }
-      }
-    },
-    "已保存": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已保存"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved"
-          }
-        }
-      }
-    },
-    "已允许": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已允许"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allowed"
-          }
-        }
-      }
-    },
-    "已启用 · %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已启用 · %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enabled · %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "已导出：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已导出：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exported: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "已收到笔事件": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已收到笔事件"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen events received"
-          }
-        }
-      }
-    },
-    "已收到笔事件 · 感应状态未知": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已收到笔事件 · 感应状态未知"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen events received · Range unknown"
-          }
-        }
-      }
-    },
-    "已离开感应范围 · 显示历史读数": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已离开感应范围 · 显示历史读数"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Out of range · Showing previous readings"
-          }
-        }
-      }
-    },
-    "序列号": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "序列号"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Serial number"
-          }
-        }
-      }
-    },
-    "应用事件层读数": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用事件层读数"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AppKit event readings"
-          }
-        }
-      }
-    },
-    "当前值来自设备默认，设备默认保存后会从下一笔跟随更新。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前值来自设备默认，设备默认保存后会从下一笔跟随更新。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Using the device default. Saved changes apply from the next stroke."
-          }
-        }
-      }
-    },
-    "当前设备或配置的编辑操作": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当前设备或配置的编辑操作"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Editing actions for the selected device or profile"
-          }
-        }
-      }
-    },
-    "待识别": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "待识别"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unidentified"
-          }
-        }
-      }
-    },
-    "待识别工具 · 会话 %lld": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "待识别工具 · 会话 %lld"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unidentified tool · Session %lld"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "感应": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "感应"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Range"
-          }
-        }
-      }
-    },
-    "手势说明与来源": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "手势说明与来源"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Gesture details and sources"
-          }
-        }
-      }
-    },
-    "按钮掩码": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按钮掩码"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Button mask"
-          }
-        }
-      }
-    },
-    "挤压 %lld 次 · %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "挤压 %lld 次 · %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Squeezes: %lld · %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "挤压已结束": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "挤压已结束"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Squeeze ended"
-          }
-        }
-      }
-    },
-    "挤压最近：%@ · 完成 %lld · 失败 / 取消 %lld · SwiftUI": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "挤压最近：%@ · 完成 %lld · 失败 / 取消 %lld · SwiftUI"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last squeeze: %@ · Completed %lld · Failed / canceled %lld · SwiftUI"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "支持情况未知": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支持情况未知"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Support unknown"
-          }
-        }
-      }
-    },
-    "放弃尚未保存的更改？": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "放弃尚未保存的更改？"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Discard unsaved changes?"
-          }
-        }
-      }
-    },
-    "放弃更改": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "放弃更改"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Discard Changes"
-          }
-        }
-      }
-    },
-    "数位板光标": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数位板光标"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tablet cursor"
-          }
-        }
-      }
-    },
-    "数位笔 · 临时会话": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数位笔 · 临时会话"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen · Temporary session"
-          }
-        }
-      }
-    },
-    "数位笔 · 型号归组": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数位笔 · 型号归组"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen · Model group"
-          }
-        }
-      }
-    },
-    "数位笔 · 已保存设备": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数位笔 · 已保存设备"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen · Saved device"
-          }
-        }
-      }
-    },
-    "新增配置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新增配置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "New Profile"
-          }
-        }
-      }
-    },
-    "无法打开系统设置，请手动前往「系统设置 → 隐私与安全性 → %@」允许 PenActor。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法打开系统设置，请手动前往「系统设置 → 隐私与安全性 → %@」允许 PenActor。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not open System Settings. Go to System Settings → Privacy & Security → %@ and allow PenActor."
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "时长 / 延迟": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "时长 / 延迟"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delay"
-          }
-        }
-      }
-    },
-    "时间": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "时间"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Time"
-          }
-        }
-      }
-    },
-    "时间上限": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "时间上限"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Time limit"
-          }
-        }
-      }
-    },
-    "时间与坐标上下文": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "时间与坐标上下文"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Timing and coordinate context"
-          }
-        }
-      }
-    },
-    "映射已启用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "映射已启用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mapping enabled"
-          }
-        }
-      }
-    },
-    "映射已暂停": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "映射已暂停"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mapping paused"
-          }
-        }
-      }
-    },
-    "映射正在启动": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "映射正在启动"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mapping starting"
-          }
-        }
-      }
-    },
-    "暂停全部映射": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停全部映射"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause All Mapping"
-          }
-        }
-      }
-    },
-    "暂停所有设备的压力映射，不停止输入服务（⌘⇧R）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停所有设备的压力映射，不停止输入服务（⌘⇧R）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause pressure mapping for all devices while keeping the input service running (⌘⇧R)"
-          }
-        }
-      }
-    },
-    "最多 600 点；停止输入保留曲线，缺失值留空。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最多 600 点；停止输入保留曲线，缺失值留空。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Up to 600 samples. History remains when input stops; missing values leave gaps."
-          }
-        }
-      }
-    },
-    "最近 5 秒": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最近 5 秒"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last 5 seconds"
-          }
-        }
-      }
-    },
-    "最近事件": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最近事件"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recent events"
-          }
-        }
-      }
-    },
-    "未保存": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未保存"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unsaved"
-          }
-        }
-      }
-    },
-    "未允许 / 待确认": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未允许 / 待确认"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not allowed / Pending"
-          }
-        }
-      }
-    },
-    "未取得": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未取得"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unavailable"
-          }
-        }
-      }
-    },
-    "未启用映射": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未启用映射"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mapping disabled"
-          }
-        }
-      }
-    },
-    "未安装": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未安装"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not installed"
-          }
-        }
-      }
-    },
-    "未知": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unknown"
-          }
-        }
-      }
-    },
-    "未知工具": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知工具"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unknown tool"
-          }
-        }
-      }
-    },
-    "未知应用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未知应用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unknown app"
-          }
-        }
-      }
-    },
-    "本地": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本地"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local"
-          }
-        }
-      }
-    },
-    "本应用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本应用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This app"
-          }
-        }
-      },
-      "comment": "Event source display label; the Codable raw value must stay unchanged."
-    },
-    "本窗口测试可在未授予输入监控权限时使用。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本窗口测试可在未授予输入监控权限时使用。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local testing works without Input Monitoring permission."
-          }
-        }
-      }
-    },
-    "本笔透传": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本笔透传"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pass through this stroke"
-          }
-        }
-      }
-    },
-    "来源": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "来源"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Source"
-          }
-        }
-      }
-    },
-    "标识为系统 / 驱动报告值，0 可能是占位。同型号归组无法区分缺少唯一标识的多支笔；无事件不代表断开。最多保留 32 个身份。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "标识为系统 / 驱动报告值，0 可能是占位。同型号归组无法区分缺少唯一标识的多支笔；无事件不代表断开。最多保留 32 个身份。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "IDs are reported by the system or driver; zero may be a placeholder. Model groups cannot distinguish pens without unique IDs. Silence does not mean disconnection. Up to 32 identities are retained."
-          }
-        }
-      }
-    },
-    "橡皮擦": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "橡皮擦"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Eraser"
-          }
-        }
-      }
-    },
-    "正在挤压": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在挤压"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Squeezing"
-          }
-        }
-      }
-    },
-    "此处的曲线和入锋 / 出锋仅属于当前设备。配置中选择继承的应用会共同使用它。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此处的曲线和入锋 / 出锋仅属于当前设备。配置中选择继承的应用会共同使用它。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "These curve and taper settings belong only to this device and are shared by apps that inherit them."
-          }
-        }
-      }
-    },
-    "此身份按型号归组，不能区分多支同型号的笔；重命名不改变匹配身份。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此身份按型号归组，不能区分多支同型号的笔；重命名不改变匹配身份。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This identity groups pens by model and cannot distinguish identical pens. Renaming does not change matching."
-          }
-        }
-      }
-    },
-    "每台设备同时启用一个配置，各设备互不影响。保存从下一笔生效；禁用或暂停立即停止修改。首次启用后请让笔重新进入感应范围。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每台设备同时启用一个配置，各设备互不影响。保存从下一笔生效；禁用或暂停立即停止修改。首次启用后请让笔重新进入感应范围。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enable one profile per device; devices work independently. Saved settings apply from the next stroke. Disabling or pausing stops changes immediately. Bring the pen back into range after first enabling."
-          }
-        }
-      }
-    },
-    "每台设备独立设置，配置中的应用默认继承所属设备。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每台设备独立设置，配置中的应用默认继承所属设备。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configure each device separately. Apps in a profile inherit that device’s defaults."
-          }
-        }
-      }
-    },
-    "测试": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "测试"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Testing"
-          }
-        }
-      }
-    },
-    "浏览应用程序…": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "浏览应用程序…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Browse Applications…"
-          }
-        }
-      }
-    },
-    "添加一个或多个软件，默认继承当前设备的压力设置。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "添加一个或多个软件，默认继承当前设备的压力设置。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add target apps. Each inherits this device’s pressure settings by default."
-          }
-        }
-      }
-    },
-    "添加应用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "添加应用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add App"
-          }
-        }
       }
     },
-    "清空": {
+    "Width follows system pressure · Pen input only": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "清空"
+            "value": "线宽随系统压力变化 · 仅接受笔事件"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear"
+            "value": "Width follows system pressure · Pen input only"
           }
         }
       }
     },
-    "清空笔迹与记录": {
+    "changeMode + SwiftUI (paired)": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "清空笔迹与记录"
+            "value": "changeMode + SwiftUI（已去重）"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear Strokes and History"
+            "value": "changeMode + SwiftUI (paired)"
           }
         }
       }
     },
-    "点": {
+    "pt": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
@@ -2591,1476 +4035,22 @@
       },
       "comment": "Screen-point unit beside entry taper distance, not a number of samples."
     },
-    "生效应用": {
+    "uptime %@ s · Last %@ · Foreground app is observation context only": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生效应用"
+            "value": "uptime %@ s · 最近 %@ · 前台应用仅为观察上下文"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Target apps"
-          }
-        }
-      }
-    },
-    "监听停止 / 窗口失活，已中断": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监听停止 / 窗口失活，已中断"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Interrupted: monitoring stopped or window lost focus"
-          }
-        }
-      }
-    },
-    "监听器已创建": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监听器已创建"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monitor installed"
-          }
-        }
-      }
-    },
-    "监听状态与读数说明": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监听状态与读数说明"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monitoring status and reading notes"
-          }
-        }
-      }
-    },
-    "目标：%@ · PID %d": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目标：%@ · PID %d"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Target: %@ · PID %d"
+            "value": "uptime %@ s · Last %@ · Foreground app is observation context only"
           }
         }
       },
       "comment": " Preserve the format specifier types and argument order."
-    },
-    "硬件信息待获取，请让笔离开再进入感应范围。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "硬件信息待获取，请让笔离开再进入感应范围。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for hardware metadata. Move the pen out of range and back in."
-          }
-        }
-      }
-    },
-    "硬件元数据": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "硬件元数据"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hardware metadata"
-          }
-        }
-      }
-    },
-    "禁用此配置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "禁用此配置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disable Profile"
-          }
-        }
-      }
-    },
-    "离开": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "离开"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exited"
-          }
-        }
-      }
-    },
-    "移除此应用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "移除此应用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remove this app"
-          }
-        }
-      }
-    },
-    "窗口移到 iPad 并激活后测试。双击需在显示器设置中启用；挤压需 Pencil Pro。仅记录本窗口手势，不归属某支笔，也不代表可监听其他应用手势。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "窗口移到 iPad 并激活后测试。双击需在显示器设置中启用；挤压需 Pencil Pro。仅记录本窗口手势，不归属某支笔，也不代表可监听其他应用手势。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Move this window onto the iPad and activate it. Enable double tap in display settings; squeeze requires Pencil Pro. Gestures belong to this window, not a specific pen, and do not represent other apps."
-          }
-        }
-      }
-    },
-    "笔": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen"
-          }
-        }
-      }
-    },
-    "笔变化时自动切换": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔变化时自动切换"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Follow the active pen"
-          }
-        }
-      }
-    },
-    "笔唯一标识": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔唯一标识"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unique pen ID"
-          }
-        }
-      }
-    },
-    "笔序列号": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔序列号"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen serial number"
-          }
-        }
-      }
-    },
-    "笔轴旋转 °": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔轴旋转 °"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Barrel rotation °"
-          }
-        }
-      }
-    },
-    "笔输入测试区": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔输入测试区"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pen test pad"
-          }
-        }
-      }
-    },
-    "笔迹测试": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔迹测试"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stroke Testing"
-          }
-        }
-      }
-    },
-    "笔迹测试…": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "笔迹测试…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stroke Testing…"
-          }
-        }
-      }
-    },
-    "等待 proximity 硬件元数据后才能保存持久配置。请让笔离开再进入感应范围。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "等待 proximity 硬件元数据后才能保存持久配置。请让笔离开再进入感应范围。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hardware proximity metadata is needed before settings can be saved. Move the pen out of range and back in."
-          }
-        }
-      }
-    },
-    "等待回调": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "等待回调"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for callback"
-          }
-        }
-      }
-    },
-    "等待数位笔": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "等待数位笔"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for a pen"
-          }
-        }
-      }
-    },
-    "等待笔输入": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "等待笔输入"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for pen input"
-          }
-        }
-      }
-    },
-    "等待笔输入。连接 Sidecar 或数位板后让笔进入感应范围并落笔。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "等待笔输入。连接 Sidecar 或数位板后让笔进入感应范围并落笔。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for pen input. Connect Sidecar or a tablet, bring the pen into range, and draw."
-          }
-        }
-      }
-    },
-    "类型": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "类型"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Type"
-          }
-        }
-      }
-    },
-    "累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "累计屏幕距离或时间先达到者结束入锋；很短的点画可能变淡。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entry taper ends when the distance or time limit is reached. Very short strokes may fade."
-          }
-        }
-      }
-    },
-    "线宽随系统压力变化 · 仅接受笔事件": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "线宽随系统压力变化 · 仅接受笔事件"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Width follows system pressure · Pen input only"
-          }
-        }
-      }
-    },
-    "线性": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "线性"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Linear"
-          }
-        }
-      }
-    },
-    "绝对 X / Y / Z": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "绝对 X / Y / Z"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Absolute X / Y / Z"
-          }
-        }
-      }
-    },
-    "继承会随设备默认更新；单独覆盖仅影响本配置中的这个应用。未列出的应用保持透传。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "继承会随设备默认更新；单独覆盖仅影响本配置中的这个应用。未列出的应用保持透传。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inherited settings follow device defaults. Overrides affect only this app in this profile. Unlisted apps pass through."
-          }
-        }
-      }
-    },
-    "继承设备默认": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "继承设备默认"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inherit device defaults"
-          }
-        }
-      }
-    },
-    "继续编辑": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "继续编辑"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep Editing"
-          }
-        }
-      }
-    },
-    "编辑": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edit"
-          }
-        }
-      }
-    },
-    "置顶": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "置顶"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep on Top"
-          }
-        }
-      }
-    },
-    "若列表中没有 PenActor，请点 + 添加 /Applications/PenActor.app。授权后按系统提示重新打开应用；窗口内测试无需输入监控权限。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "若列表中没有 PenActor，请点 + 添加 /Applications/PenActor.app。授权后按系统提示重新打开应用；窗口内测试无需输入监控权限。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "If PenActor is missing, click + and add /Applications/PenActor.app. Relaunch if requested. Local testing does not require Input Monitoring."
-          }
-        }
-      }
-    },
-    "让笔进入感应范围并落笔": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让笔进入感应范围并落笔"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bring the pen into range and draw"
-          }
-        }
-      }
-    },
-    "设备": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device"
-          }
-        }
-      }
-    },
-    "设备名称（留空使用系统名称）": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备名称（留空使用系统名称）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device name (leave blank for system name)"
-          }
-        }
-      }
-    },
-    "设备详情": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备详情"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device Details"
-          }
-        }
-      }
-    },
-    "设备身份 · %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备身份 · %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device identity · %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "设备默认": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备默认"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device defaults"
-          }
-        }
-      }
-    },
-    "设备默认值不会自动启用映射，请添加配置和生效应用。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备默认值不会自动启用映射，请添加配置和生效应用。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device defaults do not enable mapping. Add a profile and target apps."
-          }
-        }
-      }
-    },
-    "设备默认压力设置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备默认压力设置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Default pressure settings"
-          }
-        }
-      }
-    },
-    "设备默认设置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备默认设置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device defaults"
-          }
-        }
-      }
-    },
-    "设备：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Device: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "设置…": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设置…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings…"
-          }
-        }
-      }
-    },
-    "设置此应用的继承、覆盖或透传": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设置此应用的继承、覆盖或透传"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set inheritance, overrides, or passthrough for this app"
-          }
-        }
-      }
-    },
-    "设置页面": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设置页面"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Settings pages"
-          }
-        }
-      }
-    },
-    "设置项目": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设置项目"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Component"
-          }
-        }
-      }
-    },
-    "访问权限": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "访问权限"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permissions"
-          }
-        }
-      }
-    },
-    "请允许辅助功能权限，然后重新检查并启用。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请允许辅助功能权限，然后重新检查并启用。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Allow Accessibility access, then recheck and enable the profile."
-          }
-        }
-      }
-    },
-    "请求权限": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请求权限"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Request Access"
-          }
-        }
-      }
-    },
-    "调试": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "调试"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Debug"
-          }
-        }
-      }
-    },
-    "调试内容": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "调试内容"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Debug view"
-          }
-        }
-      }
-    },
-    "身份匹配": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "身份匹配"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Identity matching"
-          }
-        }
-      }
-    },
-    "轻压增强": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "轻压增强"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Light Pressure"
-          }
-        }
-      }
-    },
-    "辅助功能": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "辅助功能"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Accessibility"
-          }
-        }
-      }
-    },
-    "输入 %@ → 输出 %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入 %@ → 输出 %@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Input %@ → Output %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "输入压力": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入压力"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Input pressure"
-          }
-        }
-      }
-    },
-    "输入服务已停止": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入服务已停止"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Input service stopped"
-          }
-        }
-      }
-    },
-    "输入服务运行中": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入服务运行中"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Input service running"
-          }
-        }
-      }
-    },
-    "输入监控": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输入监控"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Input Monitoring"
-          }
-        }
-      }
-    },
-    "输出 100%": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "输出 100%"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Output 100%"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "运行与启动": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "运行与启动"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Service and startup"
-          }
-        }
-      }
-    },
-    "进入": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "进入"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entered"
-          }
-        }
-      }
-    },
-    "连接 Sidecar 或数位板，让笔进入感应范围并落笔。保存过的设备会一直显示在左侧。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "连接 Sidecar 或数位板，让笔进入感应范围并落笔。保存过的设备会一直显示在左侧。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Connect Sidecar or a tablet, bring the pen into range, and draw. Saved devices remain in the sidebar."
-          }
-        }
-      }
-    },
-    "退出 PenActor": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "退出 PenActor"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quit PenActor"
-          }
-        }
-      }
-    },
-    "通用": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "通用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "General"
-          }
-        }
-      }
-    },
-    "配置": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "配置"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Profiles"
-          }
-        }
-      },
-      "comment": "Preferences page for named pressure profiles. Not a configuration file."
-    },
-    "配置 %lld": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "配置 %lld"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Profile %lld"
-          }
-        }
-      },
-      "comment": "Default name for a newly created profile. Saved names are user content and are not translated again."
-    },
-    "配置名称": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "配置名称"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Profile name"
-          }
-        }
-      }
-    },
-    "配置读取失败，未覆盖原文件：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "配置读取失败，未覆盖原文件：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not load profiles. The original file was preserved: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "配置迁移未完成，已停止配置写入和映射，请检查原文件及 Backups：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "配置迁移未完成，已停止配置写入和映射，请检查原文件及 Backups：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configuration migration did not finish. Saving and mapping are blocked. Check the original files and Backups: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "配置：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "配置：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Profile: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "重启程序后映射默认关闭，需手动启用硬件配置。可从菜单栏随时打开设置、暂停映射或退出。": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重启程序后映射默认关闭，需手动启用硬件配置。可从菜单栏随时打开设置、暂停映射或退出。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mapping starts paused after a restart. Enable a profile manually. Use the menu bar to open settings, pause mapping, or quit."
-          }
-        }
-      }
-    },
-    "重新检查": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新检查"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recheck"
-          }
-        }
-      }
-    },
-    "首尾测试预设": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "首尾测试预设"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Taper Test Preset"
-          }
-        }
-      }
-    },
-    "驱动声明支持": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "驱动声明支持"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Declared by driver"
-          }
-        }
-      }
-    },
-    "驱动未声明支持": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "驱动未声明支持"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not declared by driver"
-          }
-        }
-      }
-    },
-    "默认设置读取失败，未覆盖原文件：%@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "默认设置读取失败，未覆盖原文件：%@"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not load defaults. The original file was preserved: %@"
-          }
-        }
-      },
-      "comment": " Preserve the format specifier types and argument order."
-    },
-    "正在创建事件 tap…": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在创建事件 tap…"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Creating event tap…"
-          }
-        }
-      }
-    },
-    "无法创建事件 tap，请检查辅助功能权限": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法创建事件 tap，请检查辅助功能权限"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not create the event tap. Check Accessibility access."
-          }
-        }
-      }
-    },
-    "正在映射（等待匹配事件）": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在映射（等待匹配事件）"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mapping active (waiting for matching input)"
-          }
-        }
-      }
-    },
-    "事件线程已结束；映射已停止，请手动重新启用": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "事件线程已结束；映射已停止，请手动重新启用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The event thread ended. Mapping stopped; enable it again manually."
-          }
-        }
-      }
-    },
-    "系统停用了事件 tap；映射已停止，请手动重新启用": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "系统停用了事件 tap；映射已停止，请手动重新启用"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The system disabled the event tap. Mapping stopped; enable it again manually."
-          }
-        }
-      }
-    },
-    "已应用曲线": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已应用曲线"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Curve applied"
-          }
-        }
-      }
-    },
-    "等待 proximity 识别设备": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "等待 proximity 识别设备"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Waiting for proximity metadata to identify the device"
-          }
-        }
-      }
-    },
-    "目标应用未知": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目标应用未知"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Target app unknown"
-          }
-        }
-      }
-    },
-    "设备或应用未启用配置 / 本笔透传": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "设备或应用未启用配置 / 本笔透传"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No enabled profile for this device or app / Passing through this stroke"
-          }
-        }
-      }
-    },
-    "暂停 / 禁用：缓存恢复原输入": {
-      "extractionState": "manual",
-      "comment": "Display translation of a stable diagnostic value. Do not translate the raw value stored in logs.",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停 / 禁用：缓存恢复原输入"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paused / Disabled: queued input restored"
-          }
-        }
-      }
     }
   },
   "version": "1.0"

@@ -91,8 +91,9 @@ PenActor 提供**简体中文（`zh-Hans`）**和**英文（`en`）**。
 更改首选语言后需要重新启动应用。
 
 `PenActor/Localizable.xcstrings` 是唯一的 Xcode String Catalog，负责 SwiftUI、AppKit、
-错误提示、帮助和无障碍文案及显示标签。既有开发语言为简体中文，因此中文短语继续作为源键，
-英文翻译保存在同一目录中。保持 `developmentRegion`、`knownRegions` 和目录源语言一致，
+错误提示、帮助和无障碍文案及显示标签。开发语言和源语言均为英文，源键使用可读的英文短语，
+简体中文译文保存在同一目录中。工程的 `developmentRegion` 与目录的 `sourceLanguage`
+均为 `en`，`knownRegions` 包含 `en` 和 `zh-Hans`。英文是开发语言回退值。保持这些设置一致，
 并将目录加入应用资源编译阶段。本项目没有 storyboard，也没有独立的 Interface Builder 翻译目录。
 
 与 Mos 一样，功能开发时同步维护翻译。Mos 最低支持 macOS 10.13，而 PenActor 最低支持
@@ -100,11 +101,11 @@ macOS 14，因此可使用 `String(localized:comment:)`。
 字符串保存到模型属性，或传给接收 `String` 的辅助函数时，优先显式本地化：
 
 ```swift
-let title = String(localized: "压力曲线", comment: "Pressure response editor title")
+let title = String(localized: "Pressure curve", comment: "Pressure response editor title")
 Text(title)
 
 // Translate the complete sentence, keeping values as typed interpolations.
-let name = String(localized: "配置 \(profileNumber)", comment: "New profile name")
+let name = String(localized: "Profile \(profileNumber)", comment: "New profile name")
 ```
 
 SwiftUI 中的直接字面量也可以被提取，但普通 `String` 变量、三元表达式和自定义辅助函数参数
@@ -113,8 +114,9 @@ SwiftUI 中的直接字面量也可以被提取，但普通 `String` 变量、�
 
 ### 新增与审阅文案
 
-1. 添加源短语，并为有歧义的术语或动态参数提供有用的译者注释。仅在含义相同时复用源键。
-2. 在 Xcode 中构建以提取字符串，然后补全翻译目录中的**两种**语言。
+1. 添加可读的英文源短语，并为有歧义的术语或动态参数提供有用的译者注释。仅在含义相同时复用源键。
+2. 在 Xcode 中构建以提取字符串，然后补全翻译目录中的**两种**语言，英文值必须与源键一致。
+   不要使用中文短语作为本地化键，也不要为创建英文键而改写稳定数据值。
    保留 `%@`、`%lld`、`%llu` 和 `%d` 等参数类型；翻译需要调整顺序时，使用位置占位符。
 3. 保留专有名称（`PenActor`、`Sidecar`、`Apple Pencil`、`SwiftUI`）和快捷键符号。
    统一使用 Input Monitoring / 输入监控、Accessibility / 辅助功能等 macOS 术语。
@@ -140,8 +142,9 @@ SwiftUI 中的直接字面量也可以被提取，但普通 `String` 变量、�
 `PenDeviceInfo.localizedToolType`。设备身份解析继续使用原始工具值。
 
 映射状态和诊断原因字符串同样原样保留在日志中；`localizedStatus` 和 `localizedReason`
-只在界面显示时翻译。它们的运行时查找键在翻译目录中手动维护，即使自动提取找不到动态引用，
-也要保留这些条目。不要在高频事件 tap 处理中执行本地化。
+只在界面显示时翻译：通过匹配旧原始值，调用使用英文源键的显式 `String(localized:)`。
+Xcode 可以正常提取这些显示键。不要将中文原始值作为本地化查找键。未知诊断值保持原样。
+不要在高频事件 tap 处理中执行本地化。
 导出的诊断值与日志解释性备注不属于需要翻译的用户界面。
 
 ### 验证命令
@@ -158,7 +161,7 @@ xcodebuild -project PenActor.xcodeproj -scheme PenActor \
   -derivedDataPath build/Localization -testLanguage zh-Hans -testRegion CN test
 ```
 
-校验器检查语言覆盖、翻译完成状态、过时条目和格式参数。
+校验器检查英文源语言及源键、源值一致性、语言覆盖、翻译完成状态、过时条目和格式参数。
 `LocalizationTests` 检查编译后的语言资源、格式化结果和稳定数据。
 既有渲染及窗口测试会按指定的测试语言运行。
 显示文案应与本地化后的预期值比较；持久化数据或诊断值的断言保持语言无关。

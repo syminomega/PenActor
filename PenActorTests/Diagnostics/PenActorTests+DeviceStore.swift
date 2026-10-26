@@ -38,7 +38,7 @@ extension PenActorTests {
         store.ingest(event(proximity: false, info: info()))
         XCTAssertEqual(store.selectedDevice?.proximity, false)
         XCTAssertEqual(store.selectedDevice?.lastSampleEvent?.sample?.pressure, 0.4)
-        XCTAssertEqual(store.selectedDevice?.status, String(localized: "已离开感应范围 · 显示历史读数"))
+        XCTAssertEqual(store.selectedDevice?.status, String(localized: "Out of range · Showing previous readings"))
     }
 
     func testReusedDeviceIDStartsNewSession() {
@@ -61,10 +61,10 @@ extension PenActorTests {
     }
 
     func testCapabilityUnknownAndNotDeclaredAreDistinct() {
-        XCTAssertEqual(PenCapability.rotation.support(mask: nil), String(localized: "支持情况未知"))
-        XCTAssertEqual(PenCapability.rotation.support(mask: 0), String(localized: "支持情况未知"))
-        XCTAssertEqual(PenCapability.rotation.support(mask: 0x0400), String(localized: "驱动未声明支持"))
-        XCTAssertEqual(PenCapability.rotation.support(mask: 0x2000), String(localized: "驱动声明支持"))
+        XCTAssertEqual(PenCapability.rotation.support(mask: nil), String(localized: "Support unknown"))
+        XCTAssertEqual(PenCapability.rotation.support(mask: 0), String(localized: "Support unknown"))
+        XCTAssertEqual(PenCapability.rotation.support(mask: 0x0400), String(localized: "Not declared by driver"))
+        XCTAssertEqual(PenCapability.rotation.support(mask: 0x2000), String(localized: "Declared by driver"))
     }
 
     func testHistoryAndEventBuffersAreBounded() {

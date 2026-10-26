@@ -67,9 +67,9 @@ final class PenMonitor: ObservableObject {
             profiles = try profileRepository.load()
             profileFileNeedsUpgrade = try profileRepository.needsUpgrade()
         }
-        catch { configurationPersistenceBlocked = true; profileError = String(localized: "配置读取失败，未覆盖原文件：\(error.localizedDescription)") }
+        catch { configurationPersistenceBlocked = true; profileError = String(localized: "Could not load profiles. The original file was preserved: \(error.localizedDescription)") }
         do { mappingDefaults = try self.defaultsRepository.load() }
-        catch { configurationPersistenceBlocked = true; profileError = String(localized: "默认设置读取失败，未覆盖原文件：\(error.localizedDescription)") }
+        catch { configurationPersistenceBlocked = true; profileError = String(localized: "Could not load defaults. The original file was preserved: \(error.localizedDescription)") }
         if !configurationPersistenceBlocked {
             let migrated = mappingDefaults.migrating(profiles)
             if profileFileNeedsUpgrade || migrated.defaults != mappingDefaults || migrated.profiles != profiles {
@@ -80,7 +80,7 @@ final class PenMonitor: ObservableObject {
                     mappingDefaults = migrated.defaults; profiles = migrated.profiles
                 } catch {
                     configurationPersistenceBlocked = true
-                    profileError = String(localized: "配置迁移未完成，已停止配置写入和映射，请检查原文件及 Backups：\(error.localizedDescription)")
+                    profileError = String(localized: "Configuration migration did not finish. Saving and mapping are blocked. Check the original files and Backups: \(error.localizedDescription)")
                 }
             }
         }
@@ -108,7 +108,7 @@ final class PenMonitor: ObservableObject {
             let foreground = NSWorkspace.shared.frontmostApplication
             guard let decoded = PenEventDecoder.decode(
                 event, source: source,
-                foregroundApp: foreground?.localizedName ?? String(localized: "未知"),
+                foregroundApp: foreground?.localizedName ?? String(localized: "Unknown"),
                 foregroundBundleID: foreground?.bundleIdentifier
             ) else { return }
             self.store.ingest(decoded)
@@ -198,8 +198,8 @@ final class PenMonitor: ObservableObject {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.json]
         panel.nameFieldStringValue = "PenActor-\(formatter.string(from: Date())).json"
-        panel.title = String(localized: "导出事件日志")
-        panel.message = String(localized: "保存点击导出时的全部设备最近 500 条事件快照；包含设备标识和应用上下文。")
+        panel.title = String(localized: "Export Event Log")
+        panel.message = String(localized: "Save a snapshot of the latest 500 events across all devices, captured when Export was clicked. Includes device IDs and app context.")
         isExporting = true
         let completion: (NSApplication.ModalResponse) -> Void = { [weak self] response in
             guard let self else { return }
@@ -259,7 +259,7 @@ final class PenMonitor: ObservableObject {
     func enableProfile(_ id: UUID) {
         refreshPermission()
         guard isRunning, let profile = profiles.first(where: { $0.id == id }), profile.isValid, !profile.effectiveTargetBundleIDs.isEmpty, !configurationPersistenceBlocked else { return }
-        guard accessibilityAccess else { profileError = String(localized: "请允许辅助功能权限，然后重新检查并启用。"); return }
+        guard accessibilityAccess else { profileError = String(localized: "Allow Accessibility access, then recheck and enable the profile."); return }
         enabledProfileIDs.subtract(profiles.filter { $0.device == profile.device }.map(\.id))
         enabledProfileIDs.insert(id)
         updateMappingSettings()
@@ -295,9 +295,9 @@ final class PenMonitor: ObservableObject {
         if !name.isEmpty { return name }
         if let observed = snapshot.devices.first(where: { $0.id == identity }) { return observed.title }
         switch identity.level {
-        case .model: return String(localized: "数位笔 · 型号归组")
-        case .uniqueTool, .serialNumber: return String(localized: "数位笔 · 已保存设备")
-        case .session: return String(localized: "数位笔 · 临时会话")
+        case .model: return String(localized: "Pen · Model group")
+        case .uniqueTool, .serialNumber: return String(localized: "Pen · Saved device")
+        case .session: return String(localized: "Pen · Temporary session")
         }
     }
 
@@ -313,7 +313,7 @@ final class PenMonitor: ObservableObject {
             try profileRepository.save(migrated.profiles)
             profiles = migrated.profiles; mappingDefaults = migrated.defaults
             profileError = nil; updateMappingSettings(); return true
-        } catch { profileError = String(localized: "保存配置失败：\(error.localizedDescription)"); return false }
+        } catch { profileError = String(localized: "Could not save configuration: \(error.localizedDescription)"); return false }
     }
 
     private func backupLegacyConfiguration() throws {
@@ -348,7 +348,7 @@ final class PenMonitor: ObservableObject {
     }
 
     private func openPrivacySettings(_ pane: PrivacySettingsPane) {
-        permissionError = privacySettings.open(pane) ? nil : String(localized: "无法打开系统设置，请手动前往「系统设置 → 隐私与安全性 → \(pane.title)」允许 PenActor。")
+        permissionError = privacySettings.open(pane) ? nil : String(localized: "Could not open System Settings. Go to System Settings → Privacy & Security → \(pane.title) and allow PenActor.")
     }
 
     func recheck() {

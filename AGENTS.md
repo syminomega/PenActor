@@ -20,7 +20,8 @@ package dependencies.
   review, move, or removal, read and apply
   `.agents/skills/bilingual-docs/SKILL.md` and update both languages together.
   Keep code comments and agent instructions in English. Localize all new user-facing copy
-  in `PenActor/Localizable.xcstrings` with complete `zh-Hans` and `en` translations.
+  with English source phrases in `PenActor/Localizable.xcstrings` (`sourceLanguage: en`),
+  complete Simplified Chinese (`zh-Hans`) translations, and matching English values.
   Follow the localization section in `docs/development.md`; keep stable data and
   user content separate from translated display labels.
 - Preserve persisted identities, preference keys, schema compatibility, event

@@ -3,7 +3,7 @@ import AppKit
 // System Settings deep links are best-effort; fall back to the privacy overview.
 enum PrivacySettingsPane {
     case inputMonitoring, accessibility
-    var title: String { self == .inputMonitoring ? String(localized: "输入监控") : String(localized: "辅助功能") }
+    var title: String { self == .inputMonitoring ? String(localized: "Input Monitoring") : String(localized: "Accessibility") }
     var url: URL {
         URL(string: "x-apple.systempreferences:com.apple.preference.security?" + (self == .inputMonitoring ? "Privacy_ListenEvent" : "Privacy_Accessibility"))!
     }

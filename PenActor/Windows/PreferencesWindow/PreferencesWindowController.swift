@@ -4,7 +4,7 @@ import QuartzCore
 
 enum PreferencesSection: Int, CaseIterable {
     case general, profiles, debug, testing
-    var title: String { [String(localized: "通用"), String(localized: "配置"), String(localized: "调试"), String(localized: "测试")][rawValue] }
+    var title: String { [String(localized: "General"), String(localized: "Profiles"), String(localized: "Debug"), String(localized: "Testing")][rawValue] }
     var defaultSize: NSSize {
         switch self {
         case .general: NSSize(width: 860, height: 410)
@@ -62,7 +62,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
         tabs.tabView.tabViewType = .noTabsNoBorder
         navigation.selectedSegment = activeSection.rawValue
         navigation.segmentStyle = .automatic
-        navigation.setAccessibilityLabel(String(localized: "设置页面"))
+        navigation.setAccessibilityLabel(String(localized: "Settings pages"))
         for section in PreferencesSection.allCases {
             navigation.setImage(NSImage(systemSymbolName: section.symbol, accessibilityDescription: section.title), forSegment: section.rawValue)
             navigation.setImageScaling(.scaleProportionallyDown, forSegment: section.rawValue)
@@ -82,7 +82,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
         }
         tabs.selectedTabViewItemIndex = PreferencesSection.profiles.rawValue
         let window = NSWindow(contentViewController: tabs)
-        window.title = String(localized: "PenActor 设置")
+        window.title = String(localized: "PenActor Settings")
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
         window.setContentSize(PreferencesSection.profiles.defaultSize)
         window.titleVisibility = .visible
@@ -123,7 +123,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
         // Keep LSUIElement for background launches, but expose Dock / Cmd-Tab while settings are open.
         setActivationPolicy(.regular)
         if let section { tabs.selectedTabViewItemIndex = section.rawValue }
-        window?.title = String(localized: "PenActor 设置")
+        window?.title = String(localized: "PenActor Settings")
         showWindow(nil)
         if window?.isMiniaturized == true { window?.deminiaturize(nil) }
         window?.makeKeyAndOrderFront(nil)
@@ -140,7 +140,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate, N
     func toolbar(_ toolbar: NSToolbar, itemForItemIdentifier itemIdentifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
         guard itemIdentifier == Self.navigationItem else { return nil }
         let item = NSToolbarItem(itemIdentifier: itemIdentifier)
-        item.label = String(localized: "设置页面"); item.view = navigation
+        item.label = String(localized: "Settings pages"); item.view = navigation
         return item
     }
 
